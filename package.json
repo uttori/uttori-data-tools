@@ -1,11 +1,14 @@
 {
-  "name": "uttori-data-tools",
+  "name": "@uttori/data-tools",
   "version": "1.0.0",
   "description": "Tools for working with binary data.",
   "author": "Matthew Callis <matthew.callis@gmail.com>",
   "contributors": [],
   "license": "MIT",
-  "repository": "uttori/uttori-data-tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uttori/uttori-data-tools.git"
+  },
   "homepage": "https://github.com/uttori/uttori-data-tools",
   "keywords": [
     "uttori"
@@ -37,6 +40,7 @@
     "eslint-plugin-xss": "^0.1.10",
     "jsdoc-to-markdown": "^6.0.1",
     "nyc": "^15.1.0",
+    "release-it": "^13.6.3",
     "sinon": "^9.0.2"
   },
   "files": [
@@ -64,13 +68,25 @@
     ],
     "exclude": []
   },
+  "release-it": {
+    "github": {
+      "release": true
+    }
+  },
   "scripts": {
     "docs": " jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
+    "release": "release-it",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial",
     "validate": "npm ls"
+  },
+  "bugs": {
+    "url": "https://github.com/uttori/uttori-data-tools/issues"
+  },
+  "directories": {
+    "test": "test"
   }
 }
