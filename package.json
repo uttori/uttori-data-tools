@@ -92,5 +92,9 @@
   },
   "directories": {
     "test": "test"
-  }
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ]
 }
