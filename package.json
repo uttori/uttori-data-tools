@@ -80,7 +80,7 @@
     "docs": " jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
-    "make-types": "jsdoc -t node_modules/tsd-jsdoc/dist -r ./src --destination ./index.d.ts",
+    "make-types": "jsdoc -t node_modules/tsd-jsdoc/dist -r ./src --destination ./; mv types.d.ts index.d.ts",
     "release": "release-it",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava",
