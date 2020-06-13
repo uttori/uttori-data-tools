@@ -1,5 +1,6 @@
 /* eslint-disable no-bitwise */
 const debug = require('debug')('Uttori.Utilities.DataBitstream');
+const DataStream = require('./data-stream');
 
 /**
  * Read a DataStream as a stream of bits.

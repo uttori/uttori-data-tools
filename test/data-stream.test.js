@@ -1003,7 +1003,7 @@ test('decodeString invalid utf8-sequence', (t) => {
   t.is(error.message, 'Invalid utf16 sequence.');
 });
 
-test('read: can read files of any size', async (t) => {
+test('read: can read files of any size', (t) => {
   const data = Buffer.from([...new Array(1000).keys()]);
   const buffer = new DataBuffer(data);
   const list = new DataBufferList();
@@ -1013,7 +1013,7 @@ test('read: can read files of any size', async (t) => {
   t.is(out.length, 71);
 });
 
-test('peek: can peek files of any size', async (t) => {
+test('peek: can peek files of any size', (t) => {
   const data = Buffer.from([...new Array(1000).keys()]);
   const buffer = new DataBuffer(data);
   const list = new DataBufferList();
