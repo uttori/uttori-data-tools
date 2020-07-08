@@ -15,6 +15,18 @@
 declare class DataBitstream {
     constructor(stream: DataStream);
     /**
+     * Creates a new DataBitstream from file data.
+     * @param data - The data of the image to process.
+     * @returns the new DataBitstream instance for the provided file data
+     */
+    static fromData(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
+    /**
+     * Creates a new DataBitstream from an array of bytes.
+     * @param bytes - The data to read as a bitstream.
+     * @returns the new DataBitstream instance for the provided bytes
+     */
+    static fromBytes(bytes: number[]): DataBitstream;
+    /**
      * Creates a copy of the DataBitstream.
      * @returns - The copied DataBufferList
      */
@@ -52,7 +64,7 @@ declare class DataBitstream {
     /**
      * Read the specified number of bits.
      * @param bits - The number of bits to be read
-     * @param [signed] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
+     * @param [signed = false] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
      * @param [advance = true] - If true, advance the bit position.
      * @returns The value read in from the stream
      */
@@ -173,7 +185,7 @@ declare class DataBufferList {
  * @param input - The DataStream to process
  */
 declare class DataBuffer {
-    constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | Uint8Array | Uint32Array);
+    constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
     /**
      * Creates an instance of DataBuffer with given size.
      * @param size - The size of the requested DataBuffer
@@ -386,85 +398,85 @@ declare class DataStream {
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int8 value at the current offset
      */
     peekUInt16(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int16 value at the current offset
      */
     readInt16(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int16 value at the current offset
      */
     peekInt16(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The UInt24 value at the current offset
      */
     readUInt24(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The UInt24 value at the current offset
      */
     peekUInt24(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int24 value at the current offset
      */
     readInt24(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int24 value at the current offset
      */
     peekInt24(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The UInt32 value at the current offset
      */
     readUInt32(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The UInt32 value at the current offset
      */
     peekUInt32(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int32 value at the current offset
      */
     readInt32(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Int32 value at the current offset
      */
     peekInt32(offset?: number, littleEndian?: boolean): any;
     /**
      * Read from the current offset and return the value.
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Float32 value at the current offset
      */
     readFloat32(littleEndian?: boolean): any;
     /**
      * Read from the specified offset without advancing the offsets and return the value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Float32 value at the current offset
      */
     peekFloat32(offset?: number, littleEndian?: boolean): any;
@@ -505,7 +517,7 @@ declare class DataStream {
     /**
      * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
      * @param [offset = 0] - The offset to read from
-     * @param [littleEndian] - Read in Little Endian format
+     * @param [littleEndian = false] - Read in Little Endian format
      * @returns - The Float80 value at the current offset
      */
     peekFloat80(offset?: number, littleEndian?: boolean): any;

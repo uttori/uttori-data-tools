@@ -1,6 +1,8 @@
 /* eslint-disable no-bitwise */
 const debug = require('debug')('Uttori.Utilities.DataBitstream');
 const DataStream = require('./data-stream');
+const DataBuffer = require('./data-buffer');
+const DataBufferList = require('./data-buffer-list');
 
 /**
  * Read a DataStream as a stream of bits.
@@ -26,6 +28,33 @@ class DataBitstream {
     debug('constructor');
     this.stream = stream;
     this.bitPosition = 0;
+  }
+
+  /**
+   * Creates a new DataBitstream from file data.
+   *
+   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data - The data of the image to process.
+   * @returns {DataBitstream} the new DataBitstream instance for the provided file data
+   * @static
+   */
+  static fromData(data) {
+    const buffer = new DataBuffer(data);
+    const list = new DataBufferList();
+    list.append(buffer);
+    const stream = new DataStream(list, { size: buffer.length });
+    return new DataBitstream(stream);
+  }
+
+  /**
+   * Creates a new DataBitstream from an array of bytes.
+   *
+   * @param {number[]} bytes - The data to read as a bitstream.
+   * @returns {DataBitstream} the new DataBitstream instance for the provided bytes
+   * @static
+   */
+  static fromBytes(bytes) {
+    const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array(bytes)));
+    return new DataBitstream(stream);
   }
 
   /**
@@ -115,11 +144,11 @@ class DataBitstream {
    * Read the specified number of bits.
    *
    * @param {number} bits - The number of bits to be read
-   * @param {boolean} [signed] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
+   * @param {boolean} [signed=false] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
    * @param {boolean} [advance=true] - If true, advance the bit position.
    * @returns {number} The value read in from the stream
    */
-  read(bits, signed, advance = true) {
+  read(bits, signed = false, advance = true) {
     debug('read:', bits, signed, advance);
     if (bits === 0) {
       return 0;

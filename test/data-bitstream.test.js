@@ -1,10 +1,15 @@
 const test = require('ava');
-const { DataBitstream, DataBuffer, DataStream } = require('../src');
+const { DataBitstream } = require('../src');
 
-const makeDataBitstream = (bytes) => {
-  const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array(bytes)));
-  return new DataBitstream(stream);
-};
+const makeDataBitstream = (bytes) => DataBitstream.fromBytes(bytes);
+
+test('fromData / fromBytes', (t) => {
+  const bitstream = makeDataBitstream([10, 160]);
+  const copy = DataBitstream.fromData(new Uint8Array([10, 160]));
+
+  t.not(copy, bitstream);
+  t.deepEqual(copy, bitstream);
+});
 
 test('copy', (t) => {
   const bitstream = makeDataBitstream([10, 160]);

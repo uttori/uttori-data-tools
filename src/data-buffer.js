@@ -22,7 +22,7 @@ class DataBuffer {
 /**
  * Creates an instance of DataBitstream.
  *
- * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|Uint8Array|Uint32Array} input - The DataStream to process
+ * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input - The DataStream to process
  */
   constructor(input) {
     if (!input) {
