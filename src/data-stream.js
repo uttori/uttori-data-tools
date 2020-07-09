@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/explicit-length-check */
 /* eslint-disable no-bitwise */
 const debug = require('debug')('Uttori.Utilities.DataStream');
 const DataBuffer = require('./data-buffer');
@@ -146,6 +147,33 @@ class DataStream {
   }
 
   /**
+   * Compares input data against the upcoming data, byte by byte.
+   *
+   * @param {number[] | Buffer} input - The data to check for in upcoming bytes.
+   * @returns {boolean} - True if the data is the upcoming data, false is not
+   * @throws {UnderflowError} Insufficient Bytes in the stream
+   */
+  next(input) {
+    if (!input || !input.length || input.length === 0) {
+      debug('next: no input provided');
+      return false;
+    }
+    if (!this.available(input.length)) {
+      throw new UnderflowError(`Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+    }
+
+    for (let i = 0; i < input.length; i++) {
+      const data = this.peekUInt8(this.offset + i);
+      if (input[i] !== data) {
+        debug('next: first failed match at', i, ', where:', input[i], '!==', data);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Create a copy of the current DataStream and offset.
    *
    * @returns {DataStream} - A new copy of the DataStream
@@ -177,13 +205,14 @@ class DataStream {
   }
 
   /**
-   * Advance the stream by a given number of bytes.
+   * Advance the stream by a given number of bytes. Useful for skipping unused bytes.
    *
    * @param {number} bytes - The number of bytes to advance
    * @returns {DataStream} - The current DataStream
    * @throws {UnderflowError} Insufficient Bytes in the stream
    */
   advance(bytes) {
+    debug('advance:', bytes);
     if (!this.available(bytes)) {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} <= ${this.remainingBytes()}`);
     }

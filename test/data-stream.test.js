@@ -1022,3 +1022,23 @@ test('peek: can peek files of any size', (t) => {
   const out = stream.peek(78);
   t.is(out.length, 78);
 });
+
+test('next: can compare against upcoming data', (t) => {
+  const stream = makeStream([10, 160], [20, 29, 119]);
+
+  t.is(false, stream.next());
+  t.is(false, stream.next(null));
+  t.is(false, stream.next(undefined));
+  t.is(false, stream.next({}));
+  t.is(false, stream.next([]));
+  t.is(false, stream.next([11]));
+
+  t.is(true, stream.next([10]));
+  t.is(true, stream.next([10, 160]));
+  t.is(true, stream.next([10, 160, 20]));
+  t.is(true, stream.next([10, 160, 20, 29]));
+  t.is(true, stream.next([10, 160, 20, 29, 119]));
+  t.throws(() => {
+    stream.next([10, 160, 20, 29, 119, 255]);
+  }, { message: 'Insufficient Bytes: 6 <= 5' });
+});
