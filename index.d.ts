@@ -319,6 +319,12 @@ declare class DataStream {
      */
     compare(input: DataStream, offset?: number): boolean;
     /**
+     * Compares input data against the upcoming data, byte by byte.
+     * @param input - The data to check for in upcoming bytes.
+     * @returns - True if the data is the upcoming data, false is not
+     */
+    next(input: number[] | Buffer): boolean;
+    /**
      * Create a copy of the current DataStream and offset.
      * @returns - A new copy of the DataStream
      */
@@ -335,7 +341,7 @@ declare class DataStream {
      */
     remainingBytes(): number;
     /**
-     * Advance the stream by a given number of bytes.
+     * Advance the stream by a given number of bytes. Useful for skipping unused bytes.
      * @param bytes - The number of bytes to advance
      * @returns - The current DataStream
      */
