@@ -72,6 +72,7 @@ Helpter class to ease working with binary files.
         * [.readUInt8()](#DataStream+readUInt8) ⇒ <code>\*</code>
         * [.peekUInt8([offset])](#DataStream+peekUInt8) ⇒ <code>\*</code>
         * [.read(bytes, [littleEndian])](#DataStream+read) ⇒ <code>\*</code>
+        * [.peekBit(position, [length], [offset])](#DataStream+peekBit) ⇒ <code>number</code>
         * [.peek(bytes, [offset], [littleEndian])](#DataStream+peek) ⇒ <code>\*</code>
         * [.readInt8()](#DataStream+readInt8) ⇒ <code>\*</code>
         * [.peekInt8([offset])](#DataStream+peekInt8) ⇒ <code>\*</code>
@@ -262,10 +263,24 @@ Read from the current offset and return the value.
 | bytes | <code>number</code> |  | The number of bytes to read |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
 
+<a name="DataStream+peekBit"></a>
+
+### dataStream.peekBit(position, [length], [offset]) ⇒ <code>number</code>
+Read the bits from the bytes from the provided offset and return the value.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
+**Returns**: <code>number</code> - - The value at the current offset  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| position | <code>number</code> |  | The bit position to read, 0 to 7 |
+| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8 |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
+
 <a name="DataStream+peek"></a>
 
 ### dataStream.peek(bytes, [offset], [littleEndian]) ⇒ <code>\*</code>
-Read from the current offset and return the value.
+Read from the provided offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: <code>\*</code> - - The UInt8 value at the current offset  

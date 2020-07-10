@@ -1043,3 +1043,77 @@ test('next: can compare against upcoming data', (t) => {
   });
   t.is(false, stream.next([10, 160, 20, 29, 119, 255]));
 });
+
+test('peekBit: can peek the bits at a given offset', (t) => {
+  let stream = makeStream([255]); // 11111111
+
+  t.is(1, stream.peekBit(0, 1, 0));
+  t.is(3, stream.peekBit(0, 2, 0));
+  t.is(7, stream.peekBit(0, 3, 0));
+  t.is(15, stream.peekBit(0, 4, 0));
+  t.is(31, stream.peekBit(0, 5, 0));
+  t.is(63, stream.peekBit(0, 6, 0));
+  t.is(127, stream.peekBit(0, 7, 0));
+  t.is(255, stream.peekBit(0, 8, 0));
+
+  stream = makeStream([170]); // 10101010
+
+  t.is(1, stream.peekBit(0));
+  t.is(2, stream.peekBit(0, 2, 0));
+  t.is(5, stream.peekBit(0, 3, 0));
+  t.is(10, stream.peekBit(0, 4, 0));
+  t.is(21, stream.peekBit(0, 5, 0));
+  t.is(42, stream.peekBit(0, 6, 0));
+  t.is(85, stream.peekBit(0, 7, 0));
+  t.is(170, stream.peekBit(0, 8, 0));
+
+  t.is(1, stream.peekBit(0, 1));
+  t.is(0, stream.peekBit(1, 1, 0));
+  t.is(1, stream.peekBit(2, 1, 0));
+  t.is(0, stream.peekBit(3, 1, 0));
+  t.is(1, stream.peekBit(4, 1, 0));
+  t.is(0, stream.peekBit(5, 1, 0));
+  t.is(1, stream.peekBit(6, 1, 0));
+  t.is(0, stream.peekBit(7, 1, 0));
+
+  t.throws(() => {
+    stream.peekBit(undefined, 1, 0);
+  }, { message: 'peekBit position is invalid: undefined, must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit(null, 1, 0);
+  }, { message: 'peekBit position is invalid: null, must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit({}, 1, 0);
+  }, { message: 'peekBit position is invalid: [object Object], must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit([], 1, 0);
+  }, { message: 'peekBit position is invalid: , must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit(Number.NaN, 1, 0);
+  }, { message: 'peekBit position is invalid: NaN, must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit(8, 1, 0);
+  }, { message: 'peekBit position is invalid: 8, must be between 0 and 7' });
+  t.throws(() => {
+    stream.peekBit(-1, 1, 0);
+  }, { message: 'peekBit position is invalid: -1, must be between 0 and 7' });
+
+  t.throws(() => {
+    stream.peekBit(0, null, 0);
+  }, { message: 'peekBit length is invalid: null, must be between 1 and 8' });
+  t.throws(() => {
+    stream.peekBit(0, {}, 10);
+  }, { message: 'peekBit length is invalid: [object Object], must be between 1 and 8' });
+  t.throws(() => {
+    stream.peekBit(0, [], 10);
+  }, { message: 'peekBit length is invalid: , must be between 1 and 8' });
+  t.throws(() => {
+    stream.peekBit(0, Number.NaN, 0);
+  }, { message: 'peekBit length is invalid: NaN, must be between 1 and 8' });
+  t.throws(() => {
+    stream.peekBit(0, 9, 0);
+  }, { message: 'peekBit length is invalid: 9, must be between 1 and 8' });
+  t.throws(() => {
+    stream.peekBit(0, 0, 0);
+  }, { message: 'peekBit length is invalid: 0, must be between 1 and 8' });
+});

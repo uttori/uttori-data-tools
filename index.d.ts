@@ -377,7 +377,15 @@ declare class DataStream {
      */
     read(bytes: number, littleEndian?: boolean): any;
     /**
-     * Read from the current offset and return the value.
+     * Read the bits from the bytes from the provided offset and return the value.
+     * @param position - The bit position to read, 0 to 7
+     * @param [length = 1] - The number of bits to read, 1 to 8
+     * @param [offset = 0] - The offset to read from
+     * @returns - The value at the provided bit position of a provided length at the provided offset
+     */
+    peekBit(position: number, length?: number, offset?: number): number;
+    /**
+     * Read from the provided offset and return the value.
      * @param bytes - The number of bytes to read
      * @param [offset = 0] - The offset to read from
      * @param [littleEndian = false] - Read in Little Endian format

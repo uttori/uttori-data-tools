@@ -349,7 +349,27 @@ class DataStream {
   }
 
   /**
-   * Read from the current offset and return the value.
+   * Read the bits from the bytes from the provided offset and return the value.
+   *
+   * @param {number} position - The bit position to read, 0 to 7
+   * @param {number} [length=1] - The number of bits to read, 1 to 8
+   * @param {number} [offset=0] - The offset to read from
+   * @returns {number} - The value at the provided bit position of a provided length at the provided offset
+   */
+  peekBit(position, length = 1, offset = 0) {
+    // debug('peekBit:', position, length, offset);
+    if (Number.isNaN(position) || !Number.isInteger(position) || position < 0 || position > 7) {
+      throw new Error(`peekBit position is invalid: ${position}, must be between 0 and 7`);
+    }
+    if (Number.isNaN(length) || !Number.isInteger(length) || length < 1 || length > 8) {
+      throw new Error(`peekBit length is invalid: ${length}, must be between 1 and 8`);
+    }
+    const value = this.peekUInt8(offset);
+    return ((value << position) & 0xFF) >>> (8 - length);
+  }
+
+  /**
+   * Read from the provided offset and return the value.
    *
    * @param {number} bytes - The number of bytes to read
    * @param {number} [offset=0] - The offset to read from
