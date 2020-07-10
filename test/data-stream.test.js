@@ -1038,7 +1038,8 @@ test('next: can compare against upcoming data', (t) => {
   t.is(true, stream.next([10, 160, 20]));
   t.is(true, stream.next([10, 160, 20, 29]));
   t.is(true, stream.next([10, 160, 20, 29, 119]));
-  t.throws(() => {
+  t.notThrows(() => {
     stream.next([10, 160, 20, 29, 119, 255]);
-  }, { message: 'Insufficient Bytes: 6 <= 5' });
+  });
+  t.is(false, stream.next([10, 160, 20, 29, 119, 255]));
 });

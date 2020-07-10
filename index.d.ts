@@ -321,7 +321,7 @@ declare class DataStream {
     /**
      * Compares input data against the upcoming data, byte by byte.
      * @param input - The data to check for in upcoming bytes.
-     * @returns - True if the data is the upcoming data, false is not
+     * @returns - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining
      */
     next(input: number[] | Buffer): boolean;
     /**

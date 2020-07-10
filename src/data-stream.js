@@ -150,7 +150,7 @@ class DataStream {
    * Compares input data against the upcoming data, byte by byte.
    *
    * @param {number[] | Buffer} input - The data to check for in upcoming bytes.
-   * @returns {boolean} - True if the data is the upcoming data, false is not
+   * @returns {boolean} - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining
    * @throws {UnderflowError} Insufficient Bytes in the stream
    */
   next(input) {
@@ -159,7 +159,8 @@ class DataStream {
       return false;
     }
     if (!this.available(input.length)) {
-      throw new UnderflowError(`Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+      debug(`Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+      return false;
     }
 
     for (let i = 0; i < input.length; i++) {
