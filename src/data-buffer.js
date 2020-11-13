@@ -45,12 +45,12 @@ class DataBuffer {
     } else if (typeof input === 'number') {
       debug('constructor: Number (i.e. length)');
       this.data = new Uint8Array(input);
-    } else if (input.buffer instanceof ArrayBuffer) {
-      debug('constructor: from typed arrays other than Uint8Array');
-      this.data = new Uint8Array(input.buffer, input.byteOffset, input.length * input.BYTES_PER_ELEMENT);
     } else if (input instanceof DataBuffer) {
       debug('constructor: from DataBuffer, a shallow copy');
       this.data = input.data;
+    } else if (input.buffer instanceof ArrayBuffer) {
+      debug('constructor: from typed arrays other than Uint8Array');
+      this.data = new Uint8Array(input.buffer, input.byteOffset, input.length * input.BYTES_PER_ELEMENT);
     } else {
       const error = `Unknown type of input for DataBuffer: ${typeof input}`;
       debug(error);

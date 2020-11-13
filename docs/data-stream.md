@@ -65,6 +65,7 @@ Helpter class to ease working with binary files.
         * [.next(input)](#DataStream+next) ⇒ <code>boolean</code>
         * [.copy()](#DataStream+copy) ⇒ [<code>DataStream</code>](#DataStream)
         * [.available(bytes)](#DataStream+available) ⇒ <code>boolean</code>
+        * [.availableAt(bytes, offset)](#DataStream+availableAt) ⇒ <code>boolean</code>
         * [.remainingBytes()](#DataStream+remainingBytes) ⇒ <code>number</code>
         * [.advance(bytes)](#DataStream+advance) ⇒ [<code>DataStream</code>](#DataStream)
         * [.rewind(bytes)](#DataStream+rewind) ⇒ [<code>DataStream</code>](#DataStream)
@@ -72,8 +73,8 @@ Helpter class to ease working with binary files.
         * [.readUInt8()](#DataStream+readUInt8) ⇒ <code>\*</code>
         * [.peekUInt8([offset])](#DataStream+peekUInt8) ⇒ <code>\*</code>
         * [.read(bytes, [littleEndian])](#DataStream+read) ⇒ <code>\*</code>
-        * [.peekBit(position, [length], [offset])](#DataStream+peekBit) ⇒ <code>number</code>
         * [.peek(bytes, [offset], [littleEndian])](#DataStream+peek) ⇒ <code>\*</code>
+        * [.peekBit(position, [length], [offset])](#DataStream+peekBit) ⇒ <code>number</code>
         * [.readInt8()](#DataStream+readInt8) ⇒ <code>\*</code>
         * [.peekInt8([offset])](#DataStream+peekInt8) ⇒ <code>\*</code>
         * [.readUInt16([littleEndian])](#DataStream+readUInt16) ⇒ <code>\*</code>
@@ -97,11 +98,11 @@ Helpter class to ease working with binary files.
         * [.readFloat80([littleEndian])](#DataStream+readFloat80) ⇒ <code>\*</code>
         * [.peekFloat80([offset], [littleEndian])](#DataStream+peekFloat80) ⇒ <code>\*</code>
         * [.readBuffer(length)](#DataStream+readBuffer) ⇒ <code>DataBuffer</code>
-        * [.peekBuffer([offset], length)](#DataStream+peekBuffer) ⇒ <code>DataBuffer</code>
+        * [.peekBuffer(offset, length)](#DataStream+peekBuffer) ⇒ <code>DataBuffer</code>
         * [.readSingleBuffer(length)](#DataStream+readSingleBuffer) ⇒ <code>DataBuffer</code>
-        * [.peekSingleBuffer([offset], length)](#DataStream+peekSingleBuffer) ⇒ <code>DataBuffer</code>
+        * [.peekSingleBuffer(offset, length)](#DataStream+peekSingleBuffer) ⇒ <code>DataBuffer</code>
         * [.readString(length, [encoding])](#DataStream+readString) ⇒ <code>string</code>
-        * [.peekString([offset], length, [encoding])](#DataStream+peekString) ⇒ <code>string</code>
+        * [.peekString(offset, length, [encoding])](#DataStream+peekString) ⇒ <code>string</code>
         * [.float48()](#DataStream+float48) ⇒ <code>number</code>
         * [.float80()](#DataStream+float80) ⇒ <code>number</code> ℗
         * [.decodeString(offset, length, encoding, advance)](#DataStream+decodeString) ⇒ <code>string</code> ℗
@@ -144,10 +145,6 @@ Compares input data against the upcoming data, byte by byte.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: <code>boolean</code> - - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining  
-**Throws**:
-
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream
-
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -171,6 +168,19 @@ Checks if a given number of bytes are avaliable in the stream.
 | Param | Type | Description |
 | --- | --- | --- |
 | bytes | <code>number</code> | The number of bytes to check for |
+
+<a name="DataStream+availableAt"></a>
+
+### dataStream.availableAt(bytes, offset) ⇒ <code>boolean</code>
+Checks if a given number of bytes are avaliable after a given offset in the stream.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
+**Returns**: <code>boolean</code> - - True if there are the requested amount, or more, of bytes left in the stream  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| bytes | <code>number</code> | The number of bytes to check for |
+| offset | <code>number</code> | The offset to start from |
 
 <a name="DataStream+remainingBytes"></a>
 
@@ -263,20 +273,6 @@ Read from the current offset and return the value.
 | bytes | <code>number</code> |  | The number of bytes to read |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
 
-<a name="DataStream+peekBit"></a>
-
-### dataStream.peekBit(position, [length], [offset]) ⇒ <code>number</code>
-Read the bits from the bytes from the provided offset and return the value.
-
-**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The value at the current offset  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| position | <code>number</code> |  | The bit position to read, 0 to 7 |
-| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8 |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-
 <a name="DataStream+peek"></a>
 
 ### dataStream.peek(bytes, [offset], [littleEndian]) ⇒ <code>\*</code>
@@ -290,6 +286,20 @@ Read from the provided offset and return the value.
 | bytes | <code>number</code> |  | The number of bytes to read |
 | [offset] | <code>number</code> | <code>0</code> | The offset to read from |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+
+<a name="DataStream+peekBit"></a>
+
+### dataStream.peekBit(position, [length], [offset]) ⇒ <code>number</code>
+Read the bits from the bytes from the provided offset and return the value.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
+**Returns**: <code>number</code> - - The value at the provided bit position of a provided length at the provided offset  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| position | <code>number</code> |  | The bit position to read, 0 to 7 |
+| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8 |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
 
 <a name="DataStream+readInt8"></a>
 
@@ -576,16 +586,16 @@ Read from the current offset and return the value as a DataBuffer.
 
 <a name="DataStream+peekBuffer"></a>
 
-### dataStream.peekBuffer([offset], length) ⇒ <code>DataBuffer</code>
+### dataStream.peekBuffer(offset, length) ⇒ <code>DataBuffer</code>
 Read from the specified offset and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| length | <code>number</code> |  | The number of bytes to read |
+| Param | Type | Description |
+| --- | --- | --- |
+| offset | <code>number</code> | The offset to read from |
+| length | <code>number</code> | The number of bytes to read |
 
 <a name="DataStream+readSingleBuffer"></a>
 
@@ -601,16 +611,16 @@ Read from the current offset of the current buffer for a given length and return
 
 <a name="DataStream+peekSingleBuffer"></a>
 
-### dataStream.peekSingleBuffer([offset], length) ⇒ <code>DataBuffer</code>
+### dataStream.peekSingleBuffer(offset, length) ⇒ <code>DataBuffer</code>
 Read from the specified offset of the current buffer for a given length and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| length | <code>number</code> |  | The number of bytes to read |
+| Param | Type | Description |
+| --- | --- | --- |
+| offset | <code>number</code> | The offset to read from |
+| length | <code>number</code> | The number of bytes to read |
 
 <a name="DataStream+readString"></a>
 
@@ -627,7 +637,7 @@ Read from the current offset for a given length and return the value as a string
 
 <a name="DataStream+peekString"></a>
 
-### dataStream.peekString([offset], length, [encoding]) ⇒ <code>string</code>
+### dataStream.peekString(offset, length, [encoding]) ⇒ <code>string</code>
 Read from the specified offset for a given length and return the value as a string.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
@@ -635,7 +645,7 @@ Read from the specified offset for a given length and return the value as a stri
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
+| offset | <code>number</code> |  | The offset to read from |
 | length | <code>number</code> |  | The number of bytes to read |
 | [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string |
 
@@ -647,6 +657,9 @@ May be faulty with large numbers due to float percision.
 
 While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
 Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
+
+The Real48 type exists for backward compatibility with Turbo Pascal. It defines a 6-byte floating-point type.
+The Real48 type has an 8-bit exponent and a 39-bit normalized mantissa. It cannot store denormalized values, infinity, or not-a-number. If the exponent is zero, the number is zero.
 
 Structure (Bytes, Big Endian)
 5: SMMMMMMM 4: MMMMMMMM 3: MMMMMMMM 2: MMMMMMMM 1: MMMMMMMM 0: EEEEEEEE
@@ -685,7 +698,7 @@ Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, u
 | Param | Type | Description |
 | --- | --- | --- |
 | offset | <code>number</code> | The offset to read from |
-| length | <code>number</code> | The number of bytes to read |
+| length | <code>number</code> | The number of bytes to read, if not defined it is the remaining bytes in the buffer |
 | encoding | <code>string</code> | The encoding of the string |
 | advance | <code>boolean</code> | Flag to optionally advance the offsets |
 

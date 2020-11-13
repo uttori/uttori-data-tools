@@ -3,6 +3,8 @@ const { DataBitstream } = require('../src');
 
 const makeDataBitstream = (bytes) => DataBitstream.fromBytes(bytes);
 
+const tooLargeError = 'Too Large: 128 bits';
+
 test('fromData / fromBytes', (t) => {
   const bitstream = makeDataBitstream([10, 160]);
   const copy = DataBitstream.fromData(new Uint8Array([10, 160]));
@@ -35,16 +37,16 @@ test('available', (t) => {
 test('advance', (t) => {
   const bitstream = makeDataBitstream([10, 160]);
 
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.advance(2);
-  t.is(2, bitstream.bitPosition);
-  t.is(2, bitstream.offset());
+  t.is(bitstream.bitPosition, 2);
+  t.is(bitstream.offset(), 2);
 
   bitstream.advance(7);
-  t.is(1, bitstream.bitPosition);
-  t.is(9, bitstream.offset());
+  t.is(bitstream.bitPosition, 1);
+  t.is(bitstream.offset(), 9);
 
   t.throws(() => bitstream.advance(40), { message: 'Insufficient Bytes: 5 <= 1' });
 });
@@ -52,24 +54,24 @@ test('advance', (t) => {
 test('rewind', (t) => {
   const bitstream = makeDataBitstream([10, 160]);
 
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.advance(2);
-  t.is(2, bitstream.bitPosition);
-  t.is(2, bitstream.offset());
+  t.is(bitstream.bitPosition, 2);
+  t.is(bitstream.offset(), 2);
 
   bitstream.rewind(2);
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.advance(10);
-  t.is(2, bitstream.bitPosition);
-  t.is(10, bitstream.offset());
+  t.is(bitstream.bitPosition, 2);
+  t.is(bitstream.offset(), 10);
 
   bitstream.rewind(4);
-  t.is(6, bitstream.bitPosition);
-  t.is(6, bitstream.offset());
+  t.is(bitstream.bitPosition, 6);
+  t.is(bitstream.offset(), 6);
 
   t.throws(() => bitstream.rewind(10), { message: 'Insufficient Bytes: 1 > 0' });
 });
@@ -77,25 +79,25 @@ test('rewind', (t) => {
 test('seek', (t) => {
   const bitstream = makeDataBitstream([10, 160]);
 
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.seek(3);
-  t.is(3, bitstream.bitPosition);
-  t.is(3, bitstream.offset());
+  t.is(bitstream.bitPosition, 3);
+  t.is(bitstream.offset(), 3);
 
   bitstream.seek(10);
-  t.is(2, bitstream.bitPosition);
-  t.is(10, bitstream.offset());
+  t.is(bitstream.bitPosition, 2);
+  t.is(bitstream.offset(), 10);
 
   bitstream.seek(4);
-  t.is(4, bitstream.bitPosition);
-  t.is(4, bitstream.offset());
+  t.is(bitstream.bitPosition, 4);
+  t.is(bitstream.offset(), 4);
 
   // Test the no-op `offset === current_offset` else branch.
   bitstream.seek(4);
-  t.is(4, bitstream.bitPosition);
-  t.is(4, bitstream.offset());
+  t.is(bitstream.bitPosition, 4);
+  t.is(bitstream.offset(), 4);
 
   t.throws(() => bitstream.seek(100), { message: 'Insufficient Bytes: 12 <= 2' });
 
@@ -105,123 +107,137 @@ test('seek', (t) => {
 test('align', (t) => {
   const bitstream = makeDataBitstream([10, 160]);
 
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.align();
-  t.is(0, bitstream.bitPosition);
-  t.is(0, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  t.is(bitstream.offset(), 0);
 
   bitstream.seek(2);
   bitstream.align();
-  t.is(0, bitstream.bitPosition);
-  return t.is(8, bitstream.offset());
+  t.is(bitstream.bitPosition, 0);
+  return t.is(bitstream.offset(), 8);
 });
 
 test('read/peek unsigned', (t) => {
-  // 0101 1101 0110 1111 1010 1110 1100 1000 -> 0x5d6faec8
-  // 0111 0000 1001 1010 0010 0101 1111 0011 -> 0x709a25f3
+  // 0101 1101 0110 1111 1010 1110 1100 1000 -> 0x5D6FAEC8 -> 1567600328
+  // 0111 0000 1001 1010 0010 0101 1111 0011 -> 0x709A25F3 -> 1889150451
+  // 0101 1101 0110 1111 1010 1110 1100 1000 0111 0000 1001 1010 0010 0101 1111 0011 -> 0x5D6FAEC8709A25F3 -> 6732792143848023539
   let bitstream = makeDataBitstream([0x5D, 0x6F, 0xAE, 0xC8, 0x70, 0x9A, 0x25, 0xF3]);
 
-  t.is(0, bitstream.peek(0));
-  t.is(0, bitstream.read(0));
+  t.is(bitstream.peek(0), 0);
 
-  t.is(1, bitstream.peek(2));
-  t.is(1, bitstream.read(2));
+  // 0
+  t.is(bitstream.peek(1), 0);
+  // 01
+  t.is(bitstream.peek(2), 1);
+  // 010
+  t.is(bitstream.peek(3), 2);
+  // 0101
+  t.is(bitstream.peek(4), 5);
+  // 0101 1
+  t.is(bitstream.peek(5), 11);
+  // 0101 11
+  t.is(bitstream.peek(6), 23);
+  // 0101 110
+  t.is(bitstream.peek(7), 46);
+  // 0101 1101
+  t.is(bitstream.peek(8), 93);
+  // 0101 1101 0
+  t.is(bitstream.peek(9), 186);
+  // 0101 1101 01
+  t.is(bitstream.peek(10), 373);
+  // 0101 1101 011
+  t.is(bitstream.peek(11), 747);
+  // 0101 1101 0110
+  t.is(bitstream.peek(12), 1494);
+  // 0101 1101 0110 1111
+  t.is(bitstream.peek(16), 23919);
+  // 0101 1101 0110 1111 1010
+  t.is(bitstream.peek(20), 382714);
+  // 0101 1101 0110 1111 1010 1110
+  t.is(bitstream.peek(24), 6123438);
+  // 0101 1101 0110 1111 1010 1110 1100 100
+  t.is(bitstream.peek(31), 783800164);
+  // 0101 1101 0110 1111 1010 1110 1100 1000
+  t.is(bitstream.peek(32), 1567600328);
 
-  t.is(7, bitstream.peek(4));
-  t.is(7, bitstream.read(4));
-
-  t.is(0x16F, bitstream.peek(10));
-  t.is(0x16F, bitstream.read(10));
-
-  t.is(0xAEC8, bitstream.peek(16));
-  t.is(0xAEC8, bitstream.read(16));
-
-  t.is(0x709A25F3, bitstream.peek(32));
-  t.is(0x384D12F9, bitstream.peek(31));
-  t.is(0x384D12F9, bitstream.read(31));
-
-  t.is(1, bitstream.peek(1));
-  t.is(1, bitstream.read(1));
+  t.is(bitstream.read(0), 0);
+  t.is(bitstream.read(2), 1);
+  t.is(bitstream.read(4), 7);
+  t.is(bitstream.read(10), 367);
+  t.is(bitstream.read(16), 23919);
+  t.is(bitstream.read(31), 783800164);
+  t.is(bitstream.read(1), 1);
 
   bitstream = makeDataBitstream([0x5D, 0x6F, 0xAE, 0xC8, 0x70]);
-  t.is(0x5D6FAEC870, bitstream.peek(40));
-  t.is(0x5D6FAEC870, bitstream.read(40));
+  t.is(bitstream.peek(40), 0x5D6FAEC870);
+  t.is(bitstream.read(40), 0x5D6FAEC870);
 
   bitstream = makeDataBitstream([0x5D, 0x6F, 0xAE, 0xC8, 0x70]);
-  t.is(1, bitstream.read(2));
-  t.is(0xEB7D7643, bitstream.peek(33));
-  t.is(0xEB7D7643, bitstream.read(33));
+  t.is(bitstream.read(2), 1);
+  t.is(bitstream.peek(33), 0xEB7D7643);
+  t.is(bitstream.read(33), 0xEB7D7643);
 
   bitstream = makeDataBitstream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
-  t.is(0xF, bitstream.peek(4));
-  t.is(0xFF, bitstream.peek(8));
-  t.is(0xFFF, bitstream.peek(12));
-  t.is(0xFFFF, bitstream.peek(16));
-  t.is(0xFFFFF, bitstream.peek(20));
-  t.is(0xFFFFFF, bitstream.peek(24));
-  t.is(0xFFFFFFF, bitstream.peek(28));
-  t.is(0xFFFFFFFF, bitstream.peek(32));
-  t.is(0xFFFFFFFFF, bitstream.peek(36));
-  t.is(0xFFFFFFFFFF, bitstream.peek(40));
+  t.is(bitstream.peek(4), 0xF);
+  t.is(bitstream.peek(8), 0xFF);
+  t.is(bitstream.peek(12), 0xFFF);
+  t.is(bitstream.peek(16), 0xFFFF);
+  t.is(bitstream.peek(20), 0xFFFFF);
+  t.is(bitstream.peek(24), 0xFFFFFF);
+  t.is(bitstream.peek(28), 0xFFFFFFF);
+  t.is(bitstream.peek(32), 0xFFFFFFFF);
+  t.is(bitstream.peek(36), 0xFFFFFFFFF);
+  t.is(bitstream.peek(40), 0xFFFFFFFFFF);
 
-  t.throws(() => bitstream.read(128), { message: 'Too Large: 128 bits' });
+  t.throws(() => bitstream.read(128), { message: tooLargeError });
+
+  // 101010101010101010101010
+  bitstream = makeDataBitstream([0xAA, 0xAA, 0xAA]);
+  t.is(bitstream.read(8), 170);
+  t.is(bitstream.read(8), 170);
+  t.is(bitstream.read(8), 170);
+  t.throws(() => bitstream.read(8), { message: 'Insufficient Bytes: 0 + 1' });
 });
 
 test('read/peek signed', (t) => {
+  // 0101 1101 0110 1111 1010 1110 1100 1000 -> 0x5D6FAEC8 -> 1567600328
+  // 0111 0000 1001 1010 0010 0101 1111 0011 -> 0x709A25F3 -> 1889150451
   let bitstream = makeDataBitstream([0x5D, 0x6F, 0xAE, 0xC8, 0x70, 0x9A, 0x25, 0xF3]);
 
-  t.is(0, bitstream.peek(0));
-  t.is(0, bitstream.read(0));
-
-  t.is(5, bitstream.peek(4, true));
-  t.is(5, bitstream.read(4, true));
-
-  t.is(-3, bitstream.peek(4, true));
-  t.is(-3, bitstream.read(4, true));
-
-  t.is(6, bitstream.peek(4, true));
-  t.is(6, bitstream.read(4, true));
-
-  t.is(-1, bitstream.peek(4, true));
-  t.is(-1, bitstream.read(4, true));
-
-  t.is(-82, bitstream.peek(8, true));
-  t.is(-82, bitstream.read(8, true));
-
-  t.is(-889, bitstream.peek(12, true));
-  t.is(-889, bitstream.read(12, true));
-
-  t.is(9, bitstream.peek(8, true));
-  t.is(9, bitstream.read(8, true));
-
-  t.is(-191751, bitstream.peek(19, true));
-  t.is(-191751, bitstream.read(19, true));
-
-  t.is(-1, bitstream.peek(1, true));
-  t.is(-1, bitstream.read(1, true));
+  t.is(bitstream.read(0, true), 0);
+  t.is(bitstream.read(4, true), 5);
+  t.is(bitstream.read(4, true), -3);
+  t.is(bitstream.read(4, true), 5);
+  t.is(bitstream.read(4, true), -3);
+  t.is(bitstream.read(8, true), 93);
+  t.is(bitstream.read(12, true), 1494);
+  t.is(bitstream.read(8, true), -42);
+  t.is(bitstream.read(19, true), -84009);
+  t.is(bitstream.read(1, true), -1);
 
   bitstream = makeDataBitstream([0x5D, 0x6F, 0xAE, 0xC8, 0x70, 0x9A, 0x25, 0xF3]);
   bitstream.advance(1);
 
-  t.is(-9278133113, bitstream.peek(35, true));
-  t.is(-9278133113, bitstream.read(35, true));
+  t.is(bitstream.peek(35, true), -9278133113);
+  t.is(bitstream.read(35, true), -9278133113);
 
   bitstream = makeDataBitstream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
-  t.is(-1, bitstream.peek(4, true));
-  t.is(-1, bitstream.peek(8, true));
-  t.is(-1, bitstream.peek(12, true));
-  t.is(-1, bitstream.peek(16, true));
-  t.is(-1, bitstream.peek(20, true));
-  t.is(-1, bitstream.peek(24, true));
-  t.is(-1, bitstream.peek(28, true));
-  t.is(-1, bitstream.peek(31, true));
-  t.is(-1, bitstream.peek(32, true));
-  t.is(-1, bitstream.peek(36, true));
-  t.is(-1, bitstream.peek(40, true));
+  t.is(bitstream.peek(4, true), -1);
+  t.is(bitstream.peek(8, true), -1);
+  t.is(bitstream.peek(12, true), -1);
+  t.is(bitstream.peek(16, true), -1);
+  t.is(bitstream.peek(20, true), -1);
+  t.is(bitstream.peek(24, true), -1);
+  t.is(bitstream.peek(28, true), -1);
+  t.is(bitstream.peek(31, true), -1);
+  t.is(bitstream.peek(32, true), -1);
+  t.is(bitstream.peek(36, true), -1);
+  t.is(bitstream.peek(40, true), -1);
 
-  t.throws(() => bitstream.read(128), { message: 'Too Large: 128 bits' });
+  t.throws(() => bitstream.read(128), { message: tooLargeError });
 });
 
 test('readLSB unsigned', (t) => {
@@ -230,94 +246,94 @@ test('readLSB unsigned', (t) => {
   // { [1111] [1100] }{ [0000 1000] } -> 0xFC08
   let bitstream = makeDataBitstream([0xFC, 0x08]);
 
-  t.is(0, bitstream.peekLSB(0));
-  t.is(0, bitstream.readLSB(0));
+  t.is(bitstream.peekLSB(0), 0);
+  t.is(bitstream.readLSB(0), 0);
 
-  t.is(12, bitstream.peekLSB(4));
-  t.is(12, bitstream.readLSB(4));
+  t.is(bitstream.peekLSB(4), 12);
+  t.is(bitstream.readLSB(4), 12);
 
-  t.is(7, bitstream.peekLSB(3));
-  t.is(7, bitstream.readLSB(3));
+  t.is(bitstream.peekLSB(3), 7);
+  t.is(bitstream.readLSB(3), 7);
 
-  t.is(0x11, bitstream.peekLSB(9));
-  t.is(0x11, bitstream.readLSB(9));
+  t.is(bitstream.peekLSB(9), 0x11);
+  t.is(bitstream.readLSB(9), 0x11);
 
   //      4            3           2           1
   // [0111 0000] [1001 1010] [0010 0101] [1111 0011] -> 0x709a25f3
   bitstream = makeDataBitstream([0x70, 0x9A, 0x25, 0xF3]);
-  t.is(0xF3259A70, bitstream.peekLSB(32));
-  t.is(0x73259A70, bitstream.peekLSB(31));
-  t.is(0x73259A70, bitstream.readLSB(31));
+  t.is(bitstream.peekLSB(32), 0xF3259A70);
+  t.is(bitstream.peekLSB(31), 0x73259A70);
+  t.is(bitstream.readLSB(31), 0x73259A70);
 
-  t.is(1, bitstream.peekLSB(1));
-  t.is(1, bitstream.readLSB(1));
+  t.is(bitstream.peekLSB(1), 0);
+  t.is(bitstream.readLSB(1), 0);
 
   bitstream = makeDataBitstream([0xC8, 0x70, 0x9A, 0x25, 0xF3]);
-  t.is(0xF3259A70C8, bitstream.peekLSB(40));
-  t.is(0xF3259A70C8, bitstream.readLSB(40));
+  t.is(bitstream.peekLSB(40), 0xF3259A70C8);
+  t.is(bitstream.readLSB(40), 0xF3259A70C8);
 
   bitstream = makeDataBitstream([0x70, 0x9A, 0x25, 0xFF, 0xF3]);
-  t.is(0xF3FF259A70, bitstream.peekLSB(40));
-  t.is(0xF3FF259A70, bitstream.readLSB(40));
+  t.is(bitstream.peekLSB(40), 0xF3FF259A70);
+  t.is(bitstream.readLSB(40), 0xF3FF259A70);
 
   bitstream = makeDataBitstream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
-  t.is(0xF, bitstream.peekLSB(4));
-  t.is(0xFF, bitstream.peekLSB(8));
-  t.is(0xFFF, bitstream.peekLSB(12));
-  t.is(0xFFFF, bitstream.peekLSB(16));
-  t.is(0xFFFFF, bitstream.peekLSB(20));
-  t.is(0xFFFFFF, bitstream.peekLSB(24));
-  t.is(0xFFFFFFF, bitstream.peekLSB(28));
-  t.is(0xFFFFFFFF, bitstream.peekLSB(32));
-  t.is(0xFFFFFFFFF, bitstream.peekLSB(36));
-  t.is(0xFFFFFFFFFF, bitstream.peekLSB(40));
+  t.is(bitstream.peekLSB(4), 0xF);
+  t.is(bitstream.peekLSB(8), 0xFF);
+  t.is(bitstream.peekLSB(12), 0xFFF);
+  t.is(bitstream.peekLSB(16), 0xFFFF);
+  t.is(bitstream.peekLSB(20), 0xFFFFF);
+  t.is(bitstream.peekLSB(24), 0xFFFFFF);
+  t.is(bitstream.peekLSB(28), 0xFFFFFFF);
+  t.is(bitstream.peekLSB(32), 0xFFFFFFFF);
+  t.is(bitstream.peekLSB(36), 0xFFFFFFFFF);
+  t.is(bitstream.peekLSB(40), 0xFFFFFFFFFF);
 
-  t.throws(() => bitstream.readLSB(128), { message: 'Too Large: 128 bits' });
+  t.throws(() => bitstream.readLSB(128), { message: tooLargeError });
 });
 
 test('readLSB signed', (t) => {
   let bitstream = makeDataBitstream([0xFC, 0x08]);
 
-  t.is(0, bitstream.peekLSB(0));
-  t.is(0, bitstream.readLSB(0));
+  t.is(bitstream.peekLSB(0), 0);
+  t.is(bitstream.readLSB(0), 0);
 
-  t.is(-4, bitstream.peekLSB(4, true));
-  t.is(-4, bitstream.readLSB(4, true));
+  t.is(bitstream.peekLSB(4, true), -4);
+  t.is(bitstream.readLSB(4, true), -4);
 
-  t.is(-1, bitstream.peekLSB(3, true));
-  t.is(-1, bitstream.readLSB(3, true));
+  t.is(bitstream.peekLSB(3, true), -1);
+  t.is(bitstream.readLSB(3, true), -1);
 
-  t.is(0x11, bitstream.peekLSB(9, true));
-  t.is(0x11, bitstream.readLSB(9, true));
+  t.is(bitstream.peekLSB(9, true), 0x11);
+  t.is(bitstream.readLSB(9, true), 0x11);
 
   bitstream = makeDataBitstream([0x70, 0x9A, 0x25, 0xF3]);
-  t.is(-215639440, bitstream.peekLSB(32, true));
-  t.is(-215639440, bitstream.peekLSB(31, true));
-  t.is(-215639440, bitstream.readLSB(31, true));
+  t.is(bitstream.peekLSB(32, true), -215639440);
+  t.is(bitstream.peekLSB(31, true), -215639440);
+  t.is(bitstream.readLSB(31, true), -215639440);
 
-  t.is(-1, bitstream.peekLSB(1, true));
-  t.is(-1, bitstream.readLSB(1, true));
+  t.is(bitstream.peekLSB(1, true), 0);
+  t.is(bitstream.readLSB(1, true), 0);
 
   bitstream = makeDataBitstream([0xC8, 0x70, 0x9A, 0x25, 0xF3]);
-  t.is(-55203696440, bitstream.peekLSB(40, true));
-  t.is(-55203696440, bitstream.readLSB(40, true));
+  t.is(bitstream.peekLSB(40, true), -55203696440);
+  t.is(bitstream.readLSB(40, true), -55203696440);
 
   bitstream = makeDataBitstream([0x70, 0x9A, 0x25, 0xFF, 0xF3]);
-  t.is(-51553920400, bitstream.peekLSB(40, true));
-  t.is(-51553920400, bitstream.readLSB(40, true));
+  t.is(bitstream.peekLSB(40, true), -51553920400);
+  t.is(bitstream.readLSB(40, true), -51553920400);
 
   bitstream = makeDataBitstream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
-  t.is(-1, bitstream.peekLSB(4, true));
-  t.is(-1, bitstream.peekLSB(8, true));
-  t.is(-1, bitstream.peekLSB(12, true));
-  t.is(-1, bitstream.peekLSB(16, true));
-  t.is(-1, bitstream.peekLSB(20, true));
-  t.is(-1, bitstream.peekLSB(24, true));
-  t.is(-1, bitstream.peekLSB(28, true));
-  t.is(-1, bitstream.peekLSB(31, true));
-  t.is(-1, bitstream.peekLSB(32, true));
-  t.is(-1, bitstream.peekLSB(36, true));
-  t.is(-1, bitstream.peekLSB(40, true));
+  t.is(bitstream.peekLSB(4, true), -1);
+  t.is(bitstream.peekLSB(8, true), -1);
+  t.is(bitstream.peekLSB(12, true), -1);
+  t.is(bitstream.peekLSB(16, true), -1);
+  t.is(bitstream.peekLSB(20, true), -1);
+  t.is(bitstream.peekLSB(24, true), -1);
+  t.is(bitstream.peekLSB(28, true), -1);
+  t.is(bitstream.peekLSB(31, true), -1);
+  t.is(bitstream.peekLSB(32, true), -1);
+  t.is(bitstream.peekLSB(36, true), -1);
+  t.is(bitstream.peekLSB(40, true), -1);
 
-  t.throws(() => bitstream.readLSB(128), { message: 'Too Large: 128 bits' });
+  t.throws(() => bitstream.readLSB(128), { message: tooLargeError });
 });

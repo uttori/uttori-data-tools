@@ -156,6 +156,7 @@ class DataBitstream {
 
     let output;
     const mBits = bits + this.bitPosition;
+    debug('read mBits:', mBits);
     if (mBits <= 8) {
       output = ((this.stream.peekUInt8() << this.bitPosition) & 0xFF) >>> (8 - bits);
     } else if (mBits <= 16) {
@@ -184,7 +185,8 @@ class DataBitstream {
         if (output >>> (bits - 1)) {
           output = (((1 << bits) >>> 0) - output) * -1;
         }
-      } else if (output / 2 ** (bits - 1) | 0) {
+      } else if (Math.trunc(output / 2 ** (bits - 1))) {
+        // NOTE: The above check is equivalent to `output / 2 ** (bits - 1) | 0`
         output = (2 ** bits - output) * -1;
       }
     }
@@ -199,10 +201,10 @@ class DataBitstream {
    * Read the specified number of bits without advancing the bit position.
    *
    * @param {number} bits - The number of bits to be read
-   * @param {boolean} [signed] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
+   * @param {boolean} [signed=false] - If the sign bit is turned on, flip the bits and add one to convert to a negative value
    * @returns {number} The value read in from the stream
    */
-  peek(bits, signed) {
+  peek(bits, signed = false) {
     debug('peek:', bits, signed);
     return this.read(bits, signed, false);
   }
@@ -255,7 +257,7 @@ class DataBitstream {
         if (output >>> (bits - 1)) {
           output = (((1 << bits) >>> 0) - output) * -1;
         }
-      } else if (output / 2 ** (bits - 1) | 0) {
+      } else if (Math.trunc(output / 2 ** (bits - 1))) {
         output = (2 ** bits - output) * -1;
       }
     }

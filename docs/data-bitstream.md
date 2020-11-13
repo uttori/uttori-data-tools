@@ -136,10 +136,10 @@ Read the specified number of bits without advancing the bit position.
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
 **Returns**: <code>number</code> - The value read in from the stream  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| bits | <code>number</code> | The number of bits to be read |
-| [signed] | <code>boolean</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| bits | <code>number</code> |  | The number of bits to be read |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
 
 <a name="DataBitstream+readLSB"></a>
 

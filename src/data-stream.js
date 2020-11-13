@@ -62,7 +62,8 @@ class DataStream {
    * @param {number} [options.size=16] - ArrayBuffer byteLength for the underlying binary parsing
    * @class
    */
-  constructor(list, options = { size: 16 }) {
+  constructor(list, options = {}) {
+    options.size = options.size || 16;
     if (options && options.size % 8 !== 0) {
       options.size += (8 - (options.size % 8));
     }
@@ -151,9 +152,9 @@ class DataStream {
    *
    * @param {number[] | Buffer} input - The data to check for in upcoming bytes.
    * @returns {boolean} - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining
-   * @throws {UnderflowError} Insufficient Bytes in the stream
    */
   next(input) {
+    debug('next:', input);
     if (!input || !input.length || input.length === 0) {
       debug('next: no input provided');
       return false;
@@ -163,6 +164,7 @@ class DataStream {
       return false;
     }
 
+    debug('next: this.offset =', this.offset);
     for (let i = 0; i < input.length; i++) {
       const data = this.peekUInt8(this.offset + i);
       if (input[i] !== data) {
@@ -186,6 +188,7 @@ class DataStream {
     return result;
   }
 
+  // TODO Can `availableAt` replace `available`?
   /**
    * Checks if a given number of bytes are avaliable in the stream.
    *
@@ -194,6 +197,17 @@ class DataStream {
    */
   available(bytes) {
     return bytes <= this.remainingBytes();
+  }
+
+  /**
+   * Checks if a given number of bytes are avaliable after a given offset in the stream.
+   *
+   * @param {number} bytes - The number of bytes to check for
+   * @param {number} offset - The offset to start from
+   * @returns {boolean} - True if there are the requested amount, or more, of bytes left in the stream
+   */
+  availableAt(bytes, offset) {
+    return bytes <= this.list.availableBytes - offset;
   }
 
   /**
@@ -306,11 +320,9 @@ class DataStream {
    * @throws {UnderflowError} Insufficient Bytes in the stream
    */
   peekUInt8(offset = 0) {
-    if (!this.available(offset + 1)) {
+    if (!this.availableAt(1, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 1`);
     }
-
-    offset = this.localOffset + offset;
     let buffer = this.list.first;
 
     while (buffer) {
@@ -333,7 +345,7 @@ class DataStream {
    * @returns {*} - The UInt8 value at the current offset
    */
   read(bytes, littleEndian = false) {
-    // debug('read:', bytes, littleEndian);
+    // debug('read:', bytes, this.offset, littleEndian);
     if (littleEndian === this.nativeEndian) {
       for (let i = 0; i < bytes; i++) {
         this.uint8[i] = this.readUInt8();
@@ -343,29 +355,10 @@ class DataStream {
         this.uint8[i] = this.readUInt8();
       }
     }
+    // eslint-disable-next-line sonarjs/prefer-immediate-return
     const output = this.uint8.slice(0, bytes);
     // debug('read =', output.toString('hex'));
     return output;
-  }
-
-  /**
-   * Read the bits from the bytes from the provided offset and return the value.
-   *
-   * @param {number} position - The bit position to read, 0 to 7
-   * @param {number} [length=1] - The number of bits to read, 1 to 8
-   * @param {number} [offset=0] - The offset to read from
-   * @returns {number} - The value at the provided bit position of a provided length at the provided offset
-   */
-  peekBit(position, length = 1, offset = 0) {
-    // debug('peekBit:', position, length, offset);
-    if (Number.isNaN(position) || !Number.isInteger(position) || position < 0 || position > 7) {
-      throw new Error(`peekBit position is invalid: ${position}, must be between 0 and 7`);
-    }
-    if (Number.isNaN(length) || !Number.isInteger(length) || length < 1 || length > 8) {
-      throw new Error(`peekBit length is invalid: ${length}, must be between 1 and 8`);
-    }
-    const value = this.peekUInt8(offset);
-    return ((value << position) & 0xFF) >>> (8 - length);
   }
 
   /**
@@ -387,9 +380,30 @@ class DataStream {
         this.uint8[bytes - i - 1] = this.peekUInt8(offset + i);
       }
     }
+    // eslint-disable-next-line sonarjs/prefer-immediate-return
     const output = this.uint8.slice(0, bytes);
     // debug('peek =', output.toString('hex'));
     return output;
+  }
+
+  /**
+   * Read the bits from the bytes from the provided offset and return the value.
+   *
+   * @param {number} position - The bit position to read, 0 to 7
+   * @param {number} [length=1] - The number of bits to read, 1 to 8
+   * @param {number} [offset=0] - The offset to read from
+   * @returns {number} - The value at the provided bit position of a provided length at the provided offset
+   */
+  peekBit(position, length = 1, offset = 0) {
+    // debug('peekBit:', position, length, offset);
+    if (Number.isNaN(position) || !Number.isInteger(position) || position < 0 || position > 7) {
+      throw new Error(`peekBit position is invalid: ${position}, must be an Integer between 0 and 7`);
+    }
+    if (Number.isNaN(length) || !Number.isInteger(length) || length < 1 || length > 8) {
+      throw new Error(`peekBit length is invalid: ${length}, must be an Integer between 1 and 8`);
+    }
+    const value = this.peekUInt8(offset);
+    return ((value << position) & 0xFF) >>> (8 - length);
   }
 
   /**
@@ -673,11 +687,11 @@ class DataStream {
   /**
    * Read from the specified offset and return the value as a DataBuffer.
    *
-   * @param {number} [offset=0] - The offset to read from
+   * @param {number} offset - The offset to read from
    * @param {number} length - The number of bytes to read
    * @returns {DataBuffer} - The requested number of bytes as a DataBuffer
    */
-  peekBuffer(offset = 0, length) {
+  peekBuffer(offset, length) {
     const result = DataBuffer.allocate(length);
     const to = result.data;
 
@@ -695,6 +709,7 @@ class DataStream {
    * @returns {DataBuffer} - The requested number of bytes as a DataBuffer
    */
   readSingleBuffer(length) {
+    debug('readSingleBuffer:', length);
     const result = this.list.first.slice(this.localOffset, length);
     this.advance(result.length);
     return result;
@@ -703,13 +718,13 @@ class DataStream {
   /**
    * Read from the specified offset of the current buffer for a given length and return the value as a DataBuffer.
    *
-   * @param {number} [offset=0] - The offset to read from
+   * @param {number} offset - The offset to read from
    * @param {number} length - The number of bytes to read
    * @returns {DataBuffer} - The requested number of bytes as a DataBuffer
    */
   peekSingleBuffer(offset, length) {
-    const result = this.list.first.slice(this.localOffset + offset, length);
-    return result;
+    debug('peekSingleBuffer:', offset, length);
+    return this.list.first.slice(this.localOffset + offset, length);
   }
 
   /**
@@ -720,18 +735,18 @@ class DataStream {
    * @returns {string} - The read value as a string
    */
   readString(length, encoding = 'ascii') {
-    return this.decodeString(0, length, encoding, true);
+    return this.decodeString(this.offset, length, encoding, true);
   }
 
   /**
    * Read from the specified offset for a given length and return the value as a string.
    *
-   * @param {number} [offset=0] - The offset to read from
+   * @param {number} offset - The offset to read from
    * @param {number} length - The number of bytes to read
    * @param {string} [encoding=ascii] - The encoding of the string
    * @returns {string} - The read value as a string
    */
-  peekString(offset = 0, length, encoding = 'ascii') {
+  peekString(offset, length, encoding = 'ascii') {
     return this.decodeString(offset, length, encoding, false);
   }
 
@@ -741,6 +756,9 @@ class DataStream {
    *
    * While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
    * Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
+   *
+   * The Real48 type exists for backward compatibility with Turbo Pascal. It defines a 6-byte floating-point type.
+   * The Real48 type has an 8-bit exponent and a 39-bit normalized mantissa. It cannot store denormalized values, infinity, or not-a-number. If the exponent is zero, the number is zero.
    *
    * Structure (Bytes, Big Endian)
    * 5: SMMMMMMM 4: MMMMMMMM 3: MMMMMMMM 2: MMMMMMMM 1: MMMMMMMM 0: EEEEEEEE
@@ -829,7 +847,7 @@ class DataStream {
    *
    * @private
    * @param {number} offset - The offset to read from
-   * @param {number} length - The number of bytes to read
+   * @param {number} length - The number of bytes to read, if not defined it is the remaining bytes in the buffer
    * @param {string} encoding - The encoding of the string
    * @param {boolean} advance - Flag to optionally advance the offsets
    * @returns {string} - The read value as a string
@@ -838,8 +856,8 @@ class DataStream {
     encoding = encoding.toLowerCase();
     const nullEnd = length === null ? 0 : -1;
 
-    if (length == null) {
-      length = Infinity;
+    if (!length) {
+      length = this.remainingBytes();
     }
 
     const end = offset + length;
@@ -957,7 +975,7 @@ class DataStream {
     }
 
     if (advance) {
-      this.advance(offset);
+      this.advance(length);
     }
     return result;
   }

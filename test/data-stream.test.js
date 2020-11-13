@@ -93,10 +93,10 @@ test('copy', (t) => {
 
 test('advance', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
-  t.is(0, stream.offset);
+  t.is(stream.offset, 0);
 
   stream.advance(2);
-  t.is(2, stream.offset);
+  t.is(stream.offset, 2);
 
   t.throws(() => stream.advance(10), { message: 'Insufficient Bytes: 10 <= 3' });
 });
@@ -105,29 +105,29 @@ test('rewind', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
 
   stream.advance(4);
-  t.is(4, stream.offset);
-  t.is(2, stream.localOffset);
+  t.is(stream.offset, 4);
+  t.is(stream.localOffset, 2);
 
   stream.rewind(2);
-  t.is(2, stream.offset);
-  t.is(0, stream.localOffset);
+  t.is(stream.offset, 2);
+  t.is(stream.localOffset, 0);
 
   stream.rewind(1);
-  t.is(1, stream.offset);
-  t.is(1, stream.localOffset);
+  t.is(stream.offset, 1);
+  t.is(stream.localOffset, 1);
 
   stream.advance(3);
-  t.is(4, stream.offset);
-  t.is(2, stream.localOffset);
+  t.is(stream.offset, 4);
+  t.is(stream.localOffset, 2);
 
   stream.rewind(4);
-  t.is(0, stream.offset);
-  t.is(0, stream.localOffset);
+  t.is(stream.offset, 0);
+  t.is(stream.localOffset, 0);
 
   stream.advance(5);
   stream.rewind(4);
-  t.is(1, stream.offset);
-  t.is(1, stream.localOffset);
+  t.is(stream.offset, 1);
+  t.is(stream.localOffset, 1);
 
   t.throws(() => stream.rewind(10), { message: 'Insufficient Bytes: 10 > 1' });
 });
@@ -136,17 +136,17 @@ test('seek', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
 
   stream.seek(3);
-  t.is(3, stream.offset);
-  t.is(1, stream.localOffset);
+  t.is(stream.offset, 3);
+  t.is(stream.localOffset, 1);
 
   stream.seek(1);
-  t.is(1, stream.offset);
-  t.is(1, stream.localOffset);
+  t.is(stream.offset, 1);
+  t.is(stream.localOffset, 1);
 
   // Testing the no-op equal branch of `position === this.offset`
   stream.seek(1);
-  t.is(1, stream.offset);
-  t.is(1, stream.localOffset);
+  t.is(stream.offset, 1);
+  t.is(stream.localOffset, 1);
 
   t.throws(() => stream.seek(100), { message: 'Insufficient Bytes: 99 <= 4' });
 
@@ -155,15 +155,14 @@ test('seek', (t) => {
 
 test('remainingBytes', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
-  t.is(5, stream.remainingBytes());
+  t.is(stream.remainingBytes(), 5);
 
   stream.advance(2);
-  t.is(3, stream.remainingBytes());
+  t.is(stream.remainingBytes(), 3);
 });
 
 test('buffer', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
-  t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.peekBuffer(undefined, 4));
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.peekBuffer(0, 4));
   t.deepEqual(new DataBuffer(new Uint8Array([160, 20, 29, 119])), stream.peekBuffer(1, 4));
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.readBuffer(4));
@@ -197,13 +196,13 @@ test('uint8', (t) => {
 
   // if it were a signed int, would be -1
   stream = makeStream([255, 23]);
-  t.is(255, stream.readUInt8());
+  t.is(stream.readUInt8(), 255);
 
   // Get to the end.
   stream = makeStream([255, 23]);
   stream.available = () => true;
   stream.list.first = null;
-  t.is(0, stream.peekUInt8());
+  t.is(stream.peekUInt8(), 0);
 });
 
 test('int8', (t) => {
@@ -260,8 +259,8 @@ test('uint16', (t) => {
 
   // check that it interprets as unsigned
   stream = makeStream([0xFE, 0xFE]);
-  t.is(0xFEFE, stream.peekUInt16(0));
-  t.is(0xFEFE, stream.peekUInt16(0, true));
+  t.is(stream.peekUInt16(0), 0xFEFE);
+  t.is(stream.peekUInt16(0, true), 0xFEFE);
 });
 
 test('int16', (t) => {
@@ -270,7 +269,7 @@ test('int16', (t) => {
 
   // peeking big endian
   const iterable = [0x1679, -128];
-  t.is(0x1679, stream.peekInt16());
+  t.is(stream.peekInt16(), 0x1679);
   for (let i = 0; i < iterable.length; i++) {
     const value = iterable[i];
     t.is(value, stream.peekInt16(i * 2));
@@ -446,8 +445,8 @@ test('int32', (t) => {
   }
 
   stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF]);
-  t.is(-1, stream.peekInt32());
-  t.is(-1, stream.peekInt32(0, true));
+  t.is(stream.peekInt32(), -1);
+  t.is(stream.peekInt32(0, true), -1);
 });
 
 test('float32', (t) => {
@@ -491,178 +490,178 @@ test('float32', (t) => {
   const stream2 = makeStream([0xFF, 0xFF, 0x7F, 0x7F]);
   t.true(Number.isNaN(stream2.peekFloat32()));
   t.true(Number.isNaN(stream2.peekFloat32(0)));
-  t.is(3.4028234663852886e+38, stream2.peekFloat32(0, true));
-});
-
-test('float64', (t) => {
-  let stream = makeStream([0x55, 0x55, 0x55, 0x55, 0x55, 0x55], [0xD5, 0x3F]);
-  let copy = stream.copy();
-  t.is(1.1945305291680097e+103, stream.peekFloat64());
-  t.is(1.1945305291680097e+103, stream.peekFloat64(0));
-  t.is(0.3333333333333333, stream.peekFloat64(0, true));
-  t.is(1.1945305291680097e+103, stream.readFloat64());
-  t.is(0.3333333333333333, copy.readFloat64(true));
-
-  stream = makeStream([1, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
-  copy = stream.copy();
-  t.is(7.291122019655968e-304, stream.peekFloat64(0));
-  t.is(1.0000000000000002, stream.peekFloat64(0, true));
-  t.is(7.291122019655968e-304, stream.readFloat64());
-  t.is(1.0000000000000002, copy.readFloat64(true));
-
-  stream = makeStream([2, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
-  copy = stream.copy();
-  t.is(4.778309726801735e-299, stream.peekFloat64(0));
-  t.is(1.0000000000000004, stream.peekFloat64(0, true));
-  t.is(4.778309726801735e-299, stream.readFloat64());
-  t.is(1.0000000000000004, copy.readFloat64(true));
-
-  stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], [0x0F, 0x00]);
-  copy = stream.copy();
-  t.true(Number.isNaN(stream.peekFloat64(0)));
-  t.is(2.225073858507201e-308, stream.peekFloat64(0, true));
-  t.true(Number.isNaN(stream.readFloat64()));
-  t.is(2.225073858507201e-308, copy.readFloat64(true));
-
-  stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], [0xEF, 0x7F]);
-  copy = stream.copy();
-  t.true(Number.isNaN(stream.peekFloat64(0)));
-  t.is(1.7976931348623157e+308, stream.peekFloat64(0, true));
-  t.true(Number.isNaN(stream.readFloat64()));
-  t.is(1.7976931348623157e+308, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
-  copy = stream.copy();
-  t.is(3.03865e-319, stream.peekFloat64(0));
-  t.is(1, stream.peekFloat64(0, true));
-  t.is(3.03865e-319, stream.readFloat64());
-  t.is(1, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0x10, 0]);
-  copy = stream.copy();
-  t.is(2.0237e-320, stream.peekFloat64(0));
-  t.is(2.2250738585072014e-308, stream.peekFloat64(0, true));
-  t.is(2.0237e-320, stream.readFloat64());
-  t.is(2.2250738585072014e-308, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0, 0]);
-  copy = stream.copy();
-  t.is(0, stream.peekFloat64(0));
-  t.is(0, stream.peekFloat64(0, true));
-  t.is(false, (1 / stream.peekFloat64(0, true)) < 0);
-  t.is(0, stream.readFloat64());
-  t.is(0, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0, 0x80]);
-  copy = stream.copy();
-  t.is(6.3e-322, stream.peekFloat64(0));
-  t.is(-0, stream.peekFloat64(0, true));
-  t.is(true, (1 / stream.peekFloat64(0, true)) < 0);
-  t.is(6.3e-322, stream.readFloat64());
-  t.is(-0, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0x7F]);
-  copy = stream.copy();
-  t.is(3.0418e-319, stream.peekFloat64(0));
-  t.is(Infinity, stream.peekFloat64(0, true));
-  t.is(3.0418e-319, stream.readFloat64());
-  t.is(Infinity, copy.readFloat64(true));
-
-  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0xFF]);
-  copy = stream.copy();
-  t.is(3.04814e-319, stream.peekFloat64(0));
-  t.is(-Infinity, stream.peekFloat64(0, true));
-  t.is(3.04814e-319, stream.readFloat64());
-  t.is(-Infinity, copy.readFloat64(true));
+  t.is(stream2.peekFloat32(0, true), 3.4028234663852886e+38);
 });
 
 test('float48', (t) => {
   let stream;
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(0, stream.peekFloat48(0, true));
-  t.is(0, stream.readFloat48(true));
+  t.is(stream.peekFloat48(0, true), 0);
+  t.is(stream.readFloat48(true), 0);
 
   stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00]);
-  t.is(0, stream.peekFloat48(0));
-  t.is(0, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 0);
+  t.is(stream.readFloat48(), 0);
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x81]);
-  t.is(1, stream.peekFloat48(0));
-  t.is(1, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 1);
+  t.is(stream.readFloat48(), 1);
 
   stream = makeStream([0x80, 0x00, 0x00, 0x00, 0x00, 0x81]);
-  t.is(-1, stream.peekFloat48(0));
-  t.is(-1, stream.readFloat48());
+  t.is(stream.peekFloat48(0), -1);
+  t.is(stream.readFloat48(), -1);
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x82]);
-  t.is(2, stream.peekFloat48(0));
-  t.is(2, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 2);
+  t.is(stream.readFloat48(), 2);
 
   stream = makeStream([0x40, 0x00, 0x00, 0x00, 0x00, 0x81]);
-  t.is(1.5, stream.peekFloat48(0));
-  t.is(1.5, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 1.5);
+  t.is(stream.readFloat48(), 1.5);
 
   stream = makeStream([0x20, 0x00, 0x00, 0x00, 0x00, 0x82]);
-  t.is(2.5, stream.peekFloat48(0));
-  t.is(2.5, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 2.5);
+  t.is(stream.readFloat48(), 2.5);
 
   stream = makeStream([0x74, 0x23, 0xF4, 0x00, 0xD2, 0x94]);
-  t.is(999999.2502, stream.peekFloat48(0));
-  t.is(999999.2502, stream.readFloat48());
+  t.is(stream.peekFloat48(0), 999999.2502);
+  t.is(stream.readFloat48(), 999999.2502);
 
   stream = makeStream([0xF4, 0x23, 0xF4, 0x00, 0xD2, 0x94]);
-  t.is(-999999.2502, stream.peekFloat48(0));
-  t.is(-999999.2502, stream.readFloat48());
+  t.is(stream.peekFloat48(0), -999999.2502);
+  t.is(stream.readFloat48(), -999999.2502);
+});
+
+test('float64', (t) => {
+  let stream = makeStream([0x55, 0x55, 0x55, 0x55, 0x55, 0x55], [0xD5, 0x3F]);
+  let copy = stream.copy();
+  t.is(stream.peekFloat64(), 1.1945305291680097e+103);
+  t.is(stream.peekFloat64(0), 1.1945305291680097e+103);
+  t.is(stream.peekFloat64(0, true), 0.3333333333333333);
+  t.is(stream.readFloat64(), 1.1945305291680097e+103);
+  t.is(copy.readFloat64(true), 0.3333333333333333);
+
+  stream = makeStream([1, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 7.291122019655968e-304);
+  t.is(stream.peekFloat64(0, true), 1.0000000000000002);
+  t.is(stream.readFloat64(), 7.291122019655968e-304);
+  t.is(copy.readFloat64(true), 1.0000000000000002);
+
+  stream = makeStream([2, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 4.778309726801735e-299);
+  t.is(stream.peekFloat64(0, true), 1.0000000000000004);
+  t.is(stream.readFloat64(), 4.778309726801735e-299);
+  t.is(copy.readFloat64(true), 1.0000000000000004);
+
+  stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], [0x0F, 0x00]);
+  copy = stream.copy();
+  t.true(Number.isNaN(stream.peekFloat64(0)));
+  t.is(stream.peekFloat64(0, true), 2.225073858507201e-308);
+  t.true(Number.isNaN(stream.readFloat64()));
+  t.is(copy.readFloat64(true), 2.225073858507201e-308);
+
+  stream = makeStream([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], [0xEF, 0x7F]);
+  copy = stream.copy();
+  t.true(Number.isNaN(stream.peekFloat64(0)));
+  t.is(stream.peekFloat64(0, true), 1.7976931348623157e+308);
+  t.true(Number.isNaN(stream.readFloat64()));
+  t.is(copy.readFloat64(true), 1.7976931348623157e+308);
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0x3F]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 3.03865e-319);
+  t.is(stream.peekFloat64(0, true), 1);
+  t.is(stream.readFloat64(), 3.03865e-319);
+  t.is(copy.readFloat64(true), 1);
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0x10, 0]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 2.0237e-320);
+  t.is(stream.peekFloat64(0, true), 2.2250738585072014e-308);
+  t.is(stream.readFloat64(), 2.0237e-320);
+  t.is(copy.readFloat64(true), 2.2250738585072014e-308);
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0, 0]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 0);
+  t.is(stream.peekFloat64(0, true), 0);
+  t.is((1 / stream.peekFloat64(0, true)) < 0, false);
+  t.is(stream.readFloat64(), 0);
+  t.is(copy.readFloat64(true), 0);
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0, 0x80]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 6.3e-322);
+  t.is(stream.peekFloat64(0, true), -0);
+  t.is((1 / stream.peekFloat64(0, true)) < 0, true);
+  t.is(stream.readFloat64(), 6.3e-322);
+  t.is(copy.readFloat64(true), -0);
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0x7F]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 3.0418e-319);
+  t.is(Infinity, stream.peekFloat64(0, true));
+  t.is(stream.readFloat64(), 3.0418e-319);
+  t.is(Infinity, copy.readFloat64(true));
+
+  stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0xFF]);
+  copy = stream.copy();
+  t.is(stream.peekFloat64(0), 3.04814e-319);
+  t.is(-Infinity, stream.peekFloat64(0, true));
+  t.is(stream.readFloat64(), 3.04814e-319);
+  t.is(-Infinity, copy.readFloat64(true));
 });
 
 test('float80', (t) => {
   let stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]);
   let copy = stream.copy();
-  t.is(1, stream.peekFloat80());
-  t.is(0, stream.peekFloat80(0, true));
-  t.is(1, stream.readFloat80());
-  t.is(0, copy.readFloat80(true));
+  t.is(stream.peekFloat80(), 1);
+  t.is(stream.peekFloat80(0, true), 0);
+  t.is(stream.readFloat80(), 1);
+  t.is(copy.readFloat80(true), 0);
 
   // Same as the above test as a single buffer.
   stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
   copy = stream.copy();
-  t.is(1, stream.peekFloat80());
-  t.is(0, stream.peekFloat80(0, true));
-  t.is(1, stream.readFloat80());
-  t.is(0, copy.readFloat80(true));
+  t.is(stream.peekFloat80(), 1);
+  t.is(stream.peekFloat80(0, true), 0);
+  t.is(stream.readFloat80(), 1);
+  t.is(copy.readFloat80(true), 0);
 
   stream = makeStream([0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00, 0x80, 0xFF, 0x3F]);
-  t.is(1, stream.peekFloat80(0, true));
-  t.is(1, stream.readFloat80(true));
+  t.is(stream.peekFloat80(0, true), 1);
+  t.is(stream.readFloat80(true), 1);
 
   stream = makeStream([0xBF, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
   copy = stream.copy();
-  t.is(-1, stream.peekFloat80());
-  t.is(0, stream.peekFloat80(0, true));
-  t.is(-1, stream.readFloat80());
-  t.is(0, copy.readFloat80(true));
+  t.is(stream.peekFloat80(), -1);
+  t.is(stream.peekFloat80(0, true), 0);
+  t.is(stream.readFloat80(), -1);
+  t.is(copy.readFloat80(true), 0);
 
   stream = makeStream([0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00, 0x80, 0xFF, 0xBF]);
-  t.is(-1, stream.peekFloat80(0, true));
-  t.is(-1, stream.readFloat80(true));
+  t.is(stream.peekFloat80(0, true), -1);
+  t.is(stream.readFloat80(true), -1);
 
   stream = makeStream([0x40, 0x0E, 0xAC, 0x44, 0, 0, 0, 0, 0, 0]);
   copy = stream.copy();
-  t.is(44100, stream.peekFloat80());
-  t.is(0, stream.peekFloat80(0, true));
-  t.is(44100, stream.readFloat80());
-  t.is(0, copy.readFloat80(true));
+  t.is(stream.peekFloat80(), 44100);
+  t.is(stream.peekFloat80(0, true), 0);
+  t.is(stream.readFloat80(), 44100);
+  t.is(copy.readFloat80(true), 0);
 
   stream = makeStream([0, 0, 0, 0, 0, 0, 0x44, 0xAC, 0x0E, 0x40]);
-  t.is(44100, stream.peekFloat80(0, true));
-  t.is(44100, stream.readFloat80(true));
+  t.is(stream.peekFloat80(0, true), 44100);
+  t.is(stream.readFloat80(true), 44100);
 
   stream = makeStream([0x7F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
   copy = stream.copy();
   t.is(Infinity, stream.peekFloat80());
-  t.is(0, stream.peekFloat80(0, true));
+  t.is(stream.peekFloat80(0, true), 0);
   t.is(Infinity, stream.readFloat80());
-  t.is(0, copy.readFloat80(true));
+  t.is(copy.readFloat80(true), 0);
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x7F]);
   t.is(Infinity, stream.peekFloat80(0, true));
@@ -685,304 +684,303 @@ test('float80', (t) => {
   t.true(Number.isNaN(stream.readFloat80(true)));
 
   stream = makeStream([0x40, 0x00, 0xC9, 0x0F, 0xDA, 0x9E, 0x46, 0xA7, 0x88, 0x00]);
-  t.is(3.14159265, stream.peekFloat80());
-  t.is(3.14159265, stream.readFloat80());
+  t.is(stream.peekFloat80(), 3.14159265);
+  t.is(stream.readFloat80(), 3.14159265);
 
   stream = makeStream([0x00, 0x88, 0xA7, 0x46, 0x9E, 0xDA, 0x0F, 0xC9, 0x00, 0x40]);
-  t.is(3.14159265, stream.peekFloat80(0, true));
-  t.is(3.14159265, stream.readFloat80(true));
+  t.is(stream.peekFloat80(0, true), 3.14159265);
+  t.is(stream.readFloat80(true), 3.14159265);
 
   stream = makeStream([0x3F, 0xFD, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xA8, 0xFF]);
   copy = stream.copy();
-  t.is(0.3333333333333333, stream.peekFloat80());
+  t.is(stream.peekFloat80(), 0.3333333333333333);
   t.is(-Infinity, stream.peekFloat80(0, true));
-  t.is(0.3333333333333333, stream.readFloat80());
+  t.is(stream.readFloat80(), 0.3333333333333333);
   t.is(-Infinity, copy.readFloat80(true));
 
   stream = makeStream([0x41, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0xAE, 0xA9, 0xF8, 0x00]);
-  t.is(1.1945305291680097e+103, stream.peekFloat80());
-  t.is(1.1945305291680097e+103, stream.readFloat80());
+  t.is(stream.peekFloat80(), 1.1945305291680097e+103);
+  t.is(stream.readFloat80(), 1.1945305291680097e+103);
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(0, stream.peekFloat80());
+  t.is(stream.peekFloat80(), 0);
 
   stream = makeStream([0x40, 0x02, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(10, stream.peekFloat80(0, false));
-  t.is(10, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 10);
+  t.is(stream.readFloat80(false), 10);
 
   stream = makeStream([0x40, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(2.5, stream.peekFloat80(0, false));
-  t.is(2.5, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 2.5);
+  t.is(stream.readFloat80(false), 2.5);
 
   stream = makeStream([0x40, 0x0C, 0x8C, 0xA2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(9000.5, stream.peekFloat80(0, false));
-  t.is(9000.5, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 9000.5);
+  t.is(stream.readFloat80(false), 9000.5);
 
   stream = makeStream([0x40, 0x05, 0xFA, 0xAA, 0xA6, 0x4C, 0x2F, 0x83, 0x7B, 0x4A]);
-  t.is(125.3333, stream.peekFloat80(0, false));
-  t.is(125.3333, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 125.3333);
+  t.is(stream.readFloat80(false), 125.3333);
 
   stream = makeStream([0x40, 0x01, 0xAA, 0xAA, 0xA9, 0xF7, 0xB5, 0xAE, 0xA0, 0x00]);
-  t.is(5.333333, stream.peekFloat80(0, false));
-  t.is(5.333333, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 5.333333);
+  t.is(stream.readFloat80(false), 5.333333);
 
   stream = makeStream([0x40, 0x01, 0xB5, 0x55, 0x56, 0x08, 0x4A, 0x51, 0x60, 0x00]);
-  t.is(5.666667, stream.peekFloat80(0, false));
-  t.is(5.666667, stream.readFloat80(false));
+  t.is(stream.peekFloat80(0, false), 5.666667);
+  t.is(stream.readFloat80(false), 5.666667);
 });
 
 test('ascii/latin1', (t) => {
   const stream = makeStream([0x68, 0x65, 0x6C, 0x6C, 0x6F]);
-  t.is('hello', stream.peekString(undefined, 5));
-  t.is('hello', stream.peekString(0, 5));
-  t.is('hello', stream.peekString(0, 5, 'ascii'));
-  t.is('hello', stream.peekString(0, 5, 'latin1'));
-  t.is('hello', stream.readString(5, 'ascii'));
-  t.is(5, stream.offset);
+  t.is(stream.peekString(0, 5), 'hello');
+  t.is(stream.peekString(0, 5, 'ascii'), 'hello');
+  t.is(stream.peekString(0, 5, 'latin1'), 'hello');
+  t.is(stream.readString(5, 'ascii'), 'hello');
+  t.is(stream.offset, 5);
 });
 
 test('ascii/latin1 null terminated', (t) => {
   const stream = makeStream([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0]);
-  t.is('hello\0', stream.peekString(0, 6));
-  t.is('hello', stream.peekString(0, null));
-  t.is('hello', stream.readString(null));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, 6), 'hello\0');
+  t.is(stream.peekString(0, null), 'hello');
+  t.is(stream.readString(null), 'hello');
+  t.is(stream.offset, 6);
 });
 
 test('utf8', (t) => {
   let stream = makeStream([195, 188, 98, 101, 114]);
-  t.is('über', stream.peekString(0, 5, 'utf8'));
-  t.is('über', stream.readString(5, 'utf8'));
-  t.is(5, stream.offset);
+  t.is(stream.peekString(0, 5, 'utf8'), 'über');
+  t.is(stream.readString(5, 'utf8'), 'über');
+  t.is(stream.offset, 5);
 
   stream = makeStream([0xC3, 0xB6, 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E]);
-  t.is('ö日本語', stream.peekString(0, 11, 'utf8'));
-  t.is('ö日本語', stream.readString(11, 'utf8'));
-  t.is(11, stream.offset);
+  t.is(stream.peekString(0, 11, 'utf8'), 'ö日本語');
+  t.is(stream.readString(11, 'utf8'), 'ö日本語');
+  t.is(stream.offset, 11);
 
   stream = makeStream([0xF0, 0x9F, 0x91, 0x8D]);
-  t.is('👍', stream.peekString(0, 4, 'utf8'));
-  t.is('👍', stream.readString(4, 'utf8'));
-  t.is(4, stream.offset);
+  t.is(stream.peekString(0, 4, 'utf8'), '👍');
+  t.is(stream.readString(4, 'utf8'), '👍');
+  t.is(stream.offset, 4);
 
   stream = makeStream([0xE2, 0x82, 0xAC]);
-  t.is('€', stream.peekString(0, 3, 'utf8'));
-  t.is('€', stream.readString(3, 'utf8'));
-  t.is(3, stream.offset);
+  t.is(stream.peekString(0, 3, 'utf8'), '€');
+  t.is(stream.readString(3, 'utf8'), '€');
+  t.is(stream.offset, 3);
 });
 
 test('utf-8 null terminated', (t) => {
   let stream = makeStream([195, 188, 98, 101, 114, 0]);
-  t.is('über', stream.peekString(0, null, 'utf-8'));
-  t.is('über', stream.readString(null, 'utf-8'));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, null, 'utf-8'), 'über');
+  t.is(stream.readString(null, 'utf-8'), 'über');
+  t.is(stream.offset, 6);
 
   stream = makeStream([0xC3, 0xB6, 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E, 0]);
-  t.is('ö日本語', stream.peekString(0, null, 'utf8'));
-  t.is('ö日本語', stream.readString(null, 'utf8'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf8'), 'ö日本語');
+  t.is(stream.readString(null, 'utf8'), 'ö日本語');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xF0, 0x9F, 0x91, 0x8D, 0]);
-  t.is('👍', stream.peekString(0, null, 'utf8'));
-  t.is('👍', stream.readString(null, 'utf8'));
-  t.is(5, stream.offset);
+  t.is(stream.peekString(0, null, 'utf8'), '👍');
+  t.is(stream.readString(null, 'utf8'), '👍');
+  t.is(stream.offset, 5);
 
   stream = makeStream([0xE2, 0x82, 0xAC, 0]);
-  t.is('€', stream.peekString(0, null, 'utf8'));
-  t.is('€', stream.readString(null, 'utf8'));
-  t.is(4, stream.offset);
+  t.is(stream.peekString(0, null, 'utf8'), '€');
+  t.is(stream.readString(null, 'utf8'), '€');
+  t.is(stream.offset, 4);
 });
 
 test('utf16be', (t) => {
   let stream = makeStream([0, 252, 0, 98, 0, 101, 0, 114]);
-  t.is('über', stream.peekString(0, 8, 'utf16be'));
-  t.is('über', stream.readString(8, 'utf16be'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, 8, 'utf16be'), 'über');
+  t.is(stream.readString(8, 'utf16be'), 'über');
+  t.is(stream.offset, 8);
 
   stream = makeStream([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66]);
-  t.is('привет', stream.peekString(0, 12, 'utf16be'));
-  t.is('привет', stream.readString(12, 'utf16be'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, 12, 'utf16be'), 'привет');
+  t.is(stream.readString(12, 'utf16be'), 'привет');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0, 0xF6, 0x65, 0xE5, 0x67, 0x2C, 0x8A, 0x9E]);
-  t.is('ö日本語', stream.peekString(0, 8, 'utf16be'));
-  t.is('ö日本語', stream.readString(8, 'utf16be'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, 8, 'utf16be'), 'ö日本語');
+  t.is(stream.readString(8, 'utf16be'), 'ö日本語');
+  t.is(stream.offset, 8);
 
   stream = makeStream([0xD8, 0x3D, 0xDC, 0x4D]);
-  t.is('👍', stream.peekString(0, 4, 'utf16be'));
-  t.is('👍', stream.readString(4, 'utf16be'));
-  t.is(4, stream.offset);
+  t.is(stream.peekString(0, 4, 'utf16be'), '👍');
+  t.is(stream.readString(4, 'utf16be'), '👍');
+  t.is(stream.offset, 4);
 });
 
 test('utf16-be null terminated', (t) => {
   let stream = makeStream([0, 252, 0, 98, 0, 101, 0, 114, 0, 0]);
-  t.is('über', stream.peekString(0, null, 'utf16-be'));
-  t.is('über', stream.readString(null, 'utf16-be'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16-be'), 'über');
+  t.is(stream.readString(null, 'utf16-be'), 'über');
+  t.is(stream.offset, 10);
 
   stream = makeStream([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 0, 0]);
-  t.is('привет', stream.peekString(0, null, 'utf16be'));
-  t.is('привет', stream.readString(null, 'utf16be'));
-  t.is(14, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16be'), 'привет');
+  t.is(stream.readString(null, 'utf16be'), 'привет');
+  t.is(stream.offset, 14);
 
   stream = makeStream([0, 0xF6, 0x65, 0xE5, 0x67, 0x2C, 0x8A, 0x9E, 0, 0]);
-  t.is('ö日本語', stream.peekString(0, null, 'utf16be'));
-  t.is('ö日本語', stream.readString(null, 'utf16be'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16be'), 'ö日本語');
+  t.is(stream.readString(null, 'utf16be'), 'ö日本語');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0xD8, 0x3D, 0xDC, 0x4D, 0, 0]);
-  t.is('👍', stream.peekString(0, null, 'utf16be'));
-  t.is('👍', stream.readString(null, 'utf16be'));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16be'), '👍');
+  t.is(stream.readString(null, 'utf16be'), '👍');
+  t.is(stream.offset, 6);
 });
 
 test('utf16le', (t) => {
   let stream = makeStream([252, 0, 98, 0, 101, 0, 114, 0]);
-  t.is('über', stream.peekString(0, 8, 'utf16le'));
-  t.is('über', stream.readString(8, 'utf16le'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, 8, 'utf16le'), 'über');
+  t.is(stream.readString(8, 'utf16le'), 'über');
+  t.is(stream.offset, 8);
 
   stream = makeStream([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]);
-  t.is('привет', stream.peekString(0, 12, 'utf16le'));
-  t.is('привет', stream.readString(12, 'utf16le'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, 12, 'utf16le'), 'привет');
+  t.is(stream.readString(12, 'utf16le'), 'привет');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xF6, 0, 0xE5, 0x65, 0x2C, 0x67, 0x9E, 0x8A]);
-  t.is('ö日本語', stream.peekString(0, 8, 'utf16le'));
-  t.is('ö日本語', stream.readString(8, 'utf16le'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, 8, 'utf16le'), 'ö日本語');
+  t.is(stream.readString(8, 'utf16le'), 'ö日本語');
+  t.is(stream.offset, 8);
 
   stream = makeStream([0x42, 0x30, 0x44, 0x30, 0x46, 0x30, 0x48, 0x30, 0x4A, 0x30]);
-  t.is('あいうえお', stream.peekString(0, 10, 'utf16le'));
-  t.is('あいうえお', stream.readString(10, 'utf16le'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, 10, 'utf16le'), 'あいうえお');
+  t.is(stream.readString(10, 'utf16le'), 'あいうえお');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0x3D, 0xD8, 0x4D, 0xDC]);
-  t.is('👍', stream.peekString(0, 4, 'utf16le'));
-  t.is('👍', stream.readString(4, 'utf16le'));
-  t.is(4, stream.offset);
+  t.is(stream.peekString(0, 4, 'utf16le'), '👍');
+  t.is(stream.readString(4, 'utf16le'), '👍');
+  t.is(stream.offset, 4);
 });
 
 test('utf16-le null terminated', (t) => {
   let stream = makeStream([252, 0, 98, 0, 101, 0, 114, 0, 0, 0]);
-  t.is('über', stream.peekString(0, null, 'utf16-le'));
-  t.is('über', stream.readString(null, 'utf16-le'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16-le'), 'über');
+  t.is(stream.readString(null, 'utf16-le'), 'über');
+  t.is(stream.offset, 10);
 
   stream = makeStream([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4, 0, 0]);
-  t.is('привет', stream.peekString(0, null, 'utf16le'));
-  t.is('привет', stream.readString(null, 'utf16le'));
-  t.is(14, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16le'), 'привет');
+  t.is(stream.readString(null, 'utf16le'), 'привет');
+  t.is(stream.offset, 14);
 
   stream = makeStream([0xF6, 0, 0xE5, 0x65, 0x2C, 0x67, 0x9E, 0x8A, 0, 0]);
-  t.is('ö日本語', stream.peekString(0, null, 'utf16le'));
-  t.is('ö日本語', stream.readString(null, 'utf16le'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16le'), 'ö日本語');
+  t.is(stream.readString(null, 'utf16le'), 'ö日本語');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0x42, 0x30, 0x44, 0x30, 0x46, 0x30, 0x48, 0x30, 0x4A, 0x30, 0, 0]);
-  t.is('あいうえお', stream.peekString(0, null, 'utf16le'));
-  t.is('あいうえお', stream.readString(null, 'utf16le'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16le'), 'あいうえお');
+  t.is(stream.readString(null, 'utf16le'), 'あいうえお');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0x3D, 0xD8, 0x4D, 0xDC, 0, 0]);
-  t.is('👍', stream.peekString(0, null, 'utf16le'));
-  t.is('👍', stream.readString(null, 'utf16le'));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16le'), '👍');
+  t.is(stream.readString(null, 'utf16le'), '👍');
+  t.is(stream.offset, 6);
 });
 
 test('utf16bom big endian', (t) => {
   let stream = makeStream([0xFE, 0xFF, 0, 252, 0, 98, 0, 101, 0, 114]);
-  t.is('über', stream.peekString(0, 10, 'utf16bom'));
-  t.is('über', stream.readString(10, 'utf16bom'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, 10, 'utf16bom'), 'über');
+  t.is(stream.readString(10, 'utf16bom'), 'über');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0xFE, 0xFF, 4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66]);
-  t.is('привет', stream.peekString(0, 14, 'utf16bom'));
-  t.is('привет', stream.readString(14, 'utf16bom'));
-  t.is(14, stream.offset);
+  t.is(stream.peekString(0, 14, 'utf16bom'), 'привет');
+  t.is(stream.readString(14, 'utf16bom'), 'привет');
+  t.is(stream.offset, 14);
 
   stream = makeStream([0xFE, 0xFF, 0, 0xF6, 0x65, 0xE5, 0x67, 0x2C, 0x8A, 0x9E]);
-  t.is('ö日本語', stream.peekString(0, 10, 'utf16bom'));
-  t.is('ö日本語', stream.readString(10, 'utf16bom'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, 10, 'utf16bom'), 'ö日本語');
+  t.is(stream.readString(10, 'utf16bom'), 'ö日本語');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0xFE, 0xFF, 0xD8, 0x3D, 0xDC, 0x4D]);
-  t.is('👍', stream.peekString(0, 6, 'utf16bom'));
-  t.is('👍', stream.readString(6, 'utf16bom'));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, 6, 'utf16bom'), '👍');
+  t.is(stream.readString(6, 'utf16bom'), '👍');
+  t.is(stream.offset, 6);
 });
 
 test('utf16-bom big endian, null terminated', (t) => {
   let stream = makeStream([0xFE, 0xFF, 0, 252, 0, 98, 0, 101, 0, 114, 0, 0]);
-  t.is('über', stream.peekString(0, null, 'utf16-bom'));
-  t.is('über', stream.readString(null, 'utf16-bom'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16-bom'), 'über');
+  t.is(stream.readString(null, 'utf16-bom'), 'über');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xFE, 0xFF, 4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 0, 0]);
-  t.is('привет', stream.peekString(0, null, 'utf16-bom'));
-  t.is('привет', stream.readString(null, 'utf16-bom'));
-  t.is(16, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16-bom'), 'привет');
+  t.is(stream.readString(null, 'utf16-bom'), 'привет');
+  t.is(stream.offset, 16);
 
   stream = makeStream([0xFE, 0xFF, 0, 0xF6, 0x65, 0xE5, 0x67, 0x2C, 0x8A, 0x9E, 0, 0]);
-  t.is('ö日本語', stream.peekString(0, null, 'utf16bom'));
-  t.is('ö日本語', stream.readString(null, 'utf16bom'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16bom'), 'ö日本語');
+  t.is(stream.readString(null, 'utf16bom'), 'ö日本語');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xFE, 0xFF, 0xD8, 0x3D, 0xDC, 0x4D, 0, 0]);
-  t.is('👍', stream.peekString(0, null, 'utf16bom'));
-  t.is('👍', stream.readString(null, 'utf16bom'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16bom'), '👍');
+  t.is(stream.readString(null, 'utf16bom'), '👍');
+  t.is(stream.offset, 8);
 });
 
 test('utf16bom little endian', (t) => {
   let stream = makeStream([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0]);
-  t.is('über', stream.peekString(0, 10, 'utf16bom'));
-  t.is('über', stream.readString(10, 'utf16bom'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, 10, 'utf16bom'), 'über');
+  t.is(stream.readString(10, 'utf16bom'), 'über');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0xFF, 0xFE, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]);
-  t.is('привет', stream.peekString(0, 14, 'utf16bom'));
-  t.is('привет', stream.readString(14, 'utf16bom'));
-  t.is(14, stream.offset);
+  t.is(stream.peekString(0, 14, 'utf16bom'), 'привет');
+  t.is(stream.readString(14, 'utf16bom'), 'привет');
+  t.is(stream.offset, 14);
 
   stream = makeStream([0xFF, 0xFE, 0xF6, 0, 0xE5, 0x65, 0x2C, 0x67, 0x9E, 0x8A]);
-  t.is('ö日本語', stream.peekString(0, 10, 'utf16bom'));
-  t.is('ö日本語', stream.readString(10, 'utf16bom'));
-  t.is(10, stream.offset);
+  t.is(stream.peekString(0, 10, 'utf16bom'), 'ö日本語');
+  t.is(stream.readString(10, 'utf16bom'), 'ö日本語');
+  t.is(stream.offset, 10);
 
   stream = makeStream([0xFF, 0xFE, 0x3D, 0xD8, 0x4D, 0xDC]);
-  t.is('👍', stream.peekString(0, 6, 'utf16bom'));
-  t.is('👍', stream.readString(6, 'utf16bom'));
-  t.is(6, stream.offset);
+  t.is(stream.peekString(0, 6, 'utf16bom'), '👍');
+  t.is(stream.readString(6, 'utf16bom'), '👍');
+  t.is(stream.offset, 6);
 });
 
 test('utf16-bom little endian, null terminated', (t) => {
   let stream = makeStream([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0, 0, 0]);
-  t.is('über', stream.peekString(0, null, 'utf16-bom'));
-  t.is('über', stream.readString(null, 'utf16-bom'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16-bom'), 'über');
+  t.is(stream.readString(null, 'utf16-bom'), 'über');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xFF, 0xFE, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4, 0, 0]);
-  t.is('привет', stream.peekString(0, null, 'utf16bom'));
-  t.is('привет', stream.readString(null, 'utf16bom'));
-  t.is(16, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16bom'), 'привет');
+  t.is(stream.readString(null, 'utf16bom'), 'привет');
+  t.is(stream.offset, 16);
 
   stream = makeStream([0xFF, 0xFE, 0xF6, 0, 0xE5, 0x65, 0x2C, 0x67, 0x9E, 0x8A, 0, 0]);
-  t.is('ö日本語', stream.peekString(0, null, 'utf16bom'));
-  t.is('ö日本語', stream.readString(null, 'utf16bom'));
-  t.is(12, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16bom'), 'ö日本語');
+  t.is(stream.readString(null, 'utf16bom'), 'ö日本語');
+  t.is(stream.offset, 12);
 
   stream = makeStream([0xFF, 0xFE, 0x3D, 0xD8, 0x4D, 0xDC, 0, 0]);
-  t.is('👍', stream.peekString(0, null, 'utf16bom'));
-  t.is('👍', stream.readString(null, 'utf16bom'));
-  t.is(8, stream.offset);
+  t.is(stream.peekString(0, null, 'utf16bom'), '👍');
+  t.is(stream.readString(null, 'utf16bom'), '👍');
+  t.is(stream.offset, 8);
 });
 
 test('decodeString', (t) => {
   const stream = makeStream([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0, 0, 0]);
-  t.is('', stream.decodeString(0, 1, 'utf16-bom', true));
-  t.is('', stream.decodeString(0, 1, 'utf16-bom', false));
+  t.is(stream.decodeString(0, 1, 'utf16-bom', true), '');
+  t.is(stream.decodeString(0, 1, 'utf16-bom', false), '');
 });
 
 test('decodeString invalid encoding', (t) => {
@@ -1026,94 +1024,94 @@ test('peek: can peek files of any size', (t) => {
 test('next: can compare against upcoming data', (t) => {
   const stream = makeStream([10, 160], [20, 29, 119]);
 
-  t.is(false, stream.next());
-  t.is(false, stream.next(null));
-  t.is(false, stream.next(undefined));
-  t.is(false, stream.next({}));
-  t.is(false, stream.next([]));
-  t.is(false, stream.next([11]));
+  t.is(stream.next(), false);
+  t.is(stream.next(null), false);
+  t.is(stream.next(undefined), false);
+  t.is(stream.next({}), false);
+  t.is(stream.next([]), false);
+  t.is(stream.next([11]), false);
 
-  t.is(true, stream.next([10]));
-  t.is(true, stream.next([10, 160]));
-  t.is(true, stream.next([10, 160, 20]));
-  t.is(true, stream.next([10, 160, 20, 29]));
-  t.is(true, stream.next([10, 160, 20, 29, 119]));
+  t.is(stream.next([10]), true);
+  t.is(stream.next([10, 160]), true);
+  t.is(stream.next([10, 160, 20]), true);
+  t.is(stream.next([10, 160, 20, 29]), true);
+  t.is(stream.next([10, 160, 20, 29, 119]), true);
   t.notThrows(() => {
     stream.next([10, 160, 20, 29, 119, 255]);
   });
-  t.is(false, stream.next([10, 160, 20, 29, 119, 255]));
+  t.is(stream.next([10, 160, 20, 29, 119, 255]), false);
 });
 
 test('peekBit: can peek the bits at a given offset', (t) => {
   let stream = makeStream([255]); // 11111111
 
-  t.is(1, stream.peekBit(0, 1, 0));
-  t.is(3, stream.peekBit(0, 2, 0));
-  t.is(7, stream.peekBit(0, 3, 0));
-  t.is(15, stream.peekBit(0, 4, 0));
-  t.is(31, stream.peekBit(0, 5, 0));
-  t.is(63, stream.peekBit(0, 6, 0));
-  t.is(127, stream.peekBit(0, 7, 0));
-  t.is(255, stream.peekBit(0, 8, 0));
+  t.is(stream.peekBit(0, 1, 0), 1);
+  t.is(stream.peekBit(0, 2, 0), 3);
+  t.is(stream.peekBit(0, 3, 0), 7);
+  t.is(stream.peekBit(0, 4, 0), 15);
+  t.is(stream.peekBit(0, 5, 0), 31);
+  t.is(stream.peekBit(0, 6, 0), 63);
+  t.is(stream.peekBit(0, 7, 0), 127);
+  t.is(stream.peekBit(0, 8, 0), 255);
 
   stream = makeStream([170]); // 10101010
 
-  t.is(1, stream.peekBit(0));
-  t.is(2, stream.peekBit(0, 2, 0));
-  t.is(5, stream.peekBit(0, 3, 0));
-  t.is(10, stream.peekBit(0, 4, 0));
-  t.is(21, stream.peekBit(0, 5, 0));
-  t.is(42, stream.peekBit(0, 6, 0));
-  t.is(85, stream.peekBit(0, 7, 0));
-  t.is(170, stream.peekBit(0, 8, 0));
+  t.is(stream.peekBit(0), 1);
+  t.is(stream.peekBit(0, 2, 0), 2);
+  t.is(stream.peekBit(0, 3, 0), 5);
+  t.is(stream.peekBit(0, 4, 0), 10);
+  t.is(stream.peekBit(0, 5, 0), 21);
+  t.is(stream.peekBit(0, 6, 0), 42);
+  t.is(stream.peekBit(0, 7, 0), 85);
+  t.is(stream.peekBit(0, 8, 0), 170);
 
-  t.is(1, stream.peekBit(0, 1));
-  t.is(0, stream.peekBit(1, 1, 0));
-  t.is(1, stream.peekBit(2, 1, 0));
-  t.is(0, stream.peekBit(3, 1, 0));
-  t.is(1, stream.peekBit(4, 1, 0));
-  t.is(0, stream.peekBit(5, 1, 0));
-  t.is(1, stream.peekBit(6, 1, 0));
-  t.is(0, stream.peekBit(7, 1, 0));
+  t.is(stream.peekBit(0, 1), 1);
+  t.is(stream.peekBit(1, 1, 0), 0);
+  t.is(stream.peekBit(2, 1, 0), 1);
+  t.is(stream.peekBit(3, 1, 0), 0);
+  t.is(stream.peekBit(4, 1, 0), 1);
+  t.is(stream.peekBit(5, 1, 0), 0);
+  t.is(stream.peekBit(6, 1, 0), 1);
+  t.is(stream.peekBit(7, 1, 0), 0);
 
   t.throws(() => {
     stream.peekBit(undefined, 1, 0);
-  }, { message: 'peekBit position is invalid: undefined, must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: undefined, must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit(null, 1, 0);
-  }, { message: 'peekBit position is invalid: null, must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: null, must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit({}, 1, 0);
-  }, { message: 'peekBit position is invalid: [object Object], must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: [object Object], must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit([], 1, 0);
-  }, { message: 'peekBit position is invalid: , must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: , must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit(Number.NaN, 1, 0);
-  }, { message: 'peekBit position is invalid: NaN, must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: NaN, must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit(8, 1, 0);
-  }, { message: 'peekBit position is invalid: 8, must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: 8, must be an Integer between 0 and 7' });
   t.throws(() => {
     stream.peekBit(-1, 1, 0);
-  }, { message: 'peekBit position is invalid: -1, must be between 0 and 7' });
+  }, { message: 'peekBit position is invalid: -1, must be an Integer between 0 and 7' });
 
   t.throws(() => {
     stream.peekBit(0, null, 0);
-  }, { message: 'peekBit length is invalid: null, must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: null, must be an Integer between 1 and 8' });
   t.throws(() => {
     stream.peekBit(0, {}, 10);
-  }, { message: 'peekBit length is invalid: [object Object], must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: [object Object], must be an Integer between 1 and 8' });
   t.throws(() => {
     stream.peekBit(0, [], 10);
-  }, { message: 'peekBit length is invalid: , must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: , must be an Integer between 1 and 8' });
   t.throws(() => {
     stream.peekBit(0, Number.NaN, 0);
-  }, { message: 'peekBit length is invalid: NaN, must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: NaN, must be an Integer between 1 and 8' });
   t.throws(() => {
     stream.peekBit(0, 9, 0);
-  }, { message: 'peekBit length is invalid: 9, must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: 9, must be an Integer between 1 and 8' });
   t.throws(() => {
     stream.peekBit(0, 0, 0);
-  }, { message: 'peekBit length is invalid: 0, must be between 1 and 8' });
+  }, { message: 'peekBit length is invalid: 0, must be an Integer between 1 and 8' });
 });

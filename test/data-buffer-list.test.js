@@ -6,27 +6,27 @@ test('append', (t) => {
   const buffer = new DataBuffer(new Uint8Array([1, 2, 3]));
   list.append(buffer);
 
-  t.is(1, list.totalBuffers);
-  t.is(1, list.availableBuffers);
-  t.is(3, list.availableBytes);
+  t.is(list.totalBuffers, 1);
+  t.is(list.availableBuffers, 1);
+  t.is(list.availableBytes, 3);
   t.is(buffer, list.first);
   t.is(buffer, list.last);
-  t.is(null, buffer.prev);
-  t.is(null, buffer.next);
+  t.is(buffer.prev, null);
+  t.is(buffer.next, null);
 
   const buffer2 = new DataBuffer(new Uint8Array([4, 5, 6]));
   list.append(buffer2);
 
-  t.is(2, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
-  t.is(buffer, list.first);
-  t.is(buffer2, list.last);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
+  t.is(list.first, buffer);
+  t.is(list.last, buffer2);
 
-  t.is(null, buffer.prev);
-  t.is(buffer2, buffer.next);
-  t.is(buffer, buffer2.prev);
-  t.is(null, buffer2.next);
+  t.is(buffer.prev, null);
+  t.is(buffer.next, buffer2);
+  t.is(buffer2.prev, buffer);
+  t.is(buffer2.next, null);
 });
 
 test('advance', (t) => {
@@ -36,25 +36,25 @@ test('advance', (t) => {
   list.append(buffer1);
   list.append(buffer2);
 
-  t.is(2, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
   t.is(buffer1, list.first);
 
-  t.is(true, list.advance());
-  t.is(2, list.totalBuffers);
-  t.is(1, list.availableBuffers);
-  t.is(3, list.availableBytes);
+  t.is(list.advance(), true);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 1);
+  t.is(list.availableBytes, 3);
   t.is(buffer2, list.first);
 
-  t.is(false, list.advance());
-  t.is(null, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(0, list.availableBuffers);
-  t.is(0, list.availableBytes);
+  t.is(list.advance(), false);
+  t.is(list.first, null);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 0);
+  t.is(list.availableBytes, 0);
 
   delete list.first;
-  t.is(false, list.advance());
+  t.is(list.advance(), false);
 });
 
 test('rewind', (t) => {
@@ -64,42 +64,42 @@ test('rewind', (t) => {
   list.append(buffer1);
   list.append(buffer2);
 
-  t.is(2, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
 
-  t.is(true, list.advance());
+  t.is(list.advance(), true);
   t.is(buffer2, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(1, list.availableBuffers);
-  t.is(3, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 1);
+  t.is(list.availableBytes, 3);
 
-  t.is(true, list.rewind());
+  t.is(list.rewind(), true);
   t.is(buffer1, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
 
   // can't rewind anymore so nothing should change
-  t.is(false, list.rewind());
+  t.is(list.rewind(), false);
   t.is(buffer1, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
 
   // advancing past the end of the list and then rewinding should give us the last buffer
-  t.is(true, list.advance());
-  t.is(false, list.advance());
-  t.is(null, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(0, list.availableBuffers);
-  t.is(0, list.availableBytes);
+  t.is(list.advance(), true);
+  t.is(list.advance(), false);
+  t.is(list.first, null);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 0);
+  t.is(list.availableBytes, 0);
 
-  t.is(true, list.rewind());
+  t.is(list.rewind(), true);
   t.is(buffer2, list.first);
-  t.is(2, list.totalBuffers);
-  t.is(1, list.availableBuffers);
-  t.is(3, list.availableBytes);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 1);
+  t.is(list.availableBytes, 3);
 });
 
 test('reset', (t) => {
@@ -112,27 +112,27 @@ test('reset', (t) => {
   list.append(buffer3);
 
   t.is(buffer1, list.first);
-  t.is(3, list.totalBuffers);
-  t.is(3, list.availableBuffers);
-  t.is(9, list.availableBytes);
+  t.is(list.totalBuffers, 3);
+  t.is(list.availableBuffers, 3);
+  t.is(list.availableBytes, 9);
 
-  t.is(true, list.advance());
+  t.is(list.advance(), true);
   t.is(buffer2, list.first);
-  t.is(3, list.totalBuffers);
-  t.is(2, list.availableBuffers);
-  t.is(6, list.availableBytes);
+  t.is(list.totalBuffers, 3);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
 
-  t.is(true, list.advance());
+  t.is(list.advance(), true);
   t.is(buffer3, list.first);
-  t.is(3, list.totalBuffers);
-  t.is(1, list.availableBuffers);
-  t.is(3, list.availableBytes);
+  t.is(list.totalBuffers, 3);
+  t.is(list.availableBuffers, 1);
+  t.is(list.availableBytes, 3);
 
   list.reset();
   t.is(buffer1, list.first);
-  t.is(3, list.totalBuffers);
-  t.is(3, list.availableBuffers);
-  t.is(9, list.availableBytes);
+  t.is(list.totalBuffers, 3);
+  t.is(list.availableBuffers, 3);
+  t.is(list.availableBytes, 9);
 });
 
 test('copy', (t) => {
