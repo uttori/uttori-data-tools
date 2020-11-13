@@ -2,7 +2,7 @@ declare module "data-buffer" {
     export = DataBuffer;
     class DataBuffer {
         static allocate(size: number): DataBuffer;
-        constructor(input: Array | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
+        constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
         data: any;
         length: any;
         next: any;
@@ -101,11 +101,11 @@ declare module "data-stream" {
 declare module "data-bitstream" {
     export = DataBitstream;
     class DataBitstream {
-        static fromData(data: Array | ArrayBuffer | Buffer | import("data-buffer") | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
+        static fromData(data: any[] | ArrayBuffer | Buffer | import("data-buffer") | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
         static fromBytes(bytes: number[]): DataBitstream;
         constructor(stream: import("data-stream"));
         stream: import("data-stream");
-        bitPosition: any;
+        bitPosition: number;
         copy(): DataBitstream;
         offset(): number;
         available(bits: number): boolean;
