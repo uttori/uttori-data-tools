@@ -119,6 +119,15 @@ declare module "data-bitstream" {
         peekLSB(bits: number, signed?: boolean): number;
     }
 }
+declare module "data-compression-lzw" {
+    export = LZW;
+    class LZW {
+        static buildDictionary(depth: number): object;
+        static stringToHexArray(string: string): number[];
+        static compress(input: number[], depth?: number): number[];
+        static decompress(input: number[], depth?: number): number[];
+    }
+}
 declare module "data-hash-crc32" {
     export = CRC32;
     class CRC32 {
@@ -129,9 +138,10 @@ declare module "data-hash-crc32" {
     }
 }
 declare module "index" {
-    export const DataStream: typeof import("data-stream");
+    export const CRC32: typeof import("data-hash-crc32");
+    export const DataBitstream: typeof import("data-bitstream");
     export const DataBuffer: typeof import("data-buffer");
     export const DataBufferList: typeof import("data-buffer-list");
-    export const DataBitstream: typeof import("data-bitstream");
-    export const CRC32: typeof import("data-hash-crc32");
+    export const DataStream: typeof import("data-stream");
+    export const LZW: typeof import("data-compression-lzw");
 }

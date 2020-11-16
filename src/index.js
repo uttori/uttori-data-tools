@@ -1,7 +1,8 @@
 module.exports = {
-  DataStream: require('./data-stream'),
+  CRC32: require('./data-hash-crc32'),
+  DataBitstream: require('./data-bitstream'),
   DataBuffer: require('./data-buffer'),
   DataBufferList: require('./data-buffer-list'),
-  DataBitstream: require('./data-bitstream'),
-  CRC32: require('./data-hash-crc32'),
+  DataStream: require('./data-stream'),
+  LZW: require('./data-compression-lzw'),
 };

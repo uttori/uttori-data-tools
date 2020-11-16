@@ -30,7 +30,7 @@
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-ava": "^11.0.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^30.7.7",
+    "eslint-plugin-jsdoc": "^30.7.8",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
     "eslint-plugin-node": "^11.1.0",
@@ -84,7 +84,7 @@
     }
   },
   "scripts": {
-    "docs": " jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md;",
+    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-compression-lzw.js > docs/data-compression-lzw.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
     "make-types": "rm index.d.ts && tsc --project .tsconfig.json",
