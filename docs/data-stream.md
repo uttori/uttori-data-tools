@@ -72,7 +72,7 @@ Helpter class to ease working with binary files.
         * [.seek(position)](#DataStream+seek) ⇒ [<code>DataStream</code>](#DataStream)
         * [.readUInt8()](#DataStream+readUInt8) ⇒ <code>\*</code>
         * [.peekUInt8([offset])](#DataStream+peekUInt8) ⇒ <code>\*</code>
-        * [.read(bytes, [littleEndian])](#DataStream+read) ⇒ <code>\*</code>
+        * [.read(bytes, [littleEndian])](#DataStream+read) ⇒ <code>Uint8Array</code>
         * [.peek(bytes, [offset], [littleEndian])](#DataStream+peek) ⇒ <code>\*</code>
         * [.peekBit(position, [length], [offset])](#DataStream+peekBit) ⇒ <code>number</code>
         * [.readInt8()](#DataStream+readInt8) ⇒ <code>\*</code>
@@ -262,11 +262,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataStream+read"></a>
 
-### dataStream.read(bytes, [littleEndian]) ⇒ <code>\*</code>
+### dataStream.read(bytes, [littleEndian]) ⇒ <code>Uint8Array</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt8 value at the current offset  
+**Returns**: <code>Uint8Array</code> - - The UInt8 value at the current offset  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |

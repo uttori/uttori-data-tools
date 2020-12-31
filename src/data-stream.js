@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/explicit-length-check */
 /* eslint-disable no-bitwise */
-const debug = require('debug')('Uttori.Utilities.DataStream');
+let debug = () => {};
+try { debug = require('debug')('Uttori.Utilities.DataStream'); } catch {}
 const DataBuffer = require('./data-buffer');
 const DataBufferList = require('./data-buffer-list');
 
@@ -342,7 +343,7 @@ class DataStream {
    *
    * @param {number} bytes - The number of bytes to read
    * @param {boolean} [littleEndian=false] - Read in Little Endian format
-   * @returns {*} - The UInt8 value at the current offset
+   * @returns {Uint8Array} - The UInt8 value at the current offset
    */
   read(bytes, littleEndian = false) {
     // debug('read:', bytes, this.offset, littleEndian);
@@ -827,7 +828,7 @@ class DataStream {
     // 0x7FFF is a reserved value
     if (exponent === 0x7FFF) {
       if ((low === 0) && (high === 0)) {
-        return sign * Infinity;
+        return sign * Number.POSITIVE_INFINITY;
       }
 
       return Number.NaN;

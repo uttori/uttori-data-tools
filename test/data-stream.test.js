@@ -462,7 +462,7 @@ test('float32', (t) => {
   const copy = stream.copy();
 
   const valuesBE = [4.600602988224807e-41, 2.6904930515036488e-43, -1.2126478207002966e-12, 0, 1.793662034335766e-43, 4.609571298396486e-41, 4.627507918739843e-41];
-  const valuesLE = [1, -2, 0.3333333432674408, 0, -0, Infinity, -Infinity];
+  const valuesLE = [1, -2, 0.3333333432674408, 0, -0, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
 
   // peeking big endian
   for (let i = 0; i < valuesBE.length; i++) {
@@ -602,16 +602,16 @@ test('float64', (t) => {
   stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0x7F]);
   copy = stream.copy();
   t.is(stream.peekFloat64(0), 3.0418e-319);
-  t.is(Infinity, stream.peekFloat64(0, true));
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloat64(0, true));
   t.is(stream.readFloat64(), 3.0418e-319);
-  t.is(Infinity, copy.readFloat64(true));
+  t.is(Number.POSITIVE_INFINITY, copy.readFloat64(true));
 
   stream = makeStream([0, 0, 0, 0, 0, 0], [0xF0, 0xFF]);
   copy = stream.copy();
   t.is(stream.peekFloat64(0), 3.04814e-319);
-  t.is(-Infinity, stream.peekFloat64(0, true));
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloat64(0, true));
   t.is(stream.readFloat64(), 3.04814e-319);
-  t.is(-Infinity, copy.readFloat64(true));
+  t.is(Number.NEGATIVE_INFINITY, copy.readFloat64(true));
 });
 
 test('float80', (t) => {
@@ -658,22 +658,22 @@ test('float80', (t) => {
 
   stream = makeStream([0x7F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
   copy = stream.copy();
-  t.is(Infinity, stream.peekFloat80());
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloat80());
   t.is(stream.peekFloat80(0, true), 0);
-  t.is(Infinity, stream.readFloat80());
+  t.is(Number.POSITIVE_INFINITY, stream.readFloat80());
   t.is(copy.readFloat80(true), 0);
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x7F]);
-  t.is(Infinity, stream.peekFloat80(0, true));
-  t.is(Infinity, stream.readFloat80(true));
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloat80(0, true));
+  t.is(Number.POSITIVE_INFINITY, stream.readFloat80(true));
 
   stream = makeStream([0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  t.is(-Infinity, stream.peekFloat80());
-  t.is(-Infinity, stream.readFloat80());
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloat80());
+  t.is(Number.NEGATIVE_INFINITY, stream.readFloat80());
 
   stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF]);
-  t.is(-Infinity, stream.peekFloat80(0, true));
-  t.is(-Infinity, stream.readFloat80(true));
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloat80(0, true));
+  t.is(Number.NEGATIVE_INFINITY, stream.readFloat80(true));
 
   stream = makeStream([0x7F, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
   t.true(Number.isNaN(stream.peekFloat80()));
@@ -694,9 +694,9 @@ test('float80', (t) => {
   stream = makeStream([0x3F, 0xFD, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xA8, 0xFF]);
   copy = stream.copy();
   t.is(stream.peekFloat80(), 0.3333333333333333);
-  t.is(-Infinity, stream.peekFloat80(0, true));
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloat80(0, true));
   t.is(stream.readFloat80(), 0.3333333333333333);
-  t.is(-Infinity, copy.readFloat80(true));
+  t.is(Number.NEGATIVE_INFINITY, copy.readFloat80(true));
 
   stream = makeStream([0x41, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0xAE, 0xA9, 0xF8, 0x00]);
   t.is(stream.peekFloat80(), 1.1945305291680097e+103);
