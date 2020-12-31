@@ -1,6 +1,6 @@
 [![view on npm](https://img.shields.io/npm/v/@uttori/data-tools.svg)](https://www.npmjs.com/package/@uttori/data-tools)
 [![npm module downloads](https://img.shields.io/npm/dt/@uttori/data-tools)](https://www.npmjs.com/package/@uttori/data-tools)
-[![Build Status](https://travis-ci.org/uttori/uttori-data-tools.svg?branch=master)](https://travis-ci.org/uttori/uttori-data-tools)
+[![Build Status](https://travis-ci.com/uttori/uttori-data-tools.svg?branch=master)](https://travis-ci.com/uttori/uttori-data-tools)
 [![Dependency Status](https://david-dm.org/uttori/uttori-data-tools.svg)](https://david-dm.org/uttori/uttori-data-tools)
 [![Coverage Status](https://coveralls.io/repos/uttori/uttori-data-tools/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-data-tools?branch=master)
 [![Tree-Shaking Support](https://badgen.net/bundlephobia/tree-shaking/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
