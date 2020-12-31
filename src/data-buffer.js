@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-bitwise */
-let debug = () => {};
-try { debug = require('debug')('Uttori.Utilities.DataBuffer'); } catch {}
+let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataBuffer'); } catch {}
 
 /**
  * Helper class for manipulating binary data.

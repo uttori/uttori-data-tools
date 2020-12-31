@@ -1,8 +1,12 @@
-[![view on npm](https://img.shields.io/npm/v/@uttoi/data-tools.svg)](https://www.npmjs.com/package/@uttori/data-tools)
-[![npm module downloads](https://img.shields.io/npm/dt/@uttoi/data-tools)](https://www.npmjs.com/package/@uttori/data-tools)
+[![view on npm](https://img.shields.io/npm/v/@uttori/data-tools.svg)](https://www.npmjs.com/package/@uttori/data-tools)
+[![npm module downloads](https://img.shields.io/npm/dt/@uttori/data-tools)](https://www.npmjs.com/package/@uttori/data-tools)
 [![Build Status](https://travis-ci.org/uttori/uttori-data-tools.svg?branch=master)](https://travis-ci.org/uttori/uttori-data-tools)
 [![Dependency Status](https://david-dm.org/uttori/uttori-data-tools.svg)](https://david-dm.org/uttori/uttori-data-tools)
 [![Coverage Status](https://coveralls.io/repos/uttori/uttori-data-tools/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-data-tools?branch=master)
+[![Tree-Shaking Support](https://badgen.net/bundlephobia/tree-shaking/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
+[![Dependency Count](https://badgen.net/bundlephobia/dependency-count/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
+[![Minified + GZip](https://badgen.net/bundlephobia/minzip/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
+[![Minified](https://badgen.net/bundlephobia/min/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
 
 # Uttori Data Tools
 
@@ -55,8 +59,8 @@ DEBUG=Uttori* npm test
 
 ## Contributors
 
-* [Matthew Callis](https://github.com/MatthewCallis)
+- [Matthew Callis](https://github.com/MatthewCallis)
 
 ## License
 
-* [MIT](LICENSE)
+- [MIT](LICENSE)
