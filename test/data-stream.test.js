@@ -129,7 +129,13 @@ test('rewind', (t) => {
   t.is(stream.offset, 1);
   t.is(stream.localOffset, 1);
 
-  t.throws(() => stream.rewind(10), { message: 'Insufficient Bytes: 10 > 1' });
+  stream.reset();
+  stream.advance(5);
+  stream.rewind(5);
+  t.is(stream.offset, 0);
+  t.is(stream.localOffset, 0);
+
+  t.throws(() => stream.rewind(10), { message: 'Insufficient Bytes: 10 > 0' });
 });
 
 test('seek', (t) => {

@@ -199,7 +199,7 @@ test('read/peek unsigned', (t) => {
   t.is(bitstream.read(8), 170);
   t.is(bitstream.read(8), 170);
   t.is(bitstream.read(8), 170);
-  t.throws(() => bitstream.read(8), { message: 'Insufficient Bytes: 0 + 1' });
+  t.throws(() => bitstream.read(8), { message: 'Insufficient Bytes: 1 <= 0' });
 });
 
 test('read/peek signed', (t) => {

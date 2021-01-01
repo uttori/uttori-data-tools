@@ -2,9 +2,9 @@ declare module "data-buffer" {
     export = DataBuffer;
     class DataBuffer {
         static allocate(size: number): DataBuffer;
-        constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
-        data: Buffer | Uint8Array;
-        length: number;
+        constructor(input: Array | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
+        data: any;
+        length: any;
         next: any;
         prev: any;
         compare(input: DataBuffer, offset?: number): boolean;
@@ -16,24 +16,24 @@ declare module "data-buffer-list" {
     export = DataBufferList;
     class DataBufferList {
         first: any;
-        last: DataBuffer;
+        last: import("data-buffer");
         totalBuffers: number;
         availableBytes: number;
         availableBuffers: number;
         copy(): DataBufferList;
-        append(buffer: DataBuffer): number;
+        append(buffer: import("data-buffer")): number;
+        moreAvailable(): boolean;
         advance(): boolean;
         rewind(): boolean;
         reset(): void;
     }
-    import DataBuffer = require("data-buffer");
 }
 declare module "data-stream" {
     export = DataStream;
     class DataStream {
         static fromData(data: string | Buffer): DataStream;
-        static fromBuffer(buffer: DataBuffer): DataStream;
-        constructor(list: DataBufferList, options?: {
+        static fromBuffer(buffer: import("data-buffer")): DataStream;
+        constructor(list: import("data-buffer-list"), options?: {
             size: number;
         });
         size: number;
@@ -49,7 +49,7 @@ declare module "data-stream" {
         int64: BigInt64Array;
         uint64: BigUint64Array;
         nativeEndian: boolean;
-        list: DataBufferList;
+        list: import("data-buffer-list");
         localOffset: number;
         offset: number;
         compare(input: DataStream, offset?: number): boolean;
@@ -88,27 +88,26 @@ declare module "data-stream" {
         peekFloat64(offset?: number, littleEndian?: boolean): any;
         readFloat80(littleEndian?: boolean): any;
         peekFloat80(offset?: number, littleEndian?: boolean): any;
-        readBuffer(length: number): DataBuffer;
-        peekBuffer(offset: number, length: number): DataBuffer;
-        readSingleBuffer(length: number): DataBuffer;
-        peekSingleBuffer(offset: number, length: number): DataBuffer;
+        readBuffer(length: number): import("data-buffer");
+        peekBuffer(offset: number, length: number): import("data-buffer");
+        readSingleBuffer(length: number): import("data-buffer");
+        peekSingleBuffer(offset: number, length: number): import("data-buffer");
         readString(length: number, encoding?: string): string;
         peekString(offset: number, length: number, encoding?: string): string;
         float48(): number;
-        private float80;
+        float80(): number;
+        reset(): void;
         private decodeString;
     }
-    import DataBufferList = require("data-buffer-list");
-    import DataBuffer = require("data-buffer");
 }
 declare module "data-bitstream" {
     export = DataBitstream;
     class DataBitstream {
-        static fromData(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
+        static fromData(data: Array | ArrayBuffer | Buffer | import("data-buffer") | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
         static fromBytes(bytes: number[]): DataBitstream;
-        constructor(stream: DataStream);
-        stream: DataStream;
-        bitPosition: number;
+        constructor(stream: import("data-stream"));
+        stream: import("data-stream");
+        bitPosition: any;
         copy(): DataBitstream;
         offset(): number;
         available(bits: number): boolean;
@@ -121,8 +120,6 @@ declare module "data-bitstream" {
         readLSB(bits: number, signed?: boolean, advance?: boolean): number;
         peekLSB(bits: number, signed?: boolean): number;
     }
-    import DataStream = require("data-stream");
-    import DataBuffer = require("data-buffer");
 }
 declare module "data-compression-lzw" {
     export = LZW;
@@ -136,12 +133,11 @@ declare module "data-compression-lzw" {
 declare module "data-hash-crc32" {
     export = CRC32;
     class CRC32 {
-        static of(data: any): string;
+        static of(data: Array | ArrayBuffer | Buffer | import("data-buffer") | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): string;
         crc: number;
-        update(buffer: DataBuffer): void;
+        update(buffer: import("data-buffer")): void;
         toHex(): string;
     }
-    import DataBuffer = require("data-buffer");
 }
 declare module "index" {
     export const CRC32: typeof import("data-hash-crc32");

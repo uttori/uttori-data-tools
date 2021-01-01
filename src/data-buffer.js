@@ -5,10 +5,10 @@ let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataBuffe
 /**
  * Helper class for manipulating binary data.
  *
- * @property {Buffer|Uint8Array} data - The data to process
- * @property {number} length - The size of the data in bytes
- * @property {DataBuffer} next - The next DataBuffer when part of a DataBufferList
- * @property {DataBuffer} prev - The previous DataBuffer when part of a DataBufferList
+ * @property {Buffer|Uint8Array} data The data to process.
+ * @property {number} length The size of the data in bytes.
+ * @property {DataBuffer} next The next DataBuffer when part of a DataBufferList.
+ * @property {DataBuffer} prev The previous DataBuffer when part of a DataBufferList.
  * @example <caption>new DataBitstream(stream)</caption>
  * const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array([0xFC, 0x08])));
  * const bitstream = new DataBitstream(stream);
@@ -22,7 +22,7 @@ class DataBuffer {
 /**
  * Creates an instance of DataBitstream.
  *
- * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input - The DataStream to process
+ * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input The DataStream to process.
  */
   constructor(input) {
     if (!input) {
@@ -67,8 +67,8 @@ class DataBuffer {
   /**
    * Creates an instance of DataBuffer with given size.
    *
-   * @param {number} size - The size of the requested DataBuffer
-   * @returns {DataBuffer} The new DataBuffer
+   * @param {number} size The size of the requested DataBuffer.
+   * @returns {DataBuffer} The new DataBuffer.
    */
   static allocate(size) {
     debug('DataBuffer.allocate:', size);
@@ -78,8 +78,8 @@ class DataBuffer {
   /**
    * Compares another DataBuffer against the current data buffer at a specified offset.
    *
-   * @param {DataBuffer} input - The size of the requested DataBuffer
-   * @param {number} [offset=0] - The size of the requested DataBuffer
+   * @param {DataBuffer} input The size of the requested DataBuffer.
+   * @param {number} [offset=0] The size of the requested DataBuffer.
    * @returns {boolean} Returns true when both DataBuffers are equal, false if there is any difference.
    */
   compare(input, offset = 0) {
@@ -105,7 +105,7 @@ class DataBuffer {
   /**
    * Creates a copy of the current DataBuffer.
    *
-   * @returns {DataBuffer} A new copy of the current DataBuffer
+   * @returns {DataBuffer} A new copy of the current DataBuffer.
    */
   copy() {
     debug('copy');
@@ -115,8 +115,8 @@ class DataBuffer {
   /**
    * Creates a copy of the current DataBuffer from a specified offset and a specified length.
    *
-   * @param {number} position - The starting offset to begin the copy of the new DataBuffer
-   * @param {number} [length] - The size of the new DataBuffer
+   * @param {number} position The starting offset to begin the copy of the new DataBuffer.
+   * @param {number} [length=this.length] The size of the new DataBuffer.
    * @returns {DataBuffer} The new DataBuffer
    */
   slice(position, length = this.length) {

@@ -5,11 +5,11 @@ const DataBuffer = require('./data-buffer');
 /**
  * A linked list of DataBuffers.
  *
- * @property {DataBuffer} first - The first DataBuffer in the list
- * @property {DataBuffer} last - The last DataBuffer in the list
- * @property {number} totalBuffers - The number of buffers in the list
- * @property {number} availableBytes - The number of bytes avaliable to read
- * @property {number} availableBuffers - The number of buffers avaliable to read
+ * @property {DataBuffer} first The first DataBuffer in the list.
+ * @property {DataBuffer} last The last DataBuffer in the list.
+ * @property {number} totalBuffers The number of buffers in the list.
+ * @property {number} availableBytes The number of bytes avaliable to read.
+ * @property {number} availableBuffers The number of buffers avaliable to read.
  * @example <caption>new DataBufferList()</caption>
  * const buffer = new DataBuffer(data);
  * const list = new DataBufferList();
@@ -32,7 +32,7 @@ class DataBufferList {
   /**
    * Creates a copy of the DataBufferList.
    *
-   * @returns {DataBufferList} - The copied DataBufferList
+   * @returns {DataBufferList} The copied DataBufferList.
    */
   copy() {
     debug('copy');
@@ -50,8 +50,8 @@ class DataBufferList {
   /**
    * Creates a copy of the DataBufferList.
    *
-   * @param {DataBuffer} buffer - The DataBuffer to add to the list
-   * @returns {number} - The new number of buffers in the DataBufferList
+   * @param {DataBuffer} buffer The DataBuffer to add to the list.
+   * @returns {number} The new number of buffers in the DataBufferList.
    */
   append(buffer) {
     debug('append');
@@ -66,30 +66,55 @@ class DataBufferList {
 
     this.availableBytes += buffer.length;
     this.availableBuffers++;
-    return this.totalBuffers++;
+    this.totalBuffers++;
+
+    debug('append:', this.totalBuffers);
+    return this.totalBuffers;
+  }
+
+  /**
+   * Checks if we are on the last buffer in the list.
+   *
+   * @returns {boolean} Returns false if there are more buffers in the list, returns true when we are on the last buffer.
+   */
+  moreAvailable() {
+    if (this.first && this.first.next != null) {
+      debug('moreAvailable: true');
+      return true;
+    }
+
+    debug('moreAvailable: false');
+    return false;
   }
 
   /**
    * Advance the buffer list to the next buffer.
    *
-   * @returns {boolean} - Returns false if there is no more buffers, returns true when the next buffer is set
+   * If there is no next buffer, the current buffer is set to null.
+   *
+   * @returns {boolean} Returns false if there is no more buffers, returns true when the next buffer is set.
    */
   advance() {
     debug('advance');
     if (this.first) {
       this.availableBytes -= this.first.length;
       this.availableBuffers--;
+    }
+    if (this.first && this.first.next) {
+      debug('advance: advancing');
       this.first = this.first.next;
-      return (this.first != null);
+      return true;
     }
 
+    debug('advance: nothing to advance to');
+    this.first = null;
     return false;
   }
 
   /**
    * Rewind the buffer list to the previous buffer.
    *
-   * @returns {boolean} - Returns false if there is no previous buffer, returns true when the previous buffer is set
+   * @returns {boolean} Returns false if there is no previous buffer, returns true when the previous buffer is set.
    */
   rewind() {
     debug('rewind');

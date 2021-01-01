@@ -8,17 +8,18 @@ A linked list of DataBuffers.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| first | <code>DataBuffer</code> | The first DataBuffer in the list |
-| last | <code>DataBuffer</code> | The last DataBuffer in the list |
-| totalBuffers | <code>number</code> | The number of buffers in the list |
-| availableBytes | <code>number</code> | The number of bytes avaliable to read |
-| availableBuffers | <code>number</code> | The number of buffers avaliable to read |
+| first | <code>DataBuffer</code> | The first DataBuffer in the list. |
+| last | <code>DataBuffer</code> | The last DataBuffer in the list. |
+| totalBuffers | <code>number</code> | The number of buffers in the list. |
+| availableBytes | <code>number</code> | The number of bytes avaliable to read. |
+| availableBuffers | <code>number</code> | The number of buffers avaliable to read. |
 
 
 * [DataBufferList](#DataBufferList)
     * [new DataBufferList()](#new_DataBufferList_new)
     * [.copy()](#DataBufferList+copy) ⇒ [<code>DataBufferList</code>](#DataBufferList)
     * [.append(buffer)](#DataBufferList+append) ⇒ <code>number</code>
+    * [.moreAvailable()](#DataBufferList+moreAvailable) ⇒ <code>boolean</code>
     * [.advance()](#DataBufferList+advance) ⇒ <code>boolean</code>
     * [.rewind()](#DataBufferList+rewind) ⇒ <code>boolean</code>
     * [.reset()](#DataBufferList+reset)
@@ -40,33 +41,42 @@ list.append(buffer);
 Creates a copy of the DataBufferList.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
-**Returns**: [<code>DataBufferList</code>](#DataBufferList) - - The copied DataBufferList  
+**Returns**: [<code>DataBufferList</code>](#DataBufferList) - The copied DataBufferList.  
 <a name="DataBufferList+append"></a>
 
 ### dataBufferList.append(buffer) ⇒ <code>number</code>
 Creates a copy of the DataBufferList.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
-**Returns**: <code>number</code> - - The new number of buffers in the DataBufferList  
+**Returns**: <code>number</code> - The new number of buffers in the DataBufferList.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| buffer | <code>DataBuffer</code> | The DataBuffer to add to the list |
+| buffer | <code>DataBuffer</code> | The DataBuffer to add to the list. |
 
+<a name="DataBufferList+moreAvailable"></a>
+
+### dataBufferList.moreAvailable() ⇒ <code>boolean</code>
+Checks if we are on the last buffer in the list.
+
+**Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
+**Returns**: <code>boolean</code> - Returns false if there are more buffers in the list, returns true when we are on the last buffer.  
 <a name="DataBufferList+advance"></a>
 
 ### dataBufferList.advance() ⇒ <code>boolean</code>
 Advance the buffer list to the next buffer.
 
+If there is no next buffer, the current buffer is set to null.
+
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
-**Returns**: <code>boolean</code> - - Returns false if there is no more buffers, returns true when the next buffer is set  
+**Returns**: <code>boolean</code> - Returns false if there is no more buffers, returns true when the next buffer is set.  
 <a name="DataBufferList+rewind"></a>
 
 ### dataBufferList.rewind() ⇒ <code>boolean</code>
 Rewind the buffer list to the previous buffer.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
-**Returns**: <code>boolean</code> - - Returns false if there is no previous buffer, returns true when the previous buffer is set  
+**Returns**: <code>boolean</code> - Returns false if there is no previous buffer, returns true when the previous buffer is set.  
 <a name="DataBufferList+reset"></a>
 
 ### dataBufferList.reset()

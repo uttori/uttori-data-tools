@@ -8,8 +8,8 @@ Read a DataStream as a stream of bits.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| stream | <code>DataStream</code> | The DataStream to process |
-| bitPosition | <code>number</code> | The number of buffers in the list |
+| stream | <code>DataStream</code> | The DataStream to process. |
+| bitPosition | <code>number</code> | The number of buffers in the list. |
 
 
 * [DataBitstream](#DataBitstream)
@@ -38,7 +38,7 @@ Creates an instance of DataBitstream.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| stream | <code>DataStream</code> | The DataStream to process |
+| stream | <code>DataStream</code> | The DataStream to process. |
 
 **Example** *(new DataBitstream(stream))*  
 ```js
@@ -55,25 +55,25 @@ bitstream.readLSB(4);
 Creates a copy of the DataBitstream.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: [<code>DataBitstream</code>](#DataBitstream) - - The copied DataBufferList  
+**Returns**: [<code>DataBitstream</code>](#DataBitstream) - The copied DataBufferList.  
 <a name="DataBitstream+offset"></a>
 
 ### dataBitstream.offset() ⇒ <code>number</code>
 Returns the current stream offset in bits.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>number</code> - - The number of bits read thus far  
+**Returns**: <code>number</code> - The number of bits read thus far.  
 <a name="DataBitstream+available"></a>
 
 ### dataBitstream.available(bits) ⇒ <code>boolean</code>
 Returns if the specified number of bits is avaliable in the stream.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>boolean</code> - - If the requested number of bits are avaliable in the stream  
+**Returns**: <code>boolean</code> - If the requested number of bits are avaliable in the stream.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bits | <code>number</code> | The number of bits to check for avaliablity |
+| bits | <code>number</code> | The number of bits to check for avaliablity. |
 
 <a name="DataBitstream+advance"></a>
 
@@ -84,7 +84,7 @@ Advance the bit position by the specified number of bits in the stream.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bits | <code>number</code> | The number of bits to advance |
+| bits | <code>number</code> | The number of bits to advance. |
 
 <a name="DataBitstream+rewind"></a>
 
@@ -95,7 +95,7 @@ Rewind the bit position by the specified number of bits in the stream.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bits | <code>number</code> | The number of bits to go back |
+| bits | <code>number</code> | The number of bits to go back. |
 
 <a name="DataBitstream+seek"></a>
 
@@ -106,7 +106,7 @@ Go to the specified offset in the stream.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| offset | <code>number</code> | The offset to go to |
+| offset | <code>number</code> | The offset to go to. |
 
 <a name="DataBitstream+align"></a>
 
@@ -120,12 +120,12 @@ Reset the bit position back to 0 and advance the stream.
 Read the specified number of bits.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>number</code> - The value read in from the stream  
+**Returns**: <code>number</code> - The value read in from the stream.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bits | <code>number</code> |  | The number of bits to be read |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
+| bits | <code>number</code> |  | The number of bits to be read. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
 | [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position. |
 
 <a name="DataBitstream+peek"></a>
@@ -134,12 +134,12 @@ Read the specified number of bits.
 Read the specified number of bits without advancing the bit position.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>number</code> - The value read in from the stream  
+**Returns**: <code>number</code> - The value read in from the stream.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bits | <code>number</code> |  | The number of bits to be read |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
+| bits | <code>number</code> |  | The number of bits to be read. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
 
 <a name="DataBitstream+readLSB"></a>
 
@@ -150,16 +150,16 @@ The LSB is sometimes referred to as the low-order bit or right-most bit, due to 
 It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>number</code> - The value read in from the stream  
+**Returns**: <code>number</code> - The value read in from the stream.  
 **Throws**:
 
-- <code>Error</code> Too Large, too many bits
+- <code>Error</code> Too Large, too many bits.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bits | <code>number</code> |  | The number of bits to be read |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
+| bits | <code>number</code> |  | The number of bits to be read. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
 | [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position. |
 
 <a name="DataBitstream+peekLSB"></a>
@@ -171,16 +171,16 @@ The LSB is sometimes referred to as the low-order bit or right-most bit, due to 
 It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
 
 **Kind**: instance method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: <code>number</code> - The value read in from the stream  
+**Returns**: <code>number</code> - The value read in from the stream.  
 **Throws**:
 
-- <code>Error</code> Too Large, too many bits
+- <code>Error</code> Too Large, too many bits.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bits | <code>number</code> |  | The number of bits to be read |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value |
+| bits | <code>number</code> |  | The number of bits to be read. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
 
 <a name="DataBitstream.fromData"></a>
 
@@ -188,7 +188,7 @@ It is analogous to the least significant digit of a decimal integer, which is th
 Creates a new DataBitstream from file data.
 
 **Kind**: static method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: [<code>DataBitstream</code>](#DataBitstream) - the new DataBitstream instance for the provided file data  
+**Returns**: [<code>DataBitstream</code>](#DataBitstream) - The new DataBitstream instance for the provided file data.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -200,7 +200,7 @@ Creates a new DataBitstream from file data.
 Creates a new DataBitstream from an array of bytes.
 
 **Kind**: static method of [<code>DataBitstream</code>](#DataBitstream)  
-**Returns**: [<code>DataBitstream</code>](#DataBitstream) - the new DataBitstream instance for the provided bytes  
+**Returns**: [<code>DataBitstream</code>](#DataBitstream) - The new DataBitstream instance for the provided bytes.  
 
 | Param | Type | Description |
 | --- | --- | --- |

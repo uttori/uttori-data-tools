@@ -61,8 +61,8 @@ class CRC32 {
   /**
    * Creates an instance of CRC32 and calculates the checksum of a provided input.
    *
-   * @param {*} data - The data to calculate the checksum of
-   * @returns {string} The computed CRC value
+   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data to calculate the checksum of.
+   * @returns {string} The computed CRC value.
    * @static
    */
   static of(data) {
@@ -75,7 +75,7 @@ class CRC32 {
   /**
    * Calculates the CRC for a chunk of data.
    *
-   * @param {DataBuffer} buffer - The data buffer to calculate the checksum of
+   * @param {DataBuffer} buffer - The data buffer to calculate the checksum of.
    */
   update(buffer) {
     for (const byte of buffer.data) {
@@ -86,7 +86,7 @@ class CRC32 {
   /**
    * Returns the internal CRC value as a hexadecimal string.
    *
-   * @returns {string} The computed CRC value
+   * @returns {string} The computed CRC value.
    */
   toHex() {
     return (~this.crc >>> 0).toString(16).toUpperCase();

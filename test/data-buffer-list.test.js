@@ -45,8 +45,9 @@ test('advance', (t) => {
   t.is(list.totalBuffers, 2);
   t.is(list.availableBuffers, 1);
   t.is(list.availableBytes, 3);
-  t.is(buffer2, list.first);
+  t.is(list.first, buffer2);
 
+  // Last buffer, no where to advance to so the current buffer is left in place.
   t.is(list.advance(), false);
   t.is(list.first, null);
   t.is(list.totalBuffers, 2);
@@ -69,25 +70,25 @@ test('rewind', (t) => {
   t.is(list.availableBytes, 6);
 
   t.is(list.advance(), true);
-  t.is(buffer2, list.first);
+  t.is(list.first, buffer2);
   t.is(list.totalBuffers, 2);
   t.is(list.availableBuffers, 1);
   t.is(list.availableBytes, 3);
 
   t.is(list.rewind(), true);
-  t.is(buffer1, list.first);
+  t.is(list.first, buffer1);
   t.is(list.totalBuffers, 2);
   t.is(list.availableBuffers, 2);
   t.is(list.availableBytes, 6);
 
-  // can't rewind anymore so nothing should change
+  // Can't rewind anymore so nothing should change
   t.is(list.rewind(), false);
-  t.is(buffer1, list.first);
+  t.is(list.first, buffer1);
   t.is(list.totalBuffers, 2);
   t.is(list.availableBuffers, 2);
   t.is(list.availableBytes, 6);
 
-  // advancing past the end of the list and then rewinding should give us the last buffer
+  // Advancing past the end of the list and then rewinding should give us the last buffer
   t.is(list.advance(), true);
   t.is(list.advance(), false);
   t.is(list.first, null);
@@ -96,7 +97,7 @@ test('rewind', (t) => {
   t.is(list.availableBytes, 0);
 
   t.is(list.rewind(), true);
-  t.is(buffer2, list.first);
+  t.is(list.first, buffer2);
   t.is(list.totalBuffers, 2);
   t.is(list.availableBuffers, 1);
   t.is(list.availableBytes, 3);

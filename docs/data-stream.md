@@ -104,7 +104,8 @@ Helpter class to ease working with binary files.
         * [.readString(length, [encoding])](#DataStream+readString) ⇒ <code>string</code>
         * [.peekString(offset, length, [encoding])](#DataStream+peekString) ⇒ <code>string</code>
         * [.float48()](#DataStream+float48) ⇒ <code>number</code>
-        * [.float80()](#DataStream+float80) ⇒ <code>number</code> ℗
+        * [.float80()](#DataStream+float80) ⇒ <code>number</code>
+        * [.reset()](#DataStream+reset)
         * [.decodeString(offset, length, encoding, advance)](#DataStream+decodeString) ⇒ <code>string</code> ℗
     * _static_
         * [.fromData(data)](#DataStream.fromData) ⇒ [<code>DataStream</code>](#DataStream)
@@ -131,12 +132,12 @@ Creates a new DataStream.
 Compares input data against the current data.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>boolean</code> - - True if the data is the same as the input, starting at the offset, false is there is any difference  
+**Returns**: <code>boolean</code> - - True if the data is the same as the input, starting at the offset, false is there is any difference.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| input | [<code>DataStream</code>](#DataStream) |  | The DataStream to compare against |
-| [offset] | <code>number</code> | <code>0</code> | The offset to begin comparing at |
+| input | [<code>DataStream</code>](#DataStream) |  | The DataStream to compare against. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to begin comparing at. |
 
 <a name="DataStream+next"></a>
 
@@ -144,7 +145,7 @@ Compares input data against the current data.
 Compares input data against the upcoming data, byte by byte.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>boolean</code> - - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining  
+**Returns**: <code>boolean</code> - - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -156,18 +157,18 @@ Compares input data against the upcoming data, byte by byte.
 Create a copy of the current DataStream and offset.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - - A new copy of the DataStream  
+**Returns**: [<code>DataStream</code>](#DataStream) - - A new copy of the DataStream.  
 <a name="DataStream+available"></a>
 
 ### dataStream.available(bytes) ⇒ <code>boolean</code>
 Checks if a given number of bytes are avaliable in the stream.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>boolean</code> - - True if there are the requested amount, or more, of bytes left in the stream  
+**Returns**: <code>boolean</code> - True if there are the requested amount, or more, of bytes left in the stream.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bytes | <code>number</code> | The number of bytes to check for |
+| bytes | <code>number</code> | The number of bytes to check for. |
 
 <a name="DataStream+availableAt"></a>
 
@@ -175,12 +176,12 @@ Checks if a given number of bytes are avaliable in the stream.
 Checks if a given number of bytes are avaliable after a given offset in the stream.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>boolean</code> - - True if there are the requested amount, or more, of bytes left in the stream  
+**Returns**: <code>boolean</code> - - True if there are the requested amount, or more, of bytes left in the stream.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bytes | <code>number</code> | The number of bytes to check for |
-| offset | <code>number</code> | The offset to start from |
+| bytes | <code>number</code> | The number of bytes to check for. |
+| offset | <code>number</code> | The offset to start from. |
 
 <a name="DataStream+remainingBytes"></a>
 
@@ -188,22 +189,22 @@ Checks if a given number of bytes are avaliable after a given offset in the stre
 Returns the remaining bytes in the stream.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The remaining bytes in the stream  
+**Returns**: <code>number</code> - The remaining bytes in the stream.  
 <a name="DataStream+advance"></a>
 
 ### dataStream.advance(bytes) ⇒ [<code>DataStream</code>](#DataStream)
 Advance the stream by a given number of bytes. Useful for skipping unused bytes.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - - The current DataStream  
+**Returns**: [<code>DataStream</code>](#DataStream) - The current DataStream.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream
+- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bytes | <code>number</code> | The number of bytes to advance |
+| bytes | <code>number</code> | The number of bytes to advance. |
 
 <a name="DataStream+rewind"></a>
 
@@ -211,15 +212,15 @@ Advance the stream by a given number of bytes. Useful for skipping unused bytes.
 Rewind the stream by a given number of bytes.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - - The current DataStream  
+**Returns**: [<code>DataStream</code>](#DataStream) - The current DataStream.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream
+- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| bytes | <code>number</code> | The number of bytes to go back |
+| bytes | <code>number</code> | The number of bytes to go back. |
 
 <a name="DataStream+seek"></a>
 
@@ -227,11 +228,11 @@ Rewind the stream by a given number of bytes.
 Go to a specified offset in the stream.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - - The current DataStream  
+**Returns**: [<code>DataStream</code>](#DataStream) - The current DataStream.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| position | <code>number</code> | The offset to go to |
+| position | <code>number</code> | The offset to go to. |
 
 <a name="DataStream+readUInt8"></a>
 
@@ -239,10 +240,10 @@ Go to a specified offset in the stream.
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt8 value at the current offset  
+**Returns**: <code>\*</code> - The UInt8 value at the current offset.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream
+- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
 
 <a name="DataStream+peekUInt8"></a>
 
@@ -250,15 +251,15 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt8 value at the current offset  
+**Returns**: <code>\*</code> - The UInt8 value at the current offset.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream
+- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
 
 <a name="DataStream+read"></a>
 
@@ -266,12 +267,12 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>Uint8Array</code> - - The UInt8 value at the current offset  
+**Returns**: <code>Uint8Array</code> - - The UInt8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bytes | <code>number</code> |  | The number of bytes to read |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| bytes | <code>number</code> |  | The number of bytes to read. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peek"></a>
 
@@ -279,13 +280,13 @@ Read from the current offset and return the value.
 Read from the provided offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt8 value at the current offset  
+**Returns**: <code>\*</code> - The UInt8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| bytes | <code>number</code> |  | The number of bytes to read |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| bytes | <code>number</code> |  | The number of bytes to read. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekBit"></a>
 
@@ -293,13 +294,18 @@ Read from the provided offset and return the value.
 Read the bits from the bytes from the provided offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The value at the provided bit position of a provided length at the provided offset  
+**Returns**: <code>number</code> - The value at the provided bit position of a provided length at the provided offset.  
+**Throws**:
+
+- <code>Error</code> peekBit position is invalid: ${position}, must be an Integer between 0 and 7
+- <code>Error</code> `peekBit length is invalid: ${length}, must be an Integer between 1 and 8
+
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| position | <code>number</code> |  | The bit position to read, 0 to 7 |
-| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8 |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
+| position | <code>number</code> |  | The bit position to read, 0 to 7. |
+| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
 
 <a name="DataStream+readInt8"></a>
 
@@ -307,18 +313,18 @@ Read the bits from the bytes from the provided offset and return the value.
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int8 value at the current offset  
+**Returns**: <code>\*</code> - The Int8 value at the current offset.  
 <a name="DataStream+peekInt8"></a>
 
 ### dataStream.peekInt8([offset]) ⇒ <code>\*</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int8 value at the current offset  
+**Returns**: <code>\*</code> - The Int8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
 
 <a name="DataStream+readUInt16"></a>
 
@@ -326,11 +332,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt16 value at the current offset  
+**Returns**: <code>\*</code> - The UInt16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekUInt16"></a>
 
@@ -338,12 +344,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int8 value at the current offset  
+**Returns**: <code>\*</code> - The Int8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readInt16"></a>
 
@@ -351,11 +357,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int16 value at the current offset  
+**Returns**: <code>\*</code> - The Int16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekInt16"></a>
 
@@ -363,12 +369,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int16 value at the current offset  
+**Returns**: <code>\*</code> - The Int16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readUInt24"></a>
 
@@ -376,11 +382,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt24 value at the current offset  
+**Returns**: <code>\*</code> - The UInt24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekUInt24"></a>
 
@@ -388,12 +394,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt24 value at the current offset  
+**Returns**: <code>\*</code> - The UInt24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readInt24"></a>
 
@@ -401,11 +407,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int24 value at the current offset  
+**Returns**: <code>\*</code> - The Int24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekInt24"></a>
 
@@ -413,12 +419,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int24 value at the current offset  
+**Returns**: <code>\*</code> - The Int24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readUInt32"></a>
 
@@ -426,11 +432,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt32 value at the current offset  
+**Returns**: <code>\*</code> - The UInt32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekUInt32"></a>
 
@@ -438,12 +444,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The UInt32 value at the current offset  
+**Returns**: <code>\*</code> - The UInt32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readInt32"></a>
 
@@ -451,11 +457,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int32 value at the current offset  
+**Returns**: <code>\*</code> - The Int32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekInt32"></a>
 
@@ -463,12 +469,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Int32 value at the current offset  
+**Returns**: <code>\*</code> - The Int32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readFloat32"></a>
 
@@ -476,11 +482,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float32 value at the current offset  
+**Returns**: <code>\*</code> - The Float32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekFloat32"></a>
 
@@ -488,12 +494,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float32 value at the current offset  
+**Returns**: <code>\*</code> - The Float32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readFloat48"></a>
 
@@ -502,11 +508,11 @@ Read from the current offset and return the Turbo Pascal 48 bit extended float v
 May be faulty with large numbers due to float percision.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The Float48 value at the current offset  
+**Returns**: <code>number</code> - The Float48 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekFloat48"></a>
 
@@ -515,12 +521,12 @@ Read from the specified offset without advancing the offsets and return the Turb
 May be faulty with large numbers due to float percision.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The Float48 value at the specified offset  
+**Returns**: <code>number</code> - The Float48 value at the specified offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readFloat64"></a>
 
@@ -528,11 +534,11 @@ May be faulty with large numbers due to float percision.
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float64 value at the current offset  
+**Returns**: <code>\*</code> - The Float64 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekFloat64"></a>
 
@@ -540,12 +546,12 @@ Read from the current offset and return the value.
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float64 value at the current offset  
+**Returns**: <code>\*</code> - The Float64 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readFloat80"></a>
 
@@ -553,11 +559,11 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the IEEE 80 bit extended float value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float80 value at the current offset  
+**Returns**: <code>\*</code> - The Float80 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+peekFloat80"></a>
 
@@ -565,12 +571,12 @@ Read from the current offset and return the IEEE 80 bit extended float value.
 Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>\*</code> - - The Float80 value at the current offset  
+**Returns**: <code>\*</code> - The Float80 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
 
 <a name="DataStream+readBuffer"></a>
 
@@ -578,11 +584,11 @@ Read from the specified offset without advancing the offsets and return the IEEE
 Read from the current offset and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
+**Returns**: <code>DataBuffer</code> - The requested number of bytes as a DataBuffer.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| length | <code>number</code> | The number of bytes to read |
+| length | <code>number</code> | The number of bytes to read. |
 
 <a name="DataStream+peekBuffer"></a>
 
@@ -590,12 +596,12 @@ Read from the current offset and return the value as a DataBuffer.
 Read from the specified offset and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
+**Returns**: <code>DataBuffer</code> - The requested number of bytes as a DataBuffer.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| offset | <code>number</code> | The offset to read from |
-| length | <code>number</code> | The number of bytes to read |
+| offset | <code>number</code> | The offset to read from. |
+| length | <code>number</code> | The number of bytes to read. |
 
 <a name="DataStream+readSingleBuffer"></a>
 
@@ -603,11 +609,11 @@ Read from the specified offset and return the value as a DataBuffer.
 Read from the current offset of the current buffer for a given length and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
+**Returns**: <code>DataBuffer</code> - The requested number of bytes as a DataBuffer.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| length | <code>number</code> | The number of bytes to read |
+| length | <code>number</code> | The number of bytes to read. |
 
 <a name="DataStream+peekSingleBuffer"></a>
 
@@ -615,12 +621,12 @@ Read from the current offset of the current buffer for a given length and return
 Read from the specified offset of the current buffer for a given length and return the value as a DataBuffer.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>DataBuffer</code> - - The requested number of bytes as a DataBuffer  
+**Returns**: <code>DataBuffer</code> - The requested number of bytes as a DataBuffer.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| offset | <code>number</code> | The offset to read from |
-| length | <code>number</code> | The number of bytes to read |
+| offset | <code>number</code> | The offset to read from. |
+| length | <code>number</code> | The number of bytes to read. |
 
 <a name="DataStream+readString"></a>
 
@@ -628,12 +634,12 @@ Read from the specified offset of the current buffer for a given length and retu
 Read from the current offset for a given length and return the value as a string.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>string</code> - - The read value as a string  
+**Returns**: <code>string</code> - The read value as a string.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| length | <code>number</code> |  | The number of bytes to read |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string |
+| length | <code>number</code> |  | The number of bytes to read. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
 
 <a name="DataStream+peekString"></a>
 
@@ -641,13 +647,13 @@ Read from the current offset for a given length and return the value as a string
 Read from the specified offset for a given length and return the value as a string.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>string</code> - - The read value as a string  
+**Returns**: <code>string</code> - The read value as a string.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| offset | <code>number</code> |  | The offset to read from |
-| length | <code>number</code> |  | The number of bytes to read |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string |
+| offset | <code>number</code> |  | The offset to read from. |
+| length | <code>number</code> |  | The number of bytes to read. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
 
 <a name="DataStream+float48"></a>
 
@@ -674,17 +680,22 @@ S[1]: Sign
 Value: (-1)^s * 2^(e - 129) * (1.f)
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The read value as a number  
+**Returns**: <code>number</code> - The read value as a number.  
 **See**: [Turbo Pascal Real](http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real)  
 <a name="DataStream+float80"></a>
 
-### dataStream.float80() ⇒ <code>number</code> ℗
+### dataStream.float80() ⇒ <code>number</code>
 Convert the current buffer into an IEEE 80 bit extended float value.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - - The read value as a number  
-**Access**: private  
+**Returns**: <code>number</code> - The read value as a number.  
 **See**: [Extended_Precision](https://en.wikipedia.org/wiki/Extended_precision)  
+<a name="DataStream+reset"></a>
+
+### dataStream.reset()
+Resets the instance offsets to 0.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 <a name="DataStream+decodeString"></a>
 
 ### dataStream.decodeString(offset, length, encoding, advance) ⇒ <code>string</code> ℗
@@ -692,15 +703,15 @@ Read from the specified offset for a given length and return the value as a stri
 Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, utf16-le, utf16bom, utf16-bom
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>string</code> - - The read value as a string  
+**Returns**: <code>string</code> - The read value as a string.  
 **Access**: private  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| offset | <code>number</code> | The offset to read from |
-| length | <code>number</code> | The number of bytes to read, if not defined it is the remaining bytes in the buffer |
-| encoding | <code>string</code> | The encoding of the string |
-| advance | <code>boolean</code> | Flag to optionally advance the offsets |
+| offset | <code>number</code> | The offset to read from. |
+| length | <code>number</code> | The number of bytes to read, if not defined it is the remaining bytes in the buffer. |
+| encoding | <code>string</code> | The encoding of the string. |
+| advance | <code>boolean</code> | Flag to optionally advance the offsets. |
 
 <a name="DataStream.fromData"></a>
 
@@ -708,7 +719,7 @@ Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, u
 Creates a new DataStream from file data.
 
 **Kind**: static method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - the new DataStream instance for the provided file data  
+**Returns**: [<code>DataStream</code>](#DataStream) - The new DataStream instance for the provided file data.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -720,7 +731,7 @@ Creates a new DataStream from file data.
 Creates a new DataStream from a DataBuffer.
 
 **Kind**: static method of [<code>DataStream</code>](#DataStream)  
-**Returns**: [<code>DataStream</code>](#DataStream) - the new DataStream instance for the provided DataBuffer  
+**Returns**: [<code>DataStream</code>](#DataStream) - The new DataStream instance for the provided DataBuffer.  
 
 | Param | Type | Description |
 | --- | --- | --- |

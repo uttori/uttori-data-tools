@@ -1,4 +1,4 @@
-/* eslint-disable no-bitwise, unicorn/prefer-ternary */
+/* eslint-disable no-bitwise */
 /**
  * Lempel–Ziv–Welch (LZW) is a universal lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.
  *
@@ -15,7 +15,7 @@ class LZW {
   /**
    * Builds the compression & decompression lookup tables for a provided bit depth.
    *
-   * @param {number} depth - The bit depth of the compression.
+   * @param {number} depth The bit depth of the compression.
    * @returns {object} The built compressDictionary & decompressArray.
    * @static
    */
@@ -35,10 +35,10 @@ class LZW {
   }
 
   /**
-   * Converts a string into a character code array
+   * Converts a string into a character code array.
    *
    * @static
-   * @param {string} string - The string to convert to hex.
+   * @param {string} string The string to convert to hex.
    * @returns {number[]} The split up string.
    * @memberof LZW
    */
@@ -67,8 +67,8 @@ class LZW {
   /**
    *  Compresses the incoming data.
    *
-   * @param {number[]} input - The data to compress.
-   * @param {number} [depth=8] - The bit depth of the compression, defaults to 8, or 256 (1 << 8) value lookups.
+   * @param {number[]} input The data to compress.
+   * @param {number} [depth=8] The bit depth of the compression, defaults to 8, or 256 (1 << 8) value lookups.
    * @returns {number[]} The compressed version of the input.
    * @static
    */
@@ -101,8 +101,8 @@ class LZW {
   /**
    * Decompressed the incoming data,
    *
-   * @param {number[]} input - The data to decompress.
-   * @param {number} [depth=8] - The bit depth of the compression, defaults to 8, or 256 (1 << 8) value lookups.
+   * @param {number[]} input The data to decompress.
+   * @param {number} [depth=8] The bit depth of the compression, defaults to 8, or 256 (1 << 8) value lookups.
    * @returns {number[]} The decompressed data.
    * @static
    */

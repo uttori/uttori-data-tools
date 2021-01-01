@@ -44,7 +44,7 @@ Calculates the CRC for a chunk of data.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| buffer | <code>DataBuffer</code> | The data buffer to calculate the checksum of |
+| buffer | <code>DataBuffer</code> | The data buffer to calculate the checksum of. |
 
 <a name="CRC32+toHex"></a>
 
@@ -52,16 +52,16 @@ Calculates the CRC for a chunk of data.
 Returns the internal CRC value as a hexadecimal string.
 
 **Kind**: instance method of [<code>CRC32</code>](#CRC32)  
-**Returns**: <code>string</code> - The computed CRC value  
+**Returns**: <code>string</code> - The computed CRC value.  
 <a name="CRC32.of"></a>
 
 ### CRC32.of(data) ⇒ <code>string</code>
 Creates an instance of CRC32 and calculates the checksum of a provided input.
 
 **Kind**: static method of [<code>CRC32</code>](#CRC32)  
-**Returns**: <code>string</code> - The computed CRC value  
+**Returns**: <code>string</code> - The computed CRC value.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>\*</code> | The data to calculate the checksum of |
+| data | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The data to calculate the checksum of. |
 

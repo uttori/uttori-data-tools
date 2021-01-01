@@ -31,7 +31,7 @@ Builds the compression & decompression lookup tables for a provided bit depth.
 <a name="LZW.stringToHexArray"></a>
 
 ### LZW.stringToHexArray(string) ⇒ <code>Array.&lt;number&gt;</code>
-Converts a string into a character code array
+Converts a string into a character code array.
 
 **Kind**: static method of [<code>LZW</code>](#LZW)  
 **Returns**: <code>Array.&lt;number&gt;</code> - The split up string.  
