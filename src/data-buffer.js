@@ -30,7 +30,7 @@ class DataBuffer {
       debug(error);
       throw new TypeError(error);
     }
-    if (Buffer.isBuffer(input) || typeof input === 'string') {
+    if (typeof Buffer !== 'undefined' && (Buffer.isBuffer(input) || typeof input === 'string')) {
       debug('constructor: from Buffer');
       this.data = Buffer.from(input);
     } else if (input instanceof Uint8Array) {
