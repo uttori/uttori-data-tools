@@ -26,21 +26,20 @@ Helper class for manipulating binary data.
 <a name="new_DataBuffer_new"></a>
 
 ### new DataBuffer(input)
-Creates an instance of DataBitstream.
+Creates an instance of DataBuffer.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| input | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The DataStream to process. |
+| input | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The data to process. |
 
-**Example** *(new DataBitstream(stream))*  
+**Example** *(new DataBuffer(stream))*  
 ```js
-const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array([0xFC, 0x08])));
-const bitstream = new DataBitstream(stream);
-bitstream.readLSB(0);
-➜ 0
-bitstream.readLSB(4);
-➜ 12
+const buffer = new DataBuffer(new Uint8Array([0xFC, 0x08]));
+buffer.readUint8();
+➜ 0xFC
+buffer.readUint8();
+➜ 0x08
 ```
 <a name="DataBuffer+compare"></a>
 

@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise */
 const DataBuffer = require('./data-buffer');
 
 const CRC32_TABLE = [
@@ -62,14 +61,14 @@ class CRC32 {
    * Creates an instance of CRC32 and calculates the checksum of a provided input.
    *
    * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data to calculate the checksum of.
-   * @returns {string} The computed CRC value.
+   * @returns {string} The computed CRC value as a hexadecimal string.
    * @static
    */
   static of(data) {
     const buffer = new DataBuffer(data);
     const crc32 = new CRC32();
     crc32.update(buffer);
-    return crc32.toHex();
+    return (~crc32.crc >>> 0).toString(16).toUpperCase();
   }
 
   /**
@@ -81,15 +80,6 @@ class CRC32 {
     for (const byte of buffer.data) {
       this.crc = (this.crc >>> 8) ^ CRC32_TABLE[(this.crc ^ byte) & 0xFF];
     }
-  }
-
-  /**
-   * Returns the internal CRC value as a hexadecimal string.
-   *
-   * @returns {string} The computed CRC value.
-   */
-  toHex() {
-    return (~this.crc >>> 0).toString(16).toUpperCase();
   }
 }
 

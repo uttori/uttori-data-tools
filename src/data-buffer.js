@@ -1,6 +1,4 @@
-/* eslint-disable class-methods-use-this */
-/* eslint-disable no-bitwise */
-let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataBuffer'); } catch {}
+let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBuffer'); } catch {} }
 
 /**
  * Helper class for manipulating binary data.
@@ -9,20 +7,19 @@ let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataBuffe
  * @property {number} length The size of the data in bytes.
  * @property {DataBuffer} next The next DataBuffer when part of a DataBufferList.
  * @property {DataBuffer} prev The previous DataBuffer when part of a DataBufferList.
- * @example <caption>new DataBitstream(stream)</caption>
- * const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array([0xFC, 0x08])));
- * const bitstream = new DataBitstream(stream);
- * bitstream.readLSB(0);
- * ➜ 0
- * bitstream.readLSB(4);
- * ➜ 12
+ * @example <caption>new DataBuffer(stream)</caption>
+ * const buffer = new DataBuffer(new Uint8Array([0xFC, 0x08]));
+ * buffer.readUint8();
+ * ➜ 0xFC
+ * buffer.readUint8();
+ * ➜ 0x08
  * @class
  */
 class DataBuffer {
 /**
- * Creates an instance of DataBitstream.
+ * Creates an instance of DataBuffer.
  *
- * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input The DataStream to process.
+ * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input The data to process.
  */
   constructor(input) {
     if (!input) {
@@ -59,7 +56,7 @@ class DataBuffer {
 
     this.length = this.data.length;
 
-    // used when the buffer is part of a bufferlist
+    // Used when the buffer is part of a bufferlist
     this.next = null;
     this.prev = null;
   }

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.0](https://github.com/uttori/uttori-data-tools/compare/v1.7.0...v2.0.0) - 2021-01-07
+
+- 🧰 Add ESM Support
+- 🛠 CRC32: simplify code
+- 🛠 DataStream: edge case on length check
+- 🧹 Check Tree Shaking
+- 🧹 Documentation & Types clean up
+
 ## [1.7.0](https://github.com/uttori/uttori-data-tools/compare/v1.5.0...v1.7.0) - 2021-01-01
 
 - 🎁 Update dev dependencies

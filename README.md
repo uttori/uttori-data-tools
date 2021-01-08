@@ -26,7 +26,7 @@ npm install --save @uttori/data-tools
 
 * * *
 
-# Examples
+## Examples
 
 ```js
 const { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } = require('uttori-data-tools');
@@ -43,6 +43,22 @@ stream_a.compare(stream_b);
 const buffer = new DataBuffer(data);
 const list = new DataBufferList();
 list.append(buffer);
+```
+
+## Tree Shaking with ESM Modules
+
+To enable tree-shaking with [RollUp](https://rollupjs.org/), you will need to at the very least use `commonjs()` of [@rollup/plugin-commonjs](https://www.npmjs.com/package/@rollup/plugin-commonjs) and will likely want to use `replace()` of [@rollup/plugin-replace](https://www.npmjs.com/package/@rollup/plugin-replace) like the following example to get a clean output:
+
+```js
+rollup.rollup({
+  input: './you-entry-file.mjs',
+  plugins: [
+  replace({
+    'process.env.UTTORI_DATA_DEBUG': 'false',
+  }),
+  commonjs(),
+  ],
+});
 ```
 
 * * *

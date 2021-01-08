@@ -1,6 +1,4 @@
-/* eslint-disable unicorn/explicit-length-check */
-/* eslint-disable no-bitwise */
-let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataStream'); } catch {}
+let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataStream'); } catch {} }
 const DataBuffer = require('./data-buffer');
 const DataBufferList = require('./data-buffer-list');
 
@@ -155,7 +153,7 @@ class DataStream {
    */
   next(input) {
     debug('next:', input);
-    if (!input || !input.length || input.length === 0) {
+    if (!input || typeof input.length !== 'number' || input.length === 0) {
       debug('next: no input provided');
       return false;
     }

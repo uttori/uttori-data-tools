@@ -1,5 +1,4 @@
-/* eslint-disable no-bitwise */
-let debug = () => {}; try { debug = require('debug')('Uttori.Utilities.DataBitstream'); } catch {}
+let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBitstream'); } catch {} }
 const DataStream = require('./data-stream');
 const DataBuffer = require('./data-buffer');
 const DataBufferList = require('./data-buffer-list');
