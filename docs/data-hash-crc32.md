@@ -21,7 +21,6 @@ This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16,
     * [new CRC32()](#new_CRC32_new)
     * _instance_
         * [.update(buffer)](#CRC32+update)
-        * [.toHex()](#CRC32+toHex) ⇒ <code>string</code>
     * _static_
         * [.of(data)](#CRC32.of) ⇒ <code>string</code>
 
@@ -46,20 +45,13 @@ Calculates the CRC for a chunk of data.
 | --- | --- | --- |
 | buffer | <code>DataBuffer</code> | The data buffer to calculate the checksum of. |
 
-<a name="CRC32+toHex"></a>
-
-### crC32.toHex() ⇒ <code>string</code>
-Returns the internal CRC value as a hexadecimal string.
-
-**Kind**: instance method of [<code>CRC32</code>](#CRC32)  
-**Returns**: <code>string</code> - The computed CRC value.  
 <a name="CRC32.of"></a>
 
 ### CRC32.of(data) ⇒ <code>string</code>
 Creates an instance of CRC32 and calculates the checksum of a provided input.
 
 **Kind**: static method of [<code>CRC32</code>](#CRC32)  
-**Returns**: <code>string</code> - The computed CRC value.  
+**Returns**: <code>string</code> - The computed CRC value as a hexadecimal string.  
 
 | Param | Type | Description |
 | --- | --- | --- |
