@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.0](https://github.com/uttori/uttori-data-tools/compare/v2.0.0...v2.1.0) - 2021-01-07
+
+- 🛠 Tweak Tree Shaking, add [Subpath Exports](https://nodejs.org/api/packages.html#packages_subpath_exports)
+
 ## [2.0.0](https://github.com/uttori/uttori-data-tools/compare/v1.7.0...v2.0.0) - 2021-01-07
 
 - 🧰 Add ESM Support

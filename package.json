@@ -67,6 +67,24 @@
     ".": {
       "require": "./src/index.js",
       "import": "./esm/index.js"
+    },
+    "./data-bitstream": {
+      "require": "./src/data-bitstream.js"
+    },
+    "./data-buffer-list": {
+      "require": "./src/data-buffer-list.js"
+    },
+    "./data-buffer": {
+      "require": "./src/data-buffer.js"
+    },
+    "./data-compression-lzw": {
+      "require": "./src/data-compression-lzw.js"
+    },
+    "./data-hash-crc32": {
+      "require": "./src/data-hash-crc32.js"
+    },
+    "./data-stream": {
+      "require": "./src/data-stream.js"
     }
   },
   "ava": {
