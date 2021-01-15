@@ -89,8 +89,9 @@ class DataBuffer {
       return false;
     }
     const local = this.slice(offset, length);
+    const { data } = buffer;
     for (let i = 0; i < length; i++) {
-      if (local.data[i] !== buffer.data[i]) {
+      if (local.data[i] !== data[i]) {
         debug('compare: first failed match at', i);
         return false;
       }

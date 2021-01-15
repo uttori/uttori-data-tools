@@ -1008,6 +1008,7 @@ test('decodeString invalid utf8-sequence', (t) => {
 });
 
 test('read: can read files of any size', (t) => {
+  // eslint-disable-next-line unicorn/no-new-array
   const data = Buffer.from([...new Array(1000).keys()]);
   const buffer = new DataBuffer(data);
   const list = new DataBufferList();
@@ -1018,6 +1019,7 @@ test('read: can read files of any size', (t) => {
 });
 
 test('peek: can peek files of any size', (t) => {
+  // eslint-disable-next-line unicorn/no-new-array
   const data = Buffer.from([...new Array(1000).keys()]);
   const buffer = new DataBuffer(data);
   const list = new DataBufferList();
