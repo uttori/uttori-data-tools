@@ -6,11 +6,10 @@
  * ➜ [84, 79, 66, 69, 79, 82, 78, 79, 84, 256, 258, 260, 265, 259, 261, 263]
  * LZW.decompress([84, 79, 66, 69, 79, 82, 78, 79, 84, 256, 258, 260, 265, 259, 261, 263]);
  * ➜ new DataBuffer('TOBEORNOTTOBEORTOBEORNOT')
- * @class
  * @see {@link https://rosettacode.org/wiki/LZW_compression|LZW Compression}
  * @see {@link https://en.wikipedia.org/w/index.php?title=Lempel%E2%80%93Ziv%E2%80%93Welch&oldid=531967504#Packing_order|Lempel–Ziv–Welch (LZW)}
  */
-class LZW {
+const LZW = {
   /**
    * Builds the compression & decompression lookup tables for a provided bit depth.
    *
@@ -18,7 +17,7 @@ class LZW {
    * @returns {object} The built compressDictionary & decompressArray.
    * @static
    */
-  static buildDictionary(depth) {
+  buildDictionary(depth) {
     const compressDictionary = {};
     const decompressArray = [];
     const size = 1 << depth;
@@ -31,7 +30,7 @@ class LZW {
     }
 
     return { compressDictionary, decompressArray };
-  }
+  },
 
   /**
    * Converts a string into a character code array.
@@ -41,7 +40,7 @@ class LZW {
    * @returns {number[]} The split up string.
    * @memberof LZW
    */
-  static stringToHexArray(string) {
+  stringToHexArray(string) {
     let values = [...string].map((c) => c.codePointAt(0).toString(16));
     values = values.map(((value) => {
       if (value.length > 2) {
@@ -61,7 +60,7 @@ class LZW {
     }));
 
     return values.flat();
-  }
+  },
 
   /**
    *  Compresses the incoming data.
@@ -71,7 +70,7 @@ class LZW {
    * @returns {number[]} The compressed version of the input.
    * @static
    */
-  static compress(input, depth = 8) {
+  compress(input, depth = 8) {
     const { compressDictionary: dictionary } = LZW.buildDictionary(depth);
     let nextDictValue = 1 << depth;
 
@@ -95,7 +94,7 @@ class LZW {
     }
 
     return output;
-  }
+  },
 
   /**
    * Decompressed the incoming data,
@@ -105,7 +104,7 @@ class LZW {
    * @returns {number[]} The decompressed data.
    * @static
    */
-  static decompress(input, depth = 8) {
+  decompress(input, depth = 8) {
     const { decompressArray: dictionary } = LZW.buildDictionary(depth);
 
     let key = input[0];
@@ -128,7 +127,7 @@ class LZW {
     }
 
     return LZW.stringToHexArray(output);
-  }
-}
+  },
+};
 
 module.exports = LZW;

@@ -1,6 +1,13 @@
 const test = require('ava');
 const { DataBuffer, DataBufferList } = require('../src');
 
+test('constructor', (t) => {
+  const list = new DataBufferList([DataBuffer.allocate(3), DataBuffer.allocate(3)]);
+  t.is(list.totalBuffers, 2);
+  t.is(list.availableBuffers, 2);
+  t.is(list.availableBytes, 6);
+});
+
 test('append', (t) => {
   const list = new DataBufferList();
   const buffer = new DataBuffer(new Uint8Array([1, 2, 3]));

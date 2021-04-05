@@ -1,3 +1,18 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBuffer">DataBuffer</a></dt>
+<dd><p>Helper class for manipulating binary data.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code>function</code></dt>
+<dd></dd>
+</dl>
+
 <a name="DataBuffer"></a>
 
 ## DataBuffer
@@ -86,3 +101,7 @@ Creates an instance of DataBuffer with given size.
 | --- | --- | --- |
 | size | <code>number</code> | The size of the requested DataBuffer. |
 
+<a name="debug"></a>
+
+## debug() : <code>function</code>
+**Kind**: global function  

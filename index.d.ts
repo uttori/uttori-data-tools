@@ -15,6 +15,7 @@ declare module "data-buffer" {
 declare module "data-buffer-list" {
     export = DataBufferList;
     class DataBufferList {
+        constructor(buffers: DataBuffer[]);
         first: any;
         last: DataBuffer;
         totalBuffers: number;
@@ -35,7 +36,7 @@ declare module "data-stream" {
         static fromData(data: string | Buffer): DataStream;
         static fromBuffer(buffer: DataBuffer): DataStream;
         constructor(list: DataBufferList, options?: {
-            size: number;
+            size?: number;
         });
         size: number;
         buf: ArrayBuffer;
@@ -127,13 +128,17 @@ declare module "data-bitstream" {
     import DataBuffer = require("data-buffer");
 }
 declare module "data-compression-lzw" {
-    export = LZW;
-    class LZW {
-        static buildDictionary(depth: number): object;
-        static stringToHexArray(string: string): number[];
-        static compress(input: number[], depth?: number): number[];
-        static decompress(input: number[], depth?: number): number[];
-    }
+    export function buildDictionary(depth: number): any;
+    export function buildDictionary(depth: number): any;
+    export function stringToHexArray(string: string): number[];
+    export function stringToHexArray(string: string): number[];
+    export function compress(input: number[], depth?: number): number[];
+    export function compress(input: number[], depth?: number): number[];
+    export function decompress(input: number[], depth?: number): number[];
+    export function decompress(input: number[], depth?: number): number[];
+}
+declare module "data-formating" {
+    export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
 }
 declare module "data-hash-crc32" {
     export = CRC32;
@@ -150,5 +155,11 @@ declare module "index" {
     export const DataBuffer: typeof import("data-buffer");
     export const DataBufferList: typeof import("data-buffer-list");
     export const DataStream: typeof import("data-stream");
-    export const LZW: typeof import("data-compression-lzw");
+    export const LZW: {
+        buildDictionary(depth: number): any;
+        stringToHexArray(string: string): number[];
+        compress(input: number[], depth?: number): number[];
+        decompress(input: number[], depth?: number): number[];
+    };
+    export const formatBytes: (input: number, decimals?: number, bytes?: number, sizes?: string[]) => string;
 }

@@ -5,4 +5,5 @@ module.exports = {
   DataBufferList: require('./data-buffer-list'),
   DataStream: require('./data-stream'),
   LZW: require('./data-compression-lzw'),
+  formatBytes: require('./data-formating').formatBytes,
 };

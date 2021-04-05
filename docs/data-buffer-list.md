@@ -16,7 +16,7 @@ A linked list of DataBuffers.
 
 
 * [DataBufferList](#DataBufferList)
-    * [new DataBufferList()](#new_DataBufferList_new)
+    * [new DataBufferList(buffers)](#new_DataBufferList_new)
     * [.copy()](#DataBufferList+copy) ⇒ [<code>DataBufferList</code>](#DataBufferList)
     * [.append(buffer)](#DataBufferList+append) ⇒ <code>number</code>
     * [.moreAvailable()](#DataBufferList+moreAvailable) ⇒ <code>boolean</code>
@@ -26,14 +26,18 @@ A linked list of DataBuffers.
 
 <a name="new_DataBufferList_new"></a>
 
-### new DataBufferList()
+### new DataBufferList(buffers)
 Creates an instance of DataBufferList.
 
-**Example** *(new DataBufferList())*  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| buffers | <code>Array.&lt;DataBuffer&gt;</code> | DataBuffers to initialize with. |
+
+**Example** *(new DataBufferList(buffers))*  
 ```js
 const buffer = new DataBuffer(data);
-const list = new DataBufferList();
-list.append(buffer);
+const list = new DataBufferList([buffer]);
 ```
 <a name="DataBufferList+copy"></a>
 
@@ -45,7 +49,7 @@ Creates a copy of the DataBufferList.
 <a name="DataBufferList+append"></a>
 
 ### dataBufferList.append(buffer) ⇒ <code>number</code>
-Creates a copy of the DataBufferList.
+Appends a DataBuffer to the DataBufferList.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
 **Returns**: <code>number</code> - The new number of buffers in the DataBufferList.  
@@ -64,7 +68,7 @@ Checks if we are on the last buffer in the list.
 <a name="DataBufferList+advance"></a>
 
 ### dataBufferList.advance() ⇒ <code>boolean</code>
-Advance the buffer list to the next buffer.
+Advance the buffer list to the next DataBuffer or to `null` when at the end of avaliable DataBuffers.
 
 If there is no next buffer, the current buffer is set to null.
 

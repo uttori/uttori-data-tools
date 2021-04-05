@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.0](https://github.com/uttori/uttori-data-tools/compare/v2.0.2...v2.1.0) - 2021-04-04
+
+- 🎁 Update dev dependencies
+- 🧰 Add `formatBytes` function for formating byte sizes
+- 🛠 Allow `DataBufferList` to be constructed with an array of DataBuffers
+- 🛠 Convert `LZW` to an object instead of a static method only class
+- 🧹 Documentation & Types clean up
+
 ## [2.0.2](https://github.com/uttori/uttori-data-tools/compare/v2.0.1...v2.0.2) - 2021-01-14
 
 - 🎁 Update dev dependencies

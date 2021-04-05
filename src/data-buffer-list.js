@@ -1,3 +1,4 @@
+/** @type {Function} */
 let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBufferList'); } catch {} }
 const DataBuffer = require('./data-buffer');
 
@@ -9,23 +10,30 @@ const DataBuffer = require('./data-buffer');
  * @property {number} totalBuffers The number of buffers in the list.
  * @property {number} availableBytes The number of bytes avaliable to read.
  * @property {number} availableBuffers The number of buffers avaliable to read.
- * @example <caption>new DataBufferList()</caption>
+ * @example <caption>new DataBufferList(buffers)</caption>
  * const buffer = new DataBuffer(data);
- * const list = new DataBufferList();
- * list.append(buffer);
+ * const list = new DataBufferList([buffer]);
  * @class
  */
 class DataBufferList {
-/**
- * Creates an instance of DataBufferList.
- */
-  constructor() {
+  /**
+   * Creates an instance of DataBufferList.
+   *
+   * @param {DataBuffer[]} [buffers] DataBuffers to initialize with.
+   */
+  constructor(buffers) {
     debug('constructor');
     this.first = null;
     this.last = null;
     this.totalBuffers = 0;
     this.availableBytes = 0;
     this.availableBuffers = 0;
+
+    if (buffers && Array.isArray(buffers)) {
+      for (const buffer of buffers) {
+        this.append(buffer);
+      }
+    }
   }
 
   /**
@@ -47,7 +55,7 @@ class DataBufferList {
   }
 
   /**
-   * Creates a copy of the DataBufferList.
+   * Appends a DataBuffer to the DataBufferList.
    *
    * @param {DataBuffer} buffer The DataBuffer to add to the list.
    * @returns {number} The new number of buffers in the DataBufferList.
@@ -87,7 +95,7 @@ class DataBufferList {
   }
 
   /**
-   * Advance the buffer list to the next buffer.
+   * Advance the buffer list to the next DataBuffer or to `null` when at the end of avaliable DataBuffers.
    *
    * If there is no next buffer, the current buffer is set to null.
    *

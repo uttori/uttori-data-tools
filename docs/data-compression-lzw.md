@@ -3,12 +3,19 @@
 ## LZW
 Lempel–Ziv–Welch (LZW) is a universal lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.
 
-**Kind**: global class  
+**Kind**: global constant  
 **See**
 
 - [LZW Compression](https://rosettacode.org/wiki/LZW_compression)
 - [Lempel–Ziv–Welch (LZW)](https://en.wikipedia.org/w/index.php?title=Lempel%E2%80%93Ziv%E2%80%93Welch&oldid=531967504#Packing_order)
 
+**Example** *(LZW.compress(...))*  
+```js
+LZW.compress('TOBEORNOTTOBEORTOBEORNOT');
+➜ [84, 79, 66, 69, 79, 82, 78, 79, 84, 256, 258, 260, 265, 259, 261, 263]
+LZW.decompress([84, 79, 66, 69, 79, 82, 78, 79, 84, 256, 258, 260, 265, 259, 261, 263]);
+➜ new DataBuffer('TOBEORNOTTOBEORTOBEORNOT')
+```
 
 * [LZW](#LZW)
     * [.buildDictionary(depth)](#LZW.buildDictionary) ⇒ <code>object</code>
