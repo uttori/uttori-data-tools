@@ -23,10 +23,15 @@ class DataBufferList {
    */
   constructor(buffers) {
     debug('constructor');
+    /** @type {DataBuffer|null} The first DataBuffer in the list. */
     this.first = null;
+    /** @type {DataBuffer|null} The last DataBuffer in the list. */
     this.last = null;
+    /** @type {number} The number of buffers in the list. */
     this.totalBuffers = 0;
+    /** @type {number} The number of bytes avaliable to read. */
     this.availableBytes = 0;
+    /** @type {number} The number of buffers avaliable to read. */
     this.availableBuffers = 0;
 
     if (buffers && Array.isArray(buffers)) {

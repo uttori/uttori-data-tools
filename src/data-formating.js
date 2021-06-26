@@ -1,3 +1,5 @@
+const DataStream = require('./data-stream');
+
 /**
  * Format an amount of bytes to a human friendly string.
  *
@@ -17,12 +19,143 @@ const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 
   return `${Number.parseFloat((input / Math.pow(bytes, i)).toFixed(decimals))} ${sizes[i]}`;
 };
 
-// TODO
-// Hex Editor View
-// 00000000: 3734 3635 3733 3734 3061 6173 6466 6173  746573740aasdfas
-// 00000010: 6466 6173 6466 6173 6466 6173 6466 6173  dfasdfasdfasdfas
-// 00000020: 6466 6173 6466 6173 6466 0a              dfasdfasdf.
+/**
+ * Formatting functions for all value types.
+ *
+ * @typedef {object} HexTableFormater
+ * @property {Function} offset - Offset formatting fuction.
+ * @property {Function} value - Byte value formating function.
+ * @property {Function} ascii - ASCII text formatting functuin.
+ */
+const hexTableFormaters = {
+  offset: (value) => value.toString(16).padStart(8, '0'),
+  value: (value) => value.toString(16).padStart(2, '0').toUpperCase(),
+  ascii: (value) => {
+    // Unprintable ASCII < 128 == ' ', > 128 == '.'
+    if (value < 0x20) {
+      return ' ';
+    }
+    if (value > 0x7E) {
+      return '.';
+    }
+    // Alternatively: .replace(/[^\x20-\x7E]+/g, '_')
+    return String.fromCharCode(value);
+  },
+};
+
+// GNU poke headerBytes = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
+
+/**
+ * Header layout definitions.
+ *
+ * @typedef {object} HexTableHeader
+ * @property {string} offset - Offset header column presentation.
+ * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
+ * @property {string} ascii - ASCII text presentation.
+ */
+const hexTableHeader = {
+  offset: '76543210',
+  value: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0A', '0B', '0C', '0D', '0E', '0F'],
+  ascii: '0123456789ABCDEF',
+};
+
+/**
+ * Header layout definitions.
+ *
+ * @typedef {object} HexTableDimensions
+ * @property {number} columns - The number of columns to show in the byte value section of the table.
+ * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
+ * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
+ */
+const hexTableDimensions = {
+  columns: 16,
+  grouping: 4,
+  maxRows: 40,
+};
+
+/**
+ *
+ * @param {DataStream} data Input data to print out as a hex table.
+ * @param {number} offset Offset in the DataStream to start from.
+ * @param {HexTableDimensions} dimensions Table size parameters for columns, rows and byte grouping.
+ * @param {HexTableHeader} header The values for building the table header with offset, bytes and ASCII values.
+ * @param {HexTableFormater} format The formatting functions for displaying offset, bytes and ASCII values.
+ * @returns {string} The hex table output
+ */
+const hexTable = (data, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
+  // Build the header, offset, then bytes with grouping & the dashed line seperator
+  // Start with determining the customizable byte area for the header and seperatpr
+  let headerByteValues = '';
+  header.value.forEach((byte, column) => {
+    headerByteValues += byte;
+    // Grouping by provided value value, add spacing every gap space, but not the last column.
+    if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+      headerByteValues += ' ';
+    }
+  });
+  let output = `| ${header.offset} | ${headerByteValues} | ${header.ascii} |\n`;
+  output += `|-${'-'.repeat(header.offset.length)}-|-${'-'.repeat(headerByteValues.length)}-|-${'-'.repeat(header.ascii.length)}-|\n`;
+
+  // Build the actual data portion of the table, starting from the provided offset.
+  let ascii = '';
+  let row = 0;
+  let column = 0;
+  while (data.remainingBytes() && row !== dimensions.maxRows) {
+    // Update the offset when we get to a new column
+    if (column === 0) {
+      output += `| ${format.offset(offset)} | `;
+    }
+
+    // Read the actual value from the data and format it for the output
+    const value = data.readUInt8();
+    output += format.value(value);
+    ascii += format.ascii(value);
+
+    // Add spacing every gap space, but not the last column.
+    if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+      output += ' ';
+    }
+
+    // Update the counters.
+    column++;
+    offset++;
+
+    // Is this a new column, if so we reset
+    if (column >= dimensions.columns) {
+      output += ` | ${ascii} |\n`;
+      ascii = '';
+      column = 0;
+      row++;
+    }
+  }
+
+  // Fill in empty space to maintain the shape
+  if (column > 0) {
+    while (column <= dimensions.columns) {
+      if (column === dimensions.columns) {
+        output += ` | ${ascii} |`;
+        ascii = '';
+        row++;
+      }
+      ascii += ' ';
+      output += '  ';
+      // Add spacing every gap space, but not the last column.
+      if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+        output += ' ';
+      }
+      column++;
+      offset++;
+    }
+  }
+
+  // console.log(output);
+  return output.trim();
+};
 
 module.exports = {
   formatBytes,
+  hexTable,
+  hexTableDimensions,
+  hexTableHeader,
+  hexTableFormaters,
 };

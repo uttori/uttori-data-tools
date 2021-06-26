@@ -39,7 +39,7 @@ const CRC32_TABLE = [
  * Derive the Cyclic Redundancy Check of a data blob.
  * This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16, and complements the final CRC.
  *
- * @property {number} crc - The internal CRC value
+ * @property {number} crc - The internal CRC value.
  * @example <caption>CRC32.of(...)</caption>
  * CRC32.of('The quick brown fox jumps over the lazy dog');
  * ➜ '414FA339'
@@ -54,6 +54,7 @@ class CRC32 {
  * @class
  */
   constructor() {
+    /** @type {number} The internal CRC value. */
     this.crc = -1;
   }
 

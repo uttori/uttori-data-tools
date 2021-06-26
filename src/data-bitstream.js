@@ -26,7 +26,9 @@ class DataBitstream {
  */
   constructor(stream) {
     debug('constructor');
+    /** @type {DataStream} The DataStream being processed. */
     this.stream = stream;
+    /** @type {number} The number of buffers in the list. */
     this.bitPosition = 0;
   }
 

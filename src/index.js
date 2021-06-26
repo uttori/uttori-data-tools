@@ -1,3 +1,6 @@
+/**
+ * @module uttori-data-tools
+ */
 module.exports = {
   CRC32: require('./data-hash-crc32'),
   DataBitstream: require('./data-bitstream'),
@@ -6,4 +9,5 @@ module.exports = {
   DataStream: require('./data-stream'),
   LZW: require('./data-compression-lzw'),
   formatBytes: require('./data-formating').formatBytes,
+  hexTable: require('./data-formating').hexTable,
 };

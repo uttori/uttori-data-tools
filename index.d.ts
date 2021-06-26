@@ -1,3 +1,5 @@
+declare module '@uttori/data-tools';
+
 declare module "data-buffer" {
     export = DataBuffer;
     class DataBuffer {
@@ -5,8 +7,8 @@ declare module "data-buffer" {
         constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
         data: Buffer | Uint8Array;
         length: number;
-        next: any;
-        prev: any;
+        next: DataBuffer | null;
+        prev: DataBuffer | null;
         compare(input: DataBuffer, offset?: number): boolean;
         copy(): DataBuffer;
         slice(position: number, length?: number): DataBuffer;
@@ -15,9 +17,9 @@ declare module "data-buffer" {
 declare module "data-buffer-list" {
     export = DataBufferList;
     class DataBufferList {
-        constructor(buffers: DataBuffer[]);
-        first: any;
-        last: DataBuffer;
+        constructor(buffers?: DataBuffer[]);
+        first: DataBuffer | null;
+        last: DataBuffer | null;
         totalBuffers: number;
         availableBytes: number;
         availableBuffers: number;
@@ -129,16 +131,47 @@ declare module "data-bitstream" {
 }
 declare module "data-compression-lzw" {
     export function buildDictionary(depth: number): any;
-    export function buildDictionary(depth: number): any;
-    export function stringToHexArray(string: string): number[];
     export function stringToHexArray(string: string): number[];
     export function compress(input: number[], depth?: number): number[];
-    export function compress(input: number[], depth?: number): number[];
-    export function decompress(input: number[], depth?: number): number[];
     export function decompress(input: number[], depth?: number): number[];
 }
 declare module "data-formating" {
+    export type HexTableFormater = {
+        offset: Function;
+        value: Function;
+        ascii: Function;
+    };
+    export type HexTableHeader = {
+        offset: string;
+        value: string[];
+        ascii: string;
+    };
+    export type HexTableDimensions = {
+        columns: number;
+        grouping: number;
+        maxRows: number;
+    };
     export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
+    export function hexTable(data: DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
+    export namespace hexTableDimensions {
+        const columns: number;
+        const grouping: number;
+        const maxRows: number;
+    }
+    export namespace hexTableHeader {
+        const offset: string;
+        const value: string[];
+        const ascii: string;
+    }
+    export namespace hexTableFormaters {
+        export function offset_1(value: any): any;
+        export { offset_1 as offset };
+        export function value_1(value: any): any;
+        export { value_1 as value };
+        export function ascii_1(value: any): string;
+        export { ascii_1 as ascii };
+    }
+    import DataStream = require("data-stream");
 }
 declare module "data-hash-crc32" {
     export = CRC32;
@@ -162,4 +195,5 @@ declare module "index" {
         decompress(input: number[], depth?: number): number[];
     };
     export const formatBytes: (input: number, decimals?: number, bytes?: number, sizes?: string[]) => string;
+    export const hexTable: (data: import("data-stream"), offset?: number, dimensions?: import("data-formating").HexTableDimensions, header?: import("data-formating").HexTableHeader, format?: import("data-formating").HexTableFormater) => string;
 }

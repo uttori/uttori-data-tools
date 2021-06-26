@@ -21,6 +21,8 @@ class DataBuffer {
  * Creates an instance of DataBuffer.
  *
  * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} input The data to process.
+ * @throws {TypeError} Missing input data.
+ * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
  */
   constructor(input) {
     if (!input) {
@@ -28,8 +30,13 @@ class DataBuffer {
       debug(error);
       throw new TypeError(error);
     }
-    if (typeof Buffer !== 'undefined' && (Buffer.isBuffer(input) || typeof input === 'string')) {
+    /** @type {Buffer|Uint8Array} The number of bytes avaliable to read. */
+    this.data = null;
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
       debug('constructor: from Buffer');
+      this.data = Buffer.from(input);
+    } else if (typeof input === 'string') {
+      debug('constructor: from string');
       this.data = Buffer.from(input);
     } else if (input instanceof Uint8Array) {
       debug('constructor: from Uint8Array');
@@ -46,7 +53,7 @@ class DataBuffer {
     } else if (input instanceof DataBuffer) {
       debug('constructor: from DataBuffer, a shallow copy');
       this.data = input.data;
-    } else if (input.buffer instanceof ArrayBuffer) {
+    } else if (input.buffer && input.buffer instanceof ArrayBuffer) {
       debug('constructor: from typed arrays other than Uint8Array');
       this.data = new Uint8Array(input.buffer, input.byteOffset, input.length * input.BYTES_PER_ELEMENT);
     } else {
@@ -55,10 +62,13 @@ class DataBuffer {
       throw new TypeError(error);
     }
 
+    /** @type {number} The number of bytes avaliable to read. */
     this.length = this.data.length;
 
     // Used when the buffer is part of a bufferlist
+    /** @type {DataBuffer|null} The next DataBuffer in the list. */
     this.next = null;
+    /** @type {DataBuffer|null} The previous DataBuffer in the list. */
     this.prev = null;
   }
 

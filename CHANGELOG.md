@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.0](https://github.com/uttori/uttori-data-tools/compare/v2.1.0...v2.2.0) - 2021-06-25
+
+- 🎁 Update dev dependencies
+- 🧹 Documentation & Types clean up
+- 🧰 Add `hexTable` function for debugging with hex editor like output:
+
+```text
+| 76543210 | 00010203 04050607 08090A0B 0C0D0E0F | 0123456789ABCDEF |
+|----------|-------------------------------------|------------------|
+| 00000000 | 1A45DFA3 A3428681 0142F781 0142F281 |  E...B.. B.. B.. |
+| 00000010 | 0442F381 08428288 6D617472 6F736B61 |  B.. B..matroska |
+| 00000020 | 42878104 42858102 18538067 01000000 | B.. B..  S.g     |
+| 00000030 | 01736F24 114D9B74 C2BF841C 4BB4E14D |  so$ M.t... K..M |
+| 00000040 | BB8B53AB 841549A9 6653AC81 A14DBB8B | ..S.. I.fS...M.. |
+| 00000050 | 53AB8416 54AE6B53 AC81F14D BB8C53AB | S.. T.kS...M..S. |
+| 00000060 | 841254C3 6753AC82 019C4DBB 8E53AB84 | . T.gS.. .M..S.. |
+| 00000070 | 1C53BB6B 53AC8401 736DD8EC 01000000 |  S.kS.. sm..     |
+```
+
 ## [2.1.0](https://github.com/uttori/uttori-data-tools/compare/v2.0.2...v2.1.0) - 2021-04-04
 
 - 🎁 Update dev dependencies

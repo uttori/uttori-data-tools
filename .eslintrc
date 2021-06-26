@@ -7,8 +7,7 @@
     "plugin:optimize-regex/all",
     "plugin:ramda/recommended",
     "plugin:security/recommended",
-    "plugin:sonarjs/recommended",
-    "plugin:unicorn/recommended"
+    "plugin:sonarjs/recommended"
   ],
   "plugins": [
     "ava",
@@ -19,16 +18,26 @@
     "ramda",
     "security",
     "sonarjs",
-    "unicorn",
     "xss"
   ],
   "env": {
+    "es6": true,
     "browser": true,
     "node": true
   },
-  "globals": {},
+  "globals": {
+    "jest": true,
+    "expect": true,
+    "test": true,
+    "JSX": true
+  },
   "parserOptions": {
-    "ecmaVersion": 2021
+    "sourceType": "module",
+    "ecmaVersion": 2021,
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "requireConfigFile": false
   },
   "rules": {
     "import/no-extraneous-dependencies": [
@@ -60,15 +69,11 @@
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
     "security/detect-object-injection": 0,
-    "sonarjs/cognitive-complexity": 0,
-    "unicorn/catch-error-name": 0,
-    "unicorn/filename-case": 0,
-    "unicorn/no-for-loop": 0,
-    "unicorn/no-fn-reference-in-iterator": 0,
-    "unicorn/no-null": 0,
-    "unicorn/no-reduce": 0,
-    "unicorn/no-useless-undefined": 0,
-    "unicorn/prevent-abbreviations": 0,
-    "unicorn/prefer-ternary": 0
+    "sonarjs/cognitive-complexity": 0
+  },
+  "settings": {
+    "jsdoc": {
+      "mode": "typescript"
+    }
   }
 }

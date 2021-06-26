@@ -1,13 +1,12 @@
 /* eslint-disable import/extensions */
-/* eslint-disable unicorn/import-index */
 import { DataBuffer, DataBufferList, DataStream } from '../../esm/index.js';
 
 const main = () => {
-  const db = new DataBuffer();
-  const dbl = new DataBufferList();
-  const ds = new DataStream();
+  const data_buffer = new DataBuffer();
+  const data_buffer_list = new DataBufferList();
+  const data_stream = new DataStream();
 
-  return [db, dbl, ds];
+  return [data_buffer, data_buffer_list, data_stream];
 };
 
 export default main;

@@ -59,30 +59,45 @@ class DataStream {
    * @param {DataBufferList} list - The DataBufferList to process
    * @param {object} options - Options for this instance
    * @param {number} [options.size=16] - ArrayBuffer byteLength for the underlying binary parsing
-   * @class
    */
   constructor(list, options = {}) {
     options.size = options.size || 16;
     if (options && options.size % 8 !== 0) {
       options.size += (8 - (options.size % 8));
     }
+    /** @type {number} ArrayBuffer byteLength */
     this.size = options.size;
+    /** @type {ArrayBuffer} Instance of ArrayBuffer used for the various typed arrays */
     this.buf = new ArrayBuffer(this.size);
+    /** @type {Uint8Array} octet / uint8_t */
     this.uint8 = new Uint8Array(this.buf);
+    /** @type {Int8Array} byte / int8_t */
     this.int8 = new Int8Array(this.buf);
+    /** @type {Uint16Array} unsigned short / uint16_t */
     this.uint16 = new Uint16Array(this.buf);
+    /** @type {Int16Array} short / int16_t */
     this.int16 = new Int16Array(this.buf);
+    /** @type {Uint32Array} unsigned long / uint32_t */
     this.uint32 = new Uint32Array(this.buf);
+    /** @type {Int32Array} long / int32_t */
     this.int32 = new Int32Array(this.buf);
+    /** @type {Float32Array} unrestricted float / float */
     this.float32 = new Float32Array(this.buf);
+    /** @type {Float64Array} unrestricted double / double */
     this.float64 = new Float64Array(this.buf);
+    /** @type {BigInt64Array} bigint / int64_t (signed long long) */
     this.int64 = new BigInt64Array(this.buf);
+    /** @type {BigUint64Array} bigint / uint64_t (unsigned long long) */
     this.uint64 = new BigUint64Array(this.buf);
 
+    /** @type {boolean} Native Endianness of the machine, true is Little Endian, false is Big Endian */
     this.nativeEndian = new Uint16Array(new Uint8Array([0x12, 0x34]).buffer)[0] === 0x3412;
 
+    /** @type {DataBufferList} The DataBufferList to process */
     this.list = list;
+    /** @type {number} Reading offset for the current chunk */
     this.localOffset = 0;
+    /** @type {number} Reading offset for all chunks */
     this.offset = 0;
   }
 
