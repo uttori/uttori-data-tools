@@ -36,13 +36,12 @@ const LZW = {
    * Converts a string into a character code array.
    *
    * @static
-   * @param {string} string The string to convert to hex.
+   * @param {string} string The string to convert to a hex representation.
    * @returns {number[]} The split up string.
-   * @memberof LZW
    */
   stringToHexArray(string) {
-    let values = [...string].map((c) => c.codePointAt(0).toString(16));
-    values = values.map(((value) => {
+    const values = [...string].map((c) => c.codePointAt(0).toString(16));
+    const digits = values.map(((value) => {
       if (value.length > 2) {
         /* istanbul ignore else */
         if (value.length % 2 !== 0) {
@@ -58,8 +57,7 @@ const LZW = {
       }
       return Number.parseInt(value, 16);
     }));
-
-    return values.flat();
+    return digits.flat();
   },
 
   /**

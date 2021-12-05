@@ -2,33 +2,7 @@
 let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataStream'); } catch {} }
 const DataBuffer = require('./data-buffer');
 const DataBufferList = require('./data-buffer-list');
-
-/**
- * Error thrown when insufficient bytes are avaliable to process.
- *
- * @example <caption>new UnderflowError(message)</caption>
- * throw new UnderflowError('Insufficient Bytes: 1');
- * @augments Error
- * @class
- */
-class UnderflowError extends Error {
-  /**
-   * Creates a new UnderflowError.
-   *
-   * @param {string} message - Message to show when the error is thrown.
-   * @class
-   */
-  constructor(message) {
-    super(message);
-    this.name = 'UnderflowError';
-    this.stack = (new Error(message)).stack;
-    /* istanbul ignore else */
-    // https://nodejs.org/api/errors.html#errors_error_capturestacktrace_targetobject_constructoropt
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, this.constructor);
-    }
-  }
-}
+const UnderflowError = require('./underflow-error');
 
 /**
  * Helpter class to ease working with binary files.
@@ -202,7 +176,7 @@ class DataStream {
     return result;
   }
 
-  // TODO Can `availableAt` replace `available`?
+  // TODO: Can `availableAt` replace `available`?
   /**
    * Checks if a given number of bytes are avaliable in the stream.
    *
@@ -234,7 +208,7 @@ class DataStream {
   }
 
   /**
-   * Advance the stream by a given number of bytes. Useful for skipping unused bytes.
+   * Advance the stream by a given number of bytes.
    *
    * @param {number} bytes The number of bytes to advance.
    * @returns {DataStream} The current DataStream.
@@ -858,16 +832,6 @@ class DataStream {
   }
 
   /**
-   * Resets the instance offsets to 0.
-   *
-   * @memberof DataStream
-   */
-  reset() {
-    this.localOffset = 0;
-    this.offset = 0;
-  }
-
-  /**
    * Read from the specified offset for a given length and return the value as a string in a specified encoding, and optionally advance the offsets.
    * Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, utf16-le, utf16bom, utf16-bom
    *
@@ -1004,6 +968,16 @@ class DataStream {
       this.advance(length);
     }
     return result;
+  }
+
+  /**
+   * Resets the instance offsets to 0.
+   *
+   * @memberof DataStream
+   */
+  reset() {
+    this.localOffset = 0;
+    this.offset = 0;
   }
 }
 

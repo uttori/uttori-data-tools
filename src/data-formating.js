@@ -16,7 +16,7 @@ const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 
   }
   const i = Math.floor(Math.log(input) / Math.log(bytes));
   // eslint-disable-next-line no-restricted-properties
-  return `${Number.parseFloat((input / Math.pow(bytes, i)).toFixed(decimals))} ${sizes[i]}`;
+  return `${Number.parseFloat((input / bytes ** i).toFixed(decimals))} ${sizes[i]}`;
 };
 
 /**

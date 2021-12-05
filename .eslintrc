@@ -10,9 +10,9 @@
     "plugin:sonarjs/recommended"
   ],
   "plugins": [
+    "anti-trojan-source",
     "ava",
     "jsdoc",
-    "no-inferred-method-name",
     "node",
     "optimize-regex",
     "ramda",
@@ -40,6 +40,7 @@
     "requireConfigFile": false
   },
   "rules": {
+    "anti-trojan-source/no-bidi": "error",
     "import/no-extraneous-dependencies": [
       "error", {
         "devDependencies": ["**/*.test.js", "**/test/**/*.js"],
@@ -57,7 +58,6 @@
     "max-len": 0,
     "no-bitwise": 0,
     "no-empty": ["error", { "allowEmptyCatch": true }],
-    "no-inferred-method-name/no-inferred-method-name": "error",
     "no-param-reassign": 0,
     "no-plusplus": 0,
     "no-restricted-syntax": 0,
@@ -69,7 +69,8 @@
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
     "security/detect-object-injection": 0,
-    "sonarjs/cognitive-complexity": 0
+    "sonarjs/cognitive-complexity": 0,
+    "sonarjs/no-nested-switch": 0
   },
   "settings": {
     "jsdoc": {

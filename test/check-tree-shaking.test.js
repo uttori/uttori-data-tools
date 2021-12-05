@@ -34,6 +34,7 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
 
   // Sum should be 1 + number of expected modules
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+    'underflow-error.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
@@ -54,6 +55,7 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
 
   // Sum should be 1 + number of expected modules
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+    'underflow-error.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
@@ -75,6 +77,7 @@ test('Tree Shaking: { CRC32, LZW }', async (t) => {
 
   // Sum should be 1 + number of expected modules
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+    'underflow-error.js',
     'data-buffer.js',
     'data-hash-crc32.js',
     'data-compression-lzw.js',
