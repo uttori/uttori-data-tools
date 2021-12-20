@@ -1,3 +1,4 @@
+const DataBuffer = require('./data-buffer');
 const DataStream = require('./data-stream');
 
 /**
@@ -15,8 +16,27 @@ const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 
     return `0 ${sizes[0]}`;
   }
   const i = Math.floor(Math.log(input) / Math.log(bytes));
-  // eslint-disable-next-line no-restricted-properties
   return `${Number.parseFloat((input / bytes ** i).toFixed(decimals))} ${sizes[i]}`;
+};
+
+/**
+ * ASCII text formatting function.
+ *
+ * @param {number} value Input data to print out as a hex table.
+ * @param {object} asciiFlags Any flags needed by the formatter.
+ * @param {DataBuffer|DataStream} _data The data being processed.
+ * @returns {any[]} Returns an array with the Character to represent this value and any flags for the function.
+ */
+const formatASCII = (value, asciiFlags, _data) => {
+  // Unprintable ASCII < 128 == ' ', > 128 == '.'
+  if (value < 0x20) {
+    return [' ', asciiFlags];
+  }
+  if (value > 0x7E) {
+    return ['.', asciiFlags];
+  }
+  // Alternatively: value.replace(/[^\x20-\x7E]+/g, '_')
+  return [String.fromCharCode(value), asciiFlags];
 };
 
 /**
@@ -25,22 +45,12 @@ const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 
  * @typedef {object} HexTableFormater
  * @property {Function} offset - Offset formatting fuction.
  * @property {Function} value - Byte value formating function.
- * @property {Function} ascii - ASCII text formatting functuin.
+ * @property {Function} ascii - ASCII text formatting function.
  */
 const hexTableFormaters = {
   offset: (value) => value.toString(16).padStart(8, '0'),
   value: (value) => value.toString(16).padStart(2, '0').toUpperCase(),
-  ascii: (value) => {
-    // Unprintable ASCII < 128 == ' ', > 128 == '.'
-    if (value < 0x20) {
-      return ' ';
-    }
-    if (value > 0x7E) {
-      return '.';
-    }
-    // Alternatively: .replace(/[^\x20-\x7E]+/g, '_')
-    return String.fromCharCode(value);
-  },
+  ascii: formatASCII,
 };
 
 // GNU poke headerBytes = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
@@ -75,14 +85,16 @@ const hexTableDimensions = {
 
 /**
  *
- * @param {DataStream} data Input data to print out as a hex table.
+ * @param {DataBuffer|DataStream} input Input data to print out as a hex table.
  * @param {number} offset Offset in the DataStream to start from.
  * @param {HexTableDimensions} dimensions Table size parameters for columns, rows and byte grouping.
  * @param {HexTableHeader} header The values for building the table header with offset, bytes and ASCII values.
  * @param {HexTableFormater} format The formatting functions for displaying offset, bytes and ASCII values.
  * @returns {string} The hex table output
  */
-const hexTable = (data, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
+const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
+  // Do not manipulate the input data.
+  const data = input.copy();
   // Build the header, offset, then bytes with grouping & the dashed line seperator
   // Start with determining the customizable byte area for the header and seperatpr
   let headerByteValues = '';
@@ -98,6 +110,8 @@ const hexTable = (data, offset = 0, dimensions = hexTableDimensions, header = he
 
   // Build the actual data portion of the table, starting from the provided offset.
   let ascii = '';
+  let asciiValue = '';
+  let asciiFlags = {};
   let row = 0;
   let column = 0;
   while (data.remainingBytes() && row !== dimensions.maxRows) {
@@ -109,7 +123,8 @@ const hexTable = (data, offset = 0, dimensions = hexTableDimensions, header = he
     // Read the actual value from the data and format it for the output
     const value = data.readUInt8();
     output += format.value(value);
-    ascii += format.ascii(value);
+    [asciiValue, asciiFlags] = format.ascii(value, asciiFlags, data);
+    ascii += asciiValue;
 
     // Add spacing every gap space, but not the last column.
     if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
@@ -154,6 +169,7 @@ const hexTable = (data, offset = 0, dimensions = hexTableDimensions, header = he
 
 module.exports = {
   formatBytes,
+  formatASCII,
   hexTable,
   hexTableDimensions,
   hexTableHeader,

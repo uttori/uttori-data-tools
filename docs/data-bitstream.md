@@ -1,3 +1,18 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBitstream">DataBitstream</a></dt>
+<dd><p>Read a DataStream as a stream of bits.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code>function</code></dt>
+<dd></dd>
+</dl>
+
 <a name="DataBitstream"></a>
 
 ## DataBitstream
@@ -15,6 +30,8 @@ Read a DataStream as a stream of bits.
 * [DataBitstream](#DataBitstream)
     * [new DataBitstream(stream)](#new_DataBitstream_new)
     * _instance_
+        * [.stream](#DataBitstream+stream) : <code>DataStream</code>
+        * [.bitPosition](#DataBitstream+bitPosition) : <code>number</code>
         * [.copy()](#DataBitstream+copy) ⇒ [<code>DataBitstream</code>](#DataBitstream)
         * [.offset()](#DataBitstream+offset) ⇒ <code>number</code>
         * [.available(bits)](#DataBitstream+available) ⇒ <code>boolean</code>
@@ -49,6 +66,18 @@ bitstream.readLSB(0);
 bitstream.readLSB(4);
 ➜ 12
 ```
+<a name="DataBitstream+stream"></a>
+
+### dataBitstream.stream : <code>DataStream</code>
+The DataStream being processed.
+
+**Kind**: instance property of [<code>DataBitstream</code>](#DataBitstream)  
+<a name="DataBitstream+bitPosition"></a>
+
+### dataBitstream.bitPosition : <code>number</code>
+The number of buffers in the list.
+
+**Kind**: instance property of [<code>DataBitstream</code>](#DataBitstream)  
 <a name="DataBitstream+copy"></a>
 
 ### dataBitstream.copy() ⇒ [<code>DataBitstream</code>](#DataBitstream)
@@ -206,3 +235,7 @@ Creates a new DataBitstream from an array of bytes.
 | --- | --- | --- |
 | bytes | <code>Array.&lt;number&gt;</code> | The data to read as a bitstream. |
 
+<a name="debug"></a>
+
+## debug() : <code>function</code>
+**Kind**: global function  

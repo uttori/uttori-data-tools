@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 const path = require('path');
 const test = require('ava');
 
@@ -66,7 +65,7 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
   ]);
 });
 
-test('Tree Shaking: { CRC32, LZW }', async (t) => {
+test('Tree Shaking: { CRC32 }', async (t) => {
   const bundle = await rollup.rollup({
     input: './test/tree-shaking/3-of-2.mjs',
     onwarn,
@@ -83,7 +82,6 @@ test('Tree Shaking: { CRC32, LZW }', async (t) => {
     'data-helpers.js',
     'data-buffer.js',
     'data-hash-crc32.js',
-    'data-compression-lzw.js',
     '3-of-2.mjs',
   ]);
 });

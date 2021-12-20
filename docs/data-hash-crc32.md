@@ -1,59 +1,24 @@
-<a name="CRC32"></a>
+<a name="calculate"></a>
 
-## CRC32
+## calculate(data) ⇒ <code>string</code>
 Derive the Cyclic Redundancy Check of a data blob.
 This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16, and complements the final CRC.
 
-**Kind**: global class  
+**Kind**: global function  
+**Returns**: <code>string</code> - The 8 character CRC32 value.  
 **See**
 
 - [CRC-32](https://rosettacode.org/wiki/CRC-32)
 - [Computation of cyclic redundancy checks](https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks)
 
-**Properties**
 
-| Name | Type | Description |
+| Param | Type | Description |
 | --- | --- | --- |
-| crc | <code>number</code> | The internal CRC value |
-
-
-* [CRC32](#CRC32)
-    * [new CRC32()](#new_CRC32_new)
-    * _instance_
-        * [.update(buffer)](#CRC32+update)
-    * _static_
-        * [.of(data)](#CRC32.of) ⇒ <code>string</code>
-
-<a name="new_CRC32_new"></a>
-
-### new CRC32()
-Creates an instance of CRC32.
+| data | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> | The data to process. |
 
 **Example** *(CRC32.of(...))*  
 ```js
+import CRC32 from 'uttori-data-tools/data-hash-crc32';
 CRC32.of('The quick brown fox jumps over the lazy dog');
 ➜ '414FA339'
 ```
-<a name="CRC32+update"></a>
-
-### crC32.update(buffer)
-Calculates the CRC for a chunk of data.
-
-**Kind**: instance method of [<code>CRC32</code>](#CRC32)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| buffer | <code>DataBuffer</code> | The data buffer to calculate the checksum of. |
-
-<a name="CRC32.of"></a>
-
-### CRC32.of(data) ⇒ <code>string</code>
-Creates an instance of CRC32 and calculates the checksum of a provided input.
-
-**Kind**: static method of [<code>CRC32</code>](#CRC32)  
-**Returns**: <code>string</code> - The computed CRC value as a hexadecimal string.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| data | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The data to calculate the checksum of. |
-

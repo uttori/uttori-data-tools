@@ -345,7 +345,6 @@ class DataStream {
         this.uint8[i] = this.readUInt8();
       }
     }
-    // eslint-disable-next-line sonarjs/prefer-immediate-return
     const output = this.uint8.slice(0, bytes);
     // debug('read =', output.toString('hex'));
     return output;
@@ -370,7 +369,6 @@ class DataStream {
         this.uint8[bytes - i - 1] = this.peekUInt8(offset + i);
       }
     }
-    // eslint-disable-next-line sonarjs/prefer-immediate-return
     const output = this.uint8.slice(0, bytes);
     // debug('peek =', output.toString('hex'));
     return output;

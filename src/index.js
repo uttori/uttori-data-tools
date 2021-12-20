@@ -7,7 +7,7 @@ module.exports = {
   DataBuffer: require('./data-buffer'),
   DataBufferList: require('./data-buffer-list'),
   DataStream: require('./data-stream'),
-  LZW: require('./data-compression-lzw'),
   formatBytes: require('./data-formating').formatBytes,
   hexTable: require('./data-formating').hexTable,
+  UnderflowError: require('./underflow-error'),
 };

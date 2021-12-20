@@ -2,9 +2,6 @@
 const test = require('ava');
 const { DataBuffer } = require('../src');
 
-const bytes = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-const buffer = new DataBuffer(bytes);
-
 test('create from ArrayBuffer', (t) => {
   const buf = new DataBuffer(new ArrayBuffer(9));
   t.is(buf.length, 9);
@@ -70,13 +67,12 @@ test('create from node buffer (Uint8Array)', (t) => {
 });
 
 test('error constructing', (t) => {
-  t.throws(() => new DataBuffer());
   t.throws(() => new DataBuffer(null));
-  t.throws(() => new DataBuffer(undefined));
   t.throws(() => new DataBuffer(true));
 });
 
 test('length', (t) => {
+  const buffer = new DataBuffer(new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   t.is(buffer.length, 10);
 });
 
@@ -88,6 +84,7 @@ test('allocate', (t) => {
 });
 
 test('compare: can validate buffers', (t) => {
+  const buffer = new DataBuffer(new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   const copy = buffer.copy();
 
   const bad_bytes = new Uint8Array([0, 1, 2, 3, 0, 0, 6, 7, 8, 9]);
@@ -98,6 +95,7 @@ test('compare: can validate buffers', (t) => {
 });
 
 test('compare: can fail early with an empty buffer', (t) => {
+  const buffer = new DataBuffer(new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   const copy = buffer.copy();
 
   const empty_bytes = new Uint8Array([]);
@@ -108,6 +106,7 @@ test('compare: can fail early with an empty buffer', (t) => {
 });
 
 test('copy', (t) => {
+  const buffer = new DataBuffer(new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   const copy = buffer.copy();
 
   t.is(buffer.length, copy.length);
@@ -116,6 +115,8 @@ test('copy', (t) => {
 });
 
 test('slice', (t) => {
+  const bytes = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const buffer = new DataBuffer(bytes);
   t.is(buffer.slice(0, 4).length, 4);
   t.is(bytes, buffer.slice(0, 100).data);
   t.deepEqual(new DataBuffer(bytes.slice(3, 6)), buffer.slice(3, 3));
@@ -740,7 +741,7 @@ test('buffer', (t) => {
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.readBuffer(4));
 });
 
-test('ascii/latin1', (t) => {
+test('decodeString: ascii/latin1', (t) => {
   const stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F]));
   t.is(stream.peekString(0, 5), 'hello');
   t.is(stream.peekString(0, 5, 'ascii'), 'hello');
@@ -749,7 +750,7 @@ test('ascii/latin1', (t) => {
   t.is(stream.offset, 5);
 });
 
-test('ascii/latin1 null terminated', (t) => {
+test('decodeString: ascii/latin1 null terminated', (t) => {
   const stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0]));
   t.is(stream.peekString(0, 6), 'hello\0');
   t.is(stream.peekString(0, null), 'hello');
@@ -757,15 +758,15 @@ test('ascii/latin1 null terminated', (t) => {
   t.is(stream.offset, 6);
 });
 
-test('utf8', (t) => {
+test('decodeString: utf8', (t) => {
   let stream = new DataBuffer(new Uint8Array([195, 188, 98, 101, 114]));
   t.is(stream.peekString(0, 5, 'utf8'), 'über');
   t.is(stream.readString(5, 'utf8'), 'über');
   t.is(stream.offset, 5);
 
   stream = new DataBuffer(new Uint8Array([0xC3, 0xB6, 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E]));
-  t.is(stream.peekString(0, 11, 'utf8'), 'ö日本語');
-  t.is(stream.readString(11, 'utf8'), 'ö日本語');
+  t.is(stream.peekString(0, 11, 'utf-8'), 'ö日本語');
+  t.is(stream.readString(11, 'utf-8'), 'ö日本語');
   t.is(stream.offset, 11);
 
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0x8D]));
@@ -779,7 +780,7 @@ test('utf8', (t) => {
   t.is(stream.offset, 3);
 });
 
-test('utf-8 null terminated', (t) => {
+test('decodeString: utf-8 null terminated', (t) => {
   let stream = new DataBuffer(new Uint8Array([195, 188, 98, 101, 114, 0]));
   t.is(stream.peekString(0, null, 'utf-8'), 'über');
   t.is(stream.readString(null, 'utf-8'), 'über');
@@ -801,7 +802,7 @@ test('utf-8 null terminated', (t) => {
   t.is(stream.offset, 4);
 });
 
-test('utf16be', (t) => {
+test('decodeString: utf16be', (t) => {
   let stream = new DataBuffer(new Uint8Array([0, 252, 0, 98, 0, 101, 0, 114]));
   t.is(stream.peekString(0, 8, 'utf16be'), 'über');
   t.is(stream.readString(8, 'utf16be'), 'über');
@@ -823,7 +824,7 @@ test('utf16be', (t) => {
   t.is(stream.offset, 4);
 });
 
-test('utf16-be null terminated', (t) => {
+test('decodeString: utf16-be null terminated', (t) => {
   let stream = new DataBuffer(new Uint8Array([0, 252, 0, 98, 0, 101, 0, 114, 0, 0]));
   t.is(stream.peekString(0, null, 'utf16-be'), 'über');
   t.is(stream.readString(null, 'utf16-be'), 'über');
@@ -845,7 +846,7 @@ test('utf16-be null terminated', (t) => {
   t.is(stream.offset, 6);
 });
 
-test('utf16le', (t) => {
+test('decodeString: utf16le', (t) => {
   let stream = new DataBuffer(new Uint8Array([252, 0, 98, 0, 101, 0, 114, 0]));
   t.is(stream.peekString(0, 8, 'utf16le'), 'über');
   t.is(stream.readString(8, 'utf16le'), 'über');
@@ -872,7 +873,7 @@ test('utf16le', (t) => {
   t.is(stream.offset, 4);
 });
 
-test('utf16-le null terminated', (t) => {
+test('decodeString: utf16-le null terminated', (t) => {
   let stream = new DataBuffer(new Uint8Array([252, 0, 98, 0, 101, 0, 114, 0, 0, 0]));
   t.is(stream.peekString(0, null, 'utf16-le'), 'über');
   t.is(stream.readString(null, 'utf16-le'), 'über');
@@ -899,7 +900,7 @@ test('utf16-le null terminated', (t) => {
   t.is(stream.offset, 6);
 });
 
-test('utf16bom big endian', (t) => {
+test('decodeString: utf16bom big endian', (t) => {
   let stream = new DataBuffer(new Uint8Array([0xFE, 0xFF, 0, 252, 0, 98, 0, 101, 0, 114]));
   t.is(stream.peekString(0, 10, 'utf16bom'), 'über');
   t.is(stream.readString(10, 'utf16bom'), 'über');
@@ -921,7 +922,7 @@ test('utf16bom big endian', (t) => {
   t.is(stream.offset, 6);
 });
 
-test('utf16-bom big endian, null terminated', (t) => {
+test('decodeString: utf16-bom big endian, null terminated', (t) => {
   let stream = new DataBuffer(new Uint8Array([0xFE, 0xFF, 0, 252, 0, 98, 0, 101, 0, 114, 0, 0]));
   t.is(stream.peekString(0, null, 'utf16-bom'), 'über');
   t.is(stream.readString(null, 'utf16-bom'), 'über');
@@ -943,7 +944,7 @@ test('utf16-bom big endian, null terminated', (t) => {
   t.is(stream.offset, 8);
 });
 
-test('utf16bom little endian', (t) => {
+test('decodeString: utf16bom little endian', (t) => {
   let stream = new DataBuffer(new Uint8Array([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0]));
   t.is(stream.peekString(0, 10, 'utf16bom'), 'über');
   t.is(stream.readString(10, 'utf16bom'), 'über');
@@ -965,7 +966,7 @@ test('utf16bom little endian', (t) => {
   t.is(stream.offset, 6);
 });
 
-test('utf16-bom little endian, null terminated', (t) => {
+test('decodeString: UTF16-BOM little endian, null terminated', (t) => {
   let stream = new DataBuffer(new Uint8Array([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0, 0, 0]));
   t.is(stream.peekString(0, null, 'utf16-bom'), 'über');
   t.is(stream.readString(null, 'utf16-bom'), 'über');
@@ -987,22 +988,22 @@ test('utf16-bom little endian, null terminated', (t) => {
   t.is(stream.offset, 8);
 });
 
-test('decodeString', (t) => {
+test('decodeString: UTF16-BOM', (t) => {
   const stream = new DataBuffer(new Uint8Array([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0, 0, 0]));
   t.is(stream.decodeString(0, 1, 'utf16-bom', true), '');
   t.is(stream.decodeString(0, 1, 'utf16-bom', false), '');
 });
 
-test('decodeString invalid encoding', (t) => {
+test('decodeString: invalid encoding', (t) => {
   const stream = new DataBuffer(new Uint8Array([0xDC, 0x00, 0xDC, 0xBB, 0xDC, 0x00]));
   const error = t.throws(() => {
     stream.decodeString(0, null, 'magic');
-  }, { message: 'Unknown encoding: magic' });
+  }, { message: 'Unknown Encoding: magic' });
 
-  t.is(error.message, 'Unknown encoding: magic');
+  t.is(error.message, 'Unknown Encoding: magic');
 });
 
-test('decodeString invalid utf8-sequence', (t) => {
+test('decodeString: invalid utf8-sequence', (t) => {
   const stream = new DataBuffer(new Uint8Array([0xDC, 0x00, 0xE0, 0xBB, 0xDC, 0x00]));
   const error = t.throws(() => {
     stream.decodeString(0, null, 'utf16be');
@@ -1083,4 +1084,310 @@ test('peekBit: can peek the bits at a given offset', (t) => {
   t.throws(() => {
     stream.peekBit(0, 0, 0);
   }, { message: 'peekBit length is invalid: 0, must be an Integer between 1 and 8' });
+});
+
+test('writeUInt8', (t) => {
+  const stream = new DataBuffer();
+  const values = [10, 160, 20, 29, 119];
+
+  for (const byte of values) {
+    stream.writeUInt8(byte);
+  }
+
+  t.is(stream.offset, 5);
+  stream.writeUInt8(0xFF, 5, false);
+  t.is(stream.offset, 5);
+  stream.advance(1);
+
+  stream.commit();
+  stream.seek(0);
+
+  for (const byte of values) {
+    t.is(byte, stream.readUInt8());
+  }
+
+  stream.advance(1);
+  t.throws(() => stream.readUInt8(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUInt16', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xdead, 0xbeef];
+
+  for (const byte of values) {
+    stream.writeUInt16(byte);
+  }
+
+  t.is(stream.offset, 4);
+  stream.writeUInt16(0xFFFF, 4, false);
+  t.is(stream.offset, 4);
+  stream.advance(2);
+
+  stream.commit();
+  stream.seek(0);
+
+  for (const byte of values) {
+    t.is(byte, stream.readUInt16());
+  }
+  stream.advance(2);
+
+  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUInt16 - littleEndian', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xDEAD, 0xBEEF];
+  const littleEndianValues = [0xADDE, 0xEFBE];
+
+  for (const byte of values) {
+    stream.writeUInt16(byte, stream.offset, true, true);
+  }
+
+  stream.commit();
+
+  // Read as Big Endian values
+  stream.seek(0);
+  for (const byte of values) {
+    t.is(byte.toString(16), stream.readUInt16(true).toString(16));
+  }
+
+  // Read of Little Endian values
+  stream.seek(0);
+  for (const byte of littleEndianValues) {
+    t.is(byte.toString(16), stream.readUInt16().toString(16));
+  }
+
+  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUint24', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xdeadbe, 0xbeefac];
+
+  for (const byte of values) {
+    stream.writeUInt24(byte);
+  }
+
+  stream.commit();
+  stream.seek(0);
+
+  for (const byte of values) {
+    t.is(byte, stream.readUInt24());
+  }
+
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUint24 - littleEndian, no advance', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xDEADBE, 0xBEEFAC];
+  const littleEndianValues = [0xBEADDE, 0xACEFBE];
+
+  let offset = 0;
+  for (const byte of values) {
+    stream.writeUInt24(byte, offset, false, true);
+    offset += 3;
+  }
+  t.is(stream.offset, 0);
+
+  stream.commit();
+
+  // Read as Big Endian values
+  stream.seek(0);
+  for (const byte of values) {
+    t.is(byte.toString(16), stream.readUInt24(true).toString(16));
+  }
+
+  // Read of Little Endian values
+  stream.seek(0);
+  for (const byte of littleEndianValues) {
+    t.is(byte.toString(16), stream.readUInt24().toString(16));
+  }
+
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUint32', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xdeadbeef, 0xabacdaba];
+
+  for (const byte of values) {
+    stream.writeUInt32(byte);
+  }
+
+  stream.commit();
+  stream.seek(0);
+
+  for (const byte of values) {
+    t.is(byte, stream.readUInt32());
+  }
+
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeUint32 - littleEndian, no advance', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xDEADBEEF, 0xABACDABA];
+  const littleEndianValues = [0xEFBEADDE, 0xBADAACAB];
+
+  let offset = 0;
+  for (const byte of values) {
+    stream.writeUInt32(byte, offset, false, true);
+    offset += 4;
+  }
+  t.is(stream.offset, 0);
+
+  stream.commit();
+
+  // Read as Big Endian values
+  stream.seek(0);
+  for (const byte of values) {
+    t.is(byte.toString(16), stream.readUInt32(true).toString(16));
+  }
+
+  // Read of Little Endian values
+  stream.seek(0);
+  for (const byte of littleEndianValues) {
+    t.is(byte.toString(16), stream.readUInt32().toString(16));
+  }
+
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeBytes', (t) => {
+  const stream = new DataBuffer();
+  const values = [0xDE, 0xAD, 0xBE, 0xEF, 0xAB, 0xAC, 0xDA, 0xBA];
+  const output = [0xDEADBEEF, 0xABACDABA];
+  const littleEndianValues = [0xEFBEADDE, 0xBADAACAB];
+
+  stream.writeBytes(values);
+
+  t.is(stream.offset, 8);
+  stream.writeBytes(values, stream.offset, false);
+  t.is(stream.offset, 8);
+
+  stream.commit();
+
+  // Read as Big Endian values
+  stream.seek(0);
+  for (const byte of output) {
+    t.is(byte.toString(16), stream.readUInt32().toString(16));
+  }
+
+  // Read of Little Endian values
+  stream.seek(0);
+  for (const byte of littleEndianValues) {
+    t.is(byte.toString(16), stream.readUInt32(true).toString(16));
+  }
+
+  stream.advance(8);
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+});
+
+test('writeString - ASCII', (t) => {
+  const stream = new DataBuffer();
+  const value = 'Woof 🐕';
+  // const output = [0xDEADBEEF, 0xABACDABA];
+  // const littleEndianValues = [0xEFBEADDE, 0xBADAACAB];
+
+  stream.writeString(value);
+  stream.commit();
+  stream.seek(0);
+
+  const output = stream.readString(value.length);
+  // Check each byte incase we mess up encoding.
+  t.is(value[0], output[0]);
+  t.is(value[1], output[1]);
+  t.is(value[2], output[2]);
+  t.is(value[3], output[3]);
+  t.is(value[4], output[4]);
+  // These values are truncated:
+  // t.is(value[5], output[5]);
+  // t.is(value[5], output[5]);
+});
+
+test('writeString - UTF-8', (t) => {
+  const stream = new DataBuffer();
+  const value = 'Woof 🐕';
+
+  stream.writeString(value, stream.offset, 'utf8');
+  stream.commit();
+  stream.seek(0);
+
+  const output = stream.readString(value.length, 'utf8');
+  // Check each byte incase we mess up encoding.
+  t.is(value[0], output[0]);
+  t.is(value[1], output[1]);
+  t.is(value[2], output[2]);
+  t.is(value[3], output[3]);
+  t.is(value[4], output[4]);
+  t.is(value[5], output[5]);
+  t.is(value[6], output[6]);
+  t.is(value, output);
+});
+
+test('writeString - UTF-8 Branches', (t) => {
+  const stream = new DataBuffer();
+  const value = `${String.fromCharCode(0x7FF)}${String.fromCharCode(0xD7FF)}${String.fromCharCode(0xE000)}`;
+
+  stream.writeString(value, stream.offset, 'utf8');
+  stream.commit();
+  stream.seek(0);
+
+  // NOTE: In a browser without Buffer: (new TextEncoder().encode(value)).length
+  const output = stream.readString(Buffer.byteLength(value, 'utf-8'), 'utf8');
+  // Check each byte incase we mess up encoding.
+  t.is(value[0], output[0]);
+  t.is(value[1], output[1]);
+  t.is(value[2], output[2]);
+  t.is(value, output);
+});
+
+test('writeString - UTF16BE', (t) => {
+  const stream = new DataBuffer();
+  const value = 'Woof 🐕';
+
+  stream.writeString(value, stream.offset, 'utf16be');
+  stream.commit();
+  stream.seek(0);
+
+  // NOTE: In a browser without Buffer: (new TextEncoder().encode(value)).length
+  const output = stream.readString(stream.length, 'utf16be');
+  // Check each byte incase we mess up encoding.
+  t.is(value[0], output[0]);
+  t.is(value[1], output[1]);
+  t.is(value[2], output[2]);
+  t.is(value[3], output[3]);
+  t.is(value[4], output[4]);
+  t.is(value[5], output[5]);
+  t.is(value[6], output[6]);
+  t.is(value, output);
+});
+
+test('writeString - UTF16LE', (t) => {
+  const stream = new DataBuffer();
+  const value = 'Woof 🐕';
+
+  stream.writeString(value, stream.offset, 'utf16le');
+  stream.commit();
+  stream.seek(0);
+
+  // NOTE: In a browser without Buffer: (new TextEncoder().encode(value)).length
+  const output = stream.readString(stream.length, 'utf16le');
+  // Check each byte incase we mess up encoding.
+  t.is(value[0], output[0]);
+  t.is(value[1], output[1]);
+  t.is(value[2], output[2]);
+  t.is(value[3], output[3]);
+  t.is(value[4], output[4]);
+  t.is(value[5], output[5]);
+  t.is(value[6], output[6]);
+  t.is(value, output);
+});
+
+test('writeString - Unknown Encoding', (t) => {
+  const stream = new DataBuffer();
+  const value = 'Woof 🐕';
+
+  t.throws(() => stream.writeString(value, stream.offset, 'magic'), { message: 'Unknown Encoding: magic' });
 });

@@ -6,8 +6,7 @@
     "plugin:node/recommended",
     "plugin:optimize-regex/all",
     "plugin:ramda/recommended",
-    "plugin:security/recommended",
-    "plugin:sonarjs/recommended"
+    "plugin:security/recommended"
   ],
   "plugins": [
     "anti-trojan-source",
@@ -17,7 +16,6 @@
     "optimize-regex",
     "ramda",
     "security",
-    "sonarjs",
     "xss"
   ],
   "env": {
@@ -68,9 +66,7 @@
     "optimize-regex/optimize-regex": "warn",
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
-    "security/detect-object-injection": 0,
-    "sonarjs/cognitive-complexity": 0,
-    "sonarjs/no-nested-switch": 0
+    "security/detect-object-injection": 0
   },
   "settings": {
     "jsdoc": {

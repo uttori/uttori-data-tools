@@ -26,12 +26,12 @@
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-replace": "^3.0.0",
     "ava": "^3.15.0",
-    "eslint": "^8.4.0",
+    "eslint": "^8.5.0",
     "eslint-config-airbnb": "^19.0.2",
     "eslint-plugin-anti-trojan-source": "^1.0.6",
     "eslint-plugin-ava": "^13.1.0",
     "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-jsdoc": "^37.1.0",
+    "eslint-plugin-jsdoc": "^37.4.0",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
@@ -39,16 +39,15 @@
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-security": "^1.4.0",
-    "eslint-plugin-sonarjs": "^0.11.0",
     "eslint-plugin-xss": "^0.1.11",
     "jsdoc": "^3.6.7",
     "jsdoc-to-markdown": "^7.1.0",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
     "release-it": "^14.11.8",
-    "rollup": "^2.60.2",
+    "rollup": "^2.61.1",
     "sinon": "^12.0.1",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.4"
   },
   "files": [
     "esm/*",
@@ -74,14 +73,20 @@
     "./data-buffer": {
       "require": "./src/data-buffer.js"
     },
-    "./data-compression-lzw": {
-      "require": "./src/data-compression-lzw.js"
+    "./data-formating": {
+      "require": "./src/data-formating.js"
     },
     "./data-hash-crc32": {
       "require": "./src/data-hash-crc32.js"
     },
+    "./data-helpers": {
+      "require": "./src/data-helpers.js"
+    },
     "./data-stream": {
       "require": "./src/data-stream.js"
+    },
+    "./underflow-error": {
+      "require": "./src/underflow-error.js"
     }
   },
   "ava": {
@@ -111,7 +116,7 @@
     }
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-compression-lzw.js > docs/data-compression-lzw.md;",
+    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --private --example-lang js src/data-formating.js > docs/data-formating.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
     "make-types": "rm index.d.ts && tsc --project .tsconfig.json",
@@ -134,5 +139,8 @@
   "private": false,
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "uttori-utilities": "^2.3.0"
   }
 }
