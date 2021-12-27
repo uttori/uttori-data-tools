@@ -39,49 +39,24 @@ const CRC32_TABLE = [
  * Derive the Cyclic Redundancy Check of a data blob.
  * This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16, and complements the final CRC.
  *
- * @property {number} crc - The internal CRC value.
- * @example <caption>CRC32.of(...)</caption>
- * CRC32.of('The quick brown fox jumps over the lazy dog');
- * ➜ '414FA339'
- * @class
  * @see {@link https://rosettacode.org/wiki/CRC-32|CRC-32}
  * @see {@link https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks|Computation of cyclic redundancy checks}
+ * @example <caption>CRC32.of(...)</caption>
+ * import CRC32 from 'uttori-data-tools/data-hash-crc32';
+ * CRC32.of('The quick brown fox jumps over the lazy dog');
+ * ➜ '414FA339'
+ * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data to process.
+ * @returns {string} The 8 character CRC32 value.
  */
-class CRC32 {
-/**
- * Creates an instance of CRC32.
- *
- * @class
- */
-  constructor() {
-    /** @type {number} The internal CRC value. */
-    this.crc = -1;
+const calculate = (data) => {
+  const buffer = new DataBuffer(data);
+  let crc = -1;
+  for (const byte of buffer.data) {
+    crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ byte) & 0xFF];
   }
+  return (~crc >>> 0).toString(16).toUpperCase();
+};
 
-  /**
-   * Creates an instance of CRC32 and calculates the checksum of a provided input.
-   *
-   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data to calculate the checksum of.
-   * @returns {string} The computed CRC value as a hexadecimal string.
-   * @static
-   */
-  static of(data) {
-    const buffer = new DataBuffer(data);
-    const crc32 = new CRC32();
-    crc32.update(buffer);
-    return (~crc32.crc >>> 0).toString(16).toUpperCase();
-  }
-
-  /**
-   * Calculates the CRC for a chunk of data.
-   *
-   * @param {DataBuffer} buffer - The data buffer to calculate the checksum of.
-   */
-  update(buffer) {
-    for (const byte of buffer.data) {
-      this.crc = (this.crc >>> 8) ^ CRC32_TABLE[(this.crc ^ byte) & 0xFF];
-    }
-  }
-}
-
-module.exports = CRC32;
+module.exports = {
+  of: calculate,
+};

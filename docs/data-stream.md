@@ -1,35 +1,18 @@
 ## Classes
 
 <dl>
-<dt><a href="#UnderflowError">UnderflowError</a> ⇐ <code>Error</code></dt>
-<dd><p>Error thrown when insufficient bytes are avaliable to process.</p>
-</dd>
 <dt><a href="#DataStream">DataStream</a></dt>
 <dd><p>Helpter class to ease working with binary files.</p>
 </dd>
 </dl>
 
-<a name="UnderflowError"></a>
+## Functions
 
-## UnderflowError ⇐ <code>Error</code>
-Error thrown when insufficient bytes are avaliable to process.
+<dl>
+<dt><a href="#debug">debug()</a> : <code>function</code></dt>
+<dd></dd>
+</dl>
 
-**Kind**: global class  
-**Extends**: <code>Error</code>  
-<a name="new_UnderflowError_new"></a>
-
-### new UnderflowError(message)
-Creates a new UnderflowError.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| message | <code>string</code> | Message to show when the error is thrown. |
-
-**Example** *(new UnderflowError(message))*  
-```js
-throw new UnderflowError('Insufficient Bytes: 1');
-```
 <a name="DataStream"></a>
 
 ## DataStream
@@ -61,6 +44,22 @@ Helpter class to ease working with binary files.
 * [DataStream](#DataStream)
     * [new DataStream(list, options)](#new_DataStream_new)
     * _instance_
+        * [.size](#DataStream+size) : <code>number</code>
+        * [.buf](#DataStream+buf) : <code>ArrayBuffer</code>
+        * [.uint8](#DataStream+uint8) : <code>Uint8Array</code>
+        * [.int8](#DataStream+int8) : <code>Int8Array</code>
+        * [.uint16](#DataStream+uint16) : <code>Uint16Array</code>
+        * [.int16](#DataStream+int16) : <code>Int16Array</code>
+        * [.uint32](#DataStream+uint32) : <code>Uint32Array</code>
+        * [.int32](#DataStream+int32) : <code>Int32Array</code>
+        * [.float32](#DataStream+float32) : <code>Float32Array</code>
+        * [.float64](#DataStream+float64) : <code>Float64Array</code>
+        * [.int64](#DataStream+int64) : <code>BigInt64Array</code>
+        * [.uint64](#DataStream+uint64) : <code>BigUint64Array</code>
+        * [.nativeEndian](#DataStream+nativeEndian) : <code>boolean</code>
+        * [.list](#DataStream+list) : <code>DataBufferList</code>
+        * [.localOffset](#DataStream+localOffset) : <code>number</code>
+        * [.offset](#DataStream+offset) : <code>number</code>
         * [.compare(input, [offset])](#DataStream+compare) ⇒ <code>boolean</code>
         * [.next(input)](#DataStream+next) ⇒ <code>boolean</code>
         * [.copy()](#DataStream+copy) ⇒ [<code>DataStream</code>](#DataStream)
@@ -103,10 +102,8 @@ Helpter class to ease working with binary files.
         * [.peekSingleBuffer(offset, length)](#DataStream+peekSingleBuffer) ⇒ <code>DataBuffer</code>
         * [.readString(length, [encoding])](#DataStream+readString) ⇒ <code>string</code>
         * [.peekString(offset, length, [encoding])](#DataStream+peekString) ⇒ <code>string</code>
-        * [.float48()](#DataStream+float48) ⇒ <code>number</code>
-        * [.float80()](#DataStream+float80) ⇒ <code>number</code>
-        * [.reset()](#DataStream+reset)
         * [.decodeString(offset, length, encoding, advance)](#DataStream+decodeString) ⇒ <code>string</code> ℗
+        * [.reset()](#DataStream+reset)
     * _static_
         * [.fromData(data)](#DataStream.fromData) ⇒ [<code>DataStream</code>](#DataStream)
         * [.fromBuffer(buffer)](#DataStream.fromBuffer) ⇒ [<code>DataStream</code>](#DataStream)
@@ -126,6 +123,102 @@ Creates a new DataStream.
 **Example** *(new DataStream(list, options))*  
 ```js
 ```
+<a name="DataStream+size"></a>
+
+### dataStream.size : <code>number</code>
+ArrayBuffer byteLength
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+buf"></a>
+
+### dataStream.buf : <code>ArrayBuffer</code>
+Instance of ArrayBuffer used for the various typed arrays
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+uint8"></a>
+
+### dataStream.uint8 : <code>Uint8Array</code>
+octet / uint8_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+int8"></a>
+
+### dataStream.int8 : <code>Int8Array</code>
+byte / int8_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+uint16"></a>
+
+### dataStream.uint16 : <code>Uint16Array</code>
+unsigned short / uint16_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+int16"></a>
+
+### dataStream.int16 : <code>Int16Array</code>
+short / int16_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+uint32"></a>
+
+### dataStream.uint32 : <code>Uint32Array</code>
+unsigned long / uint32_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+int32"></a>
+
+### dataStream.int32 : <code>Int32Array</code>
+long / int32_t
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+float32"></a>
+
+### dataStream.float32 : <code>Float32Array</code>
+unrestricted float / float
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+float64"></a>
+
+### dataStream.float64 : <code>Float64Array</code>
+unrestricted double / double
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+int64"></a>
+
+### dataStream.int64 : <code>BigInt64Array</code>
+bigint / int64_t (signed long long)
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+uint64"></a>
+
+### dataStream.uint64 : <code>BigUint64Array</code>
+bigint / uint64_t (unsigned long long)
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+nativeEndian"></a>
+
+### dataStream.nativeEndian : <code>boolean</code>
+Native Endianness of the machine, true is Little Endian, false is Big Endian
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+list"></a>
+
+### dataStream.list : <code>DataBufferList</code>
+The DataBufferList to process
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+localOffset"></a>
+
+### dataStream.localOffset : <code>number</code>
+Reading offset for the current chunk
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
+<a name="DataStream+offset"></a>
+
+### dataStream.offset : <code>number</code>
+Reading offset for all chunks
+
+**Kind**: instance property of [<code>DataStream</code>](#DataStream)  
 <a name="DataStream+compare"></a>
 
 ### dataStream.compare(input, [offset]) ⇒ <code>boolean</code>
@@ -193,13 +286,13 @@ Returns the remaining bytes in the stream.
 <a name="DataStream+advance"></a>
 
 ### dataStream.advance(bytes) ⇒ [<code>DataStream</code>](#DataStream)
-Advance the stream by a given number of bytes. Useful for skipping unused bytes.
+Advance the stream by a given number of bytes.
 
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: [<code>DataStream</code>](#DataStream) - The current DataStream.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
+- <code>UnderflowError</code> Insufficient Bytes in the stream.
 
 
 | Param | Type | Description |
@@ -215,7 +308,7 @@ Rewind the stream by a given number of bytes.
 **Returns**: [<code>DataStream</code>](#DataStream) - The current DataStream.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
+- <code>UnderflowError</code> Insufficient Bytes in the stream.
 
 
 | Param | Type | Description |
@@ -243,7 +336,7 @@ Read from the current offset and return the value.
 **Returns**: <code>\*</code> - The UInt8 value at the current offset.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
+- <code>UnderflowError</code> Insufficient Bytes in the stream.
 
 <a name="DataStream+peekUInt8"></a>
 
@@ -254,7 +347,7 @@ Read from the specified offset without advancing the offsets and return the valu
 **Returns**: <code>\*</code> - The UInt8 value at the current offset.  
 **Throws**:
 
-- [<code>UnderflowError</code>](#UnderflowError) Insufficient Bytes in the stream.
+- <code>UnderflowError</code> Insufficient Bytes in the stream.
 
 
 | Param | Type | Default | Description |
@@ -655,47 +748,6 @@ Read from the specified offset for a given length and return the value as a stri
 | length | <code>number</code> |  | The number of bytes to read. |
 | [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
 
-<a name="DataStream+float48"></a>
-
-### dataStream.float48() ⇒ <code>number</code>
-Convert the current buffer into a Turbo Pascal 48 bit float value.
-May be faulty with large numbers due to float percision.
-
-While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
-Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
-
-The Real48 type exists for backward compatibility with Turbo Pascal. It defines a 6-byte floating-point type.
-The Real48 type has an 8-bit exponent and a 39-bit normalized mantissa. It cannot store denormalized values, infinity, or not-a-number. If the exponent is zero, the number is zero.
-
-Structure (Bytes, Big Endian)
-5: SMMMMMMM 4: MMMMMMMM 3: MMMMMMMM 2: MMMMMMMM 1: MMMMMMMM 0: EEEEEEEE
-
-Structure (Bytes, Little Endian)
-0: EEEEEEEE 1: MMMMMMMM 2: MMMMMMMM 3: MMMMMMMM 4: MMMMMMMM 5: SMMMMMMM
-
-E[8]: Exponent
-M[39]: Mantissa
-S[1]: Sign
-
-Value: (-1)^s * 2^(e - 129) * (1.f)
-
-**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - The read value as a number.  
-**See**: [Turbo Pascal Real](http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real)  
-<a name="DataStream+float80"></a>
-
-### dataStream.float80() ⇒ <code>number</code>
-Convert the current buffer into an IEEE 80 bit extended float value.
-
-**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
-**Returns**: <code>number</code> - The read value as a number.  
-**See**: [Extended_Precision](https://en.wikipedia.org/wiki/Extended_precision)  
-<a name="DataStream+reset"></a>
-
-### dataStream.reset()
-Resets the instance offsets to 0.
-
-**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 <a name="DataStream+decodeString"></a>
 
 ### dataStream.decodeString(offset, length, encoding, advance) ⇒ <code>string</code> ℗
@@ -713,6 +765,12 @@ Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, u
 | encoding | <code>string</code> | The encoding of the string. |
 | advance | <code>boolean</code> | Flag to optionally advance the offsets. |
 
+<a name="DataStream+reset"></a>
+
+### dataStream.reset()
+Resets the instance offsets to 0.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 <a name="DataStream.fromData"></a>
 
 ### DataStream.fromData(data) ⇒ [<code>DataStream</code>](#DataStream)
@@ -737,3 +795,7 @@ Creates a new DataStream from a DataBuffer.
 | --- | --- | --- |
 | buffer | <code>DataBuffer</code> | The DataBuffer of the image to process. |
 
+<a name="debug"></a>
+
+## debug() : <code>function</code>
+**Kind**: global function  

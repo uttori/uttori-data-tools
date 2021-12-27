@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.0](https://github.com/uttori/uttori-data-tools/compare/v2.2.0...v2.3.0) - 2021-12-20
+
+- 🎁 Update dev dependencies
+- 🧰 Add `DataBuffer` methods for reading, parsing & writing data without the need for wrapping in a `DataStream`
+- 🧰 Allow hex table formatter to format complex encodings with the additon of state and access to the data directly
+- 💀 Removed `LZW` library, use [lzw.js](https://github.com/antonylesuisse/lzwjs/blob/master/lzw.js) or something similar
+
 ## [2.2.0](https://github.com/uttori/uttori-data-tools/compare/v2.1.0...v2.2.0) - 2021-06-25
 
 - 🎁 Update dev dependencies
 - 🧹 Documentation & Types clean up
-- 🧰 Add `hexTable` function for debugging with hex editor like output:
+- 🧰 Add `hexTable` function for debugging with a customizable hex editor like output:
 
 ```text
 | 76543210 | 00010203 04050607 08090A0B 0C0D0E0F | 0123456789ABCDEF |

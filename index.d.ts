@@ -1,17 +1,77 @@
 declare module '@uttori/data-tools';
 
+declare module "underflow-error" {
+    export = UnderflowError;
+    class UnderflowError extends Error {
+        constructor(message: string);
+    }
+}
+declare module "data-helpers" {
+    export function float48(uint8: Uint8Array): number;
+    export function float80(uint8: Uint8Array): number;
+}
 declare module "data-buffer" {
     export = DataBuffer;
     class DataBuffer {
         static allocate(size: number): DataBuffer;
-        constructor(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array);
-        data: Buffer | Uint8Array;
-        length: number;
+        constructor(input?: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined);
+        writing: boolean;
+        data: any[] | Buffer | Uint8Array;
         next: DataBuffer | null;
         prev: DataBuffer | null;
+        nativeEndian: boolean;
+        offset: number;
+        buffer: number[];
+        get length(): number;
         compare(input: DataBuffer, offset?: number): boolean;
         copy(): DataBuffer;
         slice(position: number, length?: number): DataBuffer;
+        remainingBytes(): number;
+        available(bytes: number): boolean;
+        availableAt(bytes: number, offset: number): boolean;
+        advance(bytes: number): void;
+        rewind(bytes: number): void;
+        seek(position: number): void;
+        readUInt8(): number;
+        peekUInt8(offset?: number): number;
+        read(bytes: number, littleEndian?: boolean): Uint8Array;
+        peek(bytes: number, offset?: number, littleEndian?: boolean): Uint8Array;
+        peekBit(position: number, length?: number, offset?: number): number;
+        readInt8(): any;
+        peekInt8(offset?: number): any;
+        readUInt16(littleEndian?: boolean): any;
+        peekUInt16(offset?: number, littleEndian?: boolean): any;
+        readInt16(littleEndian?: boolean): any;
+        peekInt16(offset?: number, littleEndian?: boolean): any;
+        readUInt24(littleEndian?: boolean): any;
+        peekUInt24(offset?: number, littleEndian?: boolean): any;
+        readInt24(littleEndian?: boolean): any;
+        peekInt24(offset?: number, littleEndian?: boolean): any;
+        readUInt32(littleEndian?: boolean): any;
+        peekUInt32(offset?: number, littleEndian?: boolean): any;
+        readInt32(littleEndian?: boolean): any;
+        peekInt32(offset?: number, littleEndian?: boolean): any;
+        readFloat32(littleEndian?: boolean): any;
+        peekFloat32(offset?: number, littleEndian?: boolean): any;
+        readFloat48(littleEndian?: boolean): number;
+        peekFloat48(offset?: number, littleEndian?: boolean): number;
+        readFloat64(littleEndian?: boolean): any;
+        peekFloat64(offset?: number, littleEndian?: boolean): any;
+        readFloat80(littleEndian?: boolean): any;
+        peekFloat80(offset?: number, littleEndian?: boolean): any;
+        readBuffer(length: number): DataBuffer;
+        peekBuffer(offset: number, length: number): DataBuffer;
+        readString(length: number, encoding?: string): string;
+        peekString(offset: number, length: number, encoding?: string): string;
+        private decodeString;
+        reset(): void;
+        writeUInt8(data: number, offset?: number, advance?: boolean): void;
+        writeUInt16(data: number, offset?: number, advance?: boolean, littleEndian?: boolean): void;
+        writeUInt24(data: number, offset?: number, advance?: boolean, littleEndian?: boolean): void;
+        writeUInt32(data: number, offset?: number, advance?: boolean, littleEndian?: boolean): void;
+        writeBytes(data: number[] | Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array, offset?: number, advance?: boolean): void;
+        writeString(string: string, offset?: number, encoding?: string, advance?: boolean): void;
+        commit(): void;
     }
 }
 declare module "data-buffer-list" {
@@ -98,10 +158,8 @@ declare module "data-stream" {
         peekSingleBuffer(offset: number, length: number): DataBuffer;
         readString(length: number, encoding?: string): string;
         peekString(offset: number, length: number, encoding?: string): string;
-        float48(): number;
-        float80(): number;
-        reset(): void;
         private decodeString;
+        reset(): void;
     }
     import DataBufferList = require("data-buffer-list");
     import DataBuffer = require("data-buffer");
@@ -129,12 +187,6 @@ declare module "data-bitstream" {
     import DataStream = require("data-stream");
     import DataBuffer = require("data-buffer");
 }
-declare module "data-compression-lzw" {
-    export function buildDictionary(depth: number): any;
-    export function stringToHexArray(string: string): number[];
-    export function compress(input: number[], depth?: number): number[];
-    export function decompress(input: number[], depth?: number): number[];
-}
 declare module "data-formating" {
     export type HexTableFormater = {
         offset: Function;
@@ -152,7 +204,8 @@ declare module "data-formating" {
         maxRows: number;
     };
     export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-    export function hexTable(data: DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
+    export function formatASCII(value: number, asciiFlags: object, _data: DataBuffer | DataStream): [string, number];
+    export function hexTable(input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
     export namespace hexTableDimensions {
         const columns: number;
         const grouping: number;
@@ -168,32 +221,25 @@ declare module "data-formating" {
         export { offset_1 as offset };
         export function value_1(value: any): any;
         export { value_1 as value };
-        export function ascii_1(value: any): string;
-        export { ascii_1 as ascii };
+        export { formatASCII as ascii };
     }
+    import DataBuffer = require("data-buffer");
     import DataStream = require("data-stream");
 }
 declare module "data-hash-crc32" {
-    export = CRC32;
-    class CRC32 {
-        static of(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): string;
-        crc: number;
-        update(buffer: DataBuffer): void;
-    }
+    function calculate(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): string;
     import DataBuffer = require("data-buffer");
+    export { calculate as of };
 }
 declare module "index" {
-    export const CRC32: typeof import("data-hash-crc32");
+    export const CRC32: {
+        of: (data: string | number | any[] | Uint8Array | ArrayBuffer | Uint32Array | import("data-buffer") | Buffer | Int8Array | Int16Array | Int32Array | Uint16Array) => string;
+    };
     export const DataBitstream: typeof import("data-bitstream");
     export const DataBuffer: typeof import("data-buffer");
     export const DataBufferList: typeof import("data-buffer-list");
     export const DataStream: typeof import("data-stream");
-    export const LZW: {
-        buildDictionary(depth: number): any;
-        stringToHexArray(string: string): number[];
-        compress(input: number[], depth?: number): number[];
-        decompress(input: number[], depth?: number): number[];
-    };
     export const formatBytes: (input: number, decimals?: number, bytes?: number, sizes?: string[]) => string;
-    export const hexTable: (data: import("data-stream"), offset?: number, dimensions?: import("data-formating").HexTableDimensions, header?: import("data-formating").HexTableHeader, format?: import("data-formating").HexTableFormater) => string;
+    export const hexTable: (input: import("data-buffer") | import("data-stream"), offset?: number, dimensions?: import("data-formating").HexTableDimensions, header?: import("data-formating").HexTableHeader, format?: import("data-formating").HexTableFormater) => string;
+    export const UnderflowError: typeof import("underflow-error");
 }

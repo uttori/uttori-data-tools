@@ -4,7 +4,6 @@ import DataBitstream from '../src/data-bitstream.js';
 import DataBuffer from '../src/data-buffer.js';
 import DataBufferList from '../src/data-buffer-list.js';
 import DataStream from '../src/data-stream.js';
-import LZW from '../src/data-compression-lzw.js';
 import { formatBytes, hexTable } from '../src/data-formating.js';
 
 export default {
@@ -13,7 +12,6 @@ export default {
   DataBuffer,
   DataBufferList,
   DataStream,
-  LZW,
   formatBytes,
   hexTable,
 };
@@ -23,5 +21,4 @@ export { default as DataBitstream } from '../src/data-bitstream.js';
 export { default as DataBuffer } from '../src/data-buffer.js';
 export { default as DataBufferList } from '../src/data-buffer-list.js';
 export { default as DataStream } from '../src/data-stream.js';
-export { default as LZW } from '../src/data-compression-lzw.js';
 export { formatBytes, hexTable } from '../src/data-formating.js';

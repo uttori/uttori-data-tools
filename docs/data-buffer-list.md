@@ -1,3 +1,18 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBufferList">DataBufferList</a></dt>
+<dd><p>A linked list of DataBuffers.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code>function</code></dt>
+<dd></dd>
+</dl>
+
 <a name="DataBufferList"></a>
 
 ## DataBufferList
@@ -16,7 +31,12 @@ A linked list of DataBuffers.
 
 
 * [DataBufferList](#DataBufferList)
-    * [new DataBufferList(buffers)](#new_DataBufferList_new)
+    * [new DataBufferList([buffers])](#new_DataBufferList_new)
+    * [.first](#DataBufferList+first) : <code>DataBuffer</code> \| <code>null</code>
+    * [.last](#DataBufferList+last) : <code>DataBuffer</code> \| <code>null</code>
+    * [.totalBuffers](#DataBufferList+totalBuffers) : <code>number</code>
+    * [.availableBytes](#DataBufferList+availableBytes) : <code>number</code>
+    * [.availableBuffers](#DataBufferList+availableBuffers) : <code>number</code>
     * [.copy()](#DataBufferList+copy) ⇒ [<code>DataBufferList</code>](#DataBufferList)
     * [.append(buffer)](#DataBufferList+append) ⇒ <code>number</code>
     * [.moreAvailable()](#DataBufferList+moreAvailable) ⇒ <code>boolean</code>
@@ -26,19 +46,49 @@ A linked list of DataBuffers.
 
 <a name="new_DataBufferList_new"></a>
 
-### new DataBufferList(buffers)
+### new DataBufferList([buffers])
 Creates an instance of DataBufferList.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| buffers | <code>Array.&lt;DataBuffer&gt;</code> | DataBuffers to initialize with. |
+| [buffers] | <code>Array.&lt;DataBuffer&gt;</code> | DataBuffers to initialize with. |
 
 **Example** *(new DataBufferList(buffers))*  
 ```js
 const buffer = new DataBuffer(data);
 const list = new DataBufferList([buffer]);
 ```
+<a name="DataBufferList+first"></a>
+
+### dataBufferList.first : <code>DataBuffer</code> \| <code>null</code>
+The first DataBuffer in the list.
+
+**Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="DataBufferList+last"></a>
+
+### dataBufferList.last : <code>DataBuffer</code> \| <code>null</code>
+The last DataBuffer in the list.
+
+**Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="DataBufferList+totalBuffers"></a>
+
+### dataBufferList.totalBuffers : <code>number</code>
+The number of buffers in the list.
+
+**Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="DataBufferList+availableBytes"></a>
+
+### dataBufferList.availableBytes : <code>number</code>
+The number of bytes avaliable to read.
+
+**Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="DataBufferList+availableBuffers"></a>
+
+### dataBufferList.availableBuffers : <code>number</code>
+The number of buffers avaliable to read.
+
+**Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
 <a name="DataBufferList+copy"></a>
 
 ### dataBufferList.copy() ⇒ [<code>DataBufferList</code>](#DataBufferList)
@@ -87,3 +137,7 @@ Rewind the buffer list to the previous buffer.
 Reset the list to the beginning.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="debug"></a>
+
+## debug() : <code>function</code>
+**Kind**: global function  

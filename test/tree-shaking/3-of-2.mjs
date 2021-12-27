@@ -1,11 +1,10 @@
 /* eslint-disable import/extensions */
-import { CRC32, LZW } from '../../esm/index.js';
+import { CRC32 } from '../../esm/index.js';
 
 const main = () => {
   const crc = CRC32.of('test');
-  const lzw = new LZW();
 
-  return [crc, lzw];
+  return [crc];
 };
 
 export default main;
