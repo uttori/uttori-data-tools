@@ -20,45 +20,48 @@
     "node": ">= 14"
   },
   "optionalDependencies": {
-    "debug": "^4.3.3"
+    "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.5",
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-replace": "^3.0.0",
-    "ava": "^3.15.0",
-    "eslint": "^8.5.0",
+    "@babel/eslint-parser": "^7.18.2",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@types/node": "^17.0.36",
+    "@typescript-eslint/parser": "^5.27.0",
+    "ava": "^4.2.0",
+    "eslint": "^8.16.0",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-plugin-anti-trojan-source": "^1.0.6",
-    "eslint-plugin-ava": "^13.1.0",
-    "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-jsdoc": "^37.4.0",
+    "eslint-plugin-anti-trojan-source": "^1.1.0",
+    "eslint-plugin-ava": "^13.2.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^39.3.2",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
-    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-react": "^7.30.0",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint-plugin-security": "^1.5.0",
     "eslint-plugin-xss": "^0.1.11",
-    "jsdoc": "^3.6.7",
-    "jsdoc-to-markdown": "^7.1.0",
+    "jsdoc": "^3.6.10",
+    "jsdoc-to-markdown": "^7.1.1",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^14.11.8",
-    "rollup": "^2.62.0",
-    "sinon": "^12.0.1",
-    "typescript": "^4.5.4"
+    "release-it": "^15.0.0",
+    "rollup": "^2.75.3",
+    "sinon": "^14.0.0",
+    "typescript": "^4.7.2",
+    "uttori-utilities": "^3.0.0"
   },
   "files": [
     "esm/*",
     "src/*",
-    "index.d.ts"
+    "types/*"
   ],
   "main": "./src/index.js",
   "module": "./esm/index.js",
-  "types": "./index.d.ts",
-  "typings": "./index.d.ts",
+  "types": "./types/index.d.ts",
+  "typings": "./types/index.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -88,6 +91,9 @@
     },
     "./underflow-error": {
       "require": "./src/underflow-error.js"
+    },
+    "./encodings/shift-jis": {
+      "require": "./src/encodings/shift-jis"
     }
   },
   "ava": {
@@ -117,10 +123,10 @@
     }
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --private --example-lang js src/data-formating.js > docs/data-formating.md;",
+    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --private --example-lang js src/data-formating.js > docs/data-formating.md; jsdoc2md --private --example-lang js src/encodings/shift-jis.js > docs/encodings-shift-jis.md ",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
-    "make-types": "rm index.d.ts && tsc --project .tsconfig.json",
+    "make-types": "rm types/index.d.ts && tsc --project .tsconfig.json",
     "release": "release-it",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava",

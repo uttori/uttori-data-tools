@@ -8,7 +8,8 @@
 <dd><p>ASCII text formatting function.</p>
 </dd>
 <dt><a href="#hexTable">hexTable(input, offset, dimensions, header, format)</a> ⇒ <code>string</code></dt>
-<dd></dd>
+<dd><p>Generate a nicely formatted hex editor style table.</p>
+</dd>
 </dl>
 
 ## Typedefs
@@ -58,8 +59,10 @@ ASCII text formatting function.
 <a name="hexTable"></a>
 
 ## hexTable(input, offset, dimensions, header, format) ⇒ <code>string</code>
+Generate a nicely formatted hex editor style table.
+
 **Kind**: global function  
-**Returns**: <code>string</code> - The hex table output  
+**Returns**: <code>string</code> - The hex table ASCII.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |

@@ -2,7 +2,7 @@
 
 <dl>
 <dt><a href="#float48">float48(uint8)</a> ⇒ <code>number</code></dt>
-<dd><p>Convert the current buffer into a Turbo Pascal 48 bit float value.
+<dd><p>Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.</p>
 <p>While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
 Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.</p>
@@ -25,7 +25,7 @@ S[1]: Sign</p>
 <a name="float48"></a>
 
 ## float48(uint8) ⇒ <code>number</code>
-Convert the current buffer into a Turbo Pascal 48 bit float value.
+Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.
 
 While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,

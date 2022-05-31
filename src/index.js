@@ -10,4 +10,5 @@ module.exports = {
   formatBytes: require('./data-formating').formatBytes,
   hexTable: require('./data-formating').hexTable,
   UnderflowError: require('./underflow-error'),
+  ShiftJIS: require('./encodings/shift-jis'),
 };

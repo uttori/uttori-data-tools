@@ -52,6 +52,7 @@
     "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
     "global-require": 0,
     "import/no-dynamic-require": 0,
+    "import/no-unresolved": [0, { "commonjs": true }],
     "max-classes-per-file": 0,
     "max-len": 0,
     "no-bitwise": 0,
@@ -76,6 +77,10 @@
     "no-underscore-dangle": 0,
     "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "node/no-unpublished-require": 0,
+    "node/no-missing-require": ["error", {
+      "allowModules": ["ava"],
+      "tryExtensions": [".js", ".json", ".mjs", ".jsx", ".ts", ".tsx"]
+    }],
     "object-curly-newline": 0,
     "optimize-regex/optimize-regex": "warn",
     "security/detect-non-literal-fs-filename": 0,

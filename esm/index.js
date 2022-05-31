@@ -5,6 +5,7 @@ import DataBuffer from '../src/data-buffer.js';
 import DataBufferList from '../src/data-buffer-list.js';
 import DataStream from '../src/data-stream.js';
 import { formatBytes, hexTable } from '../src/data-formating.js';
+import ShiftJIS from '../src/encodings/shift-jis.js';
 
 export default {
   CRC32,
@@ -14,6 +15,7 @@ export default {
   DataStream,
   formatBytes,
   hexTable,
+  ShiftJIS,
 };
 
 export { default as CRC32 } from '../src/data-hash-crc32.js';
@@ -22,3 +24,4 @@ export { default as DataBuffer } from '../src/data-buffer.js';
 export { default as DataBufferList } from '../src/data-buffer-list.js';
 export { default as DataStream } from '../src/data-stream.js';
 export { formatBytes, hexTable } from '../src/data-formating.js';
+export { default as ShiftJIS } from '../src/encodings/shift-jis.js';

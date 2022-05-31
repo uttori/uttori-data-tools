@@ -109,7 +109,7 @@ class DataBuffer {
   /**
    * Compares another DataBuffer against the current data buffer at a specified offset.
    *
-   * @param {DataBuffer} input The size of the requested DataBuffer.
+   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The size of the requested DataBuffer.
    * @param {number} [offset=0] The size of the requested DataBuffer.
    * @returns {boolean} Returns true when both DataBuffers are equal, false if there is any difference.
    */

@@ -39,6 +39,7 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     'data-buffer-list.js',
     'data-stream.js',
     '3-of-3.mjs',
+    '3-of-3.mjs?commonjs-entry',
   ]);
 });
 
@@ -62,6 +63,7 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     'data-stream.js',
     'data-bitstream.js',
     '4-of-1.mjs',
+    '4-of-1.mjs?commonjs-entry',
   ]);
 });
 
@@ -83,5 +85,6 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     'data-buffer.js',
     'data-hash-crc32.js',
     '3-of-2.mjs',
+    '3-of-2.mjs?commonjs-entry',
   ]);
 });

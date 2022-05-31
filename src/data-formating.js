@@ -84,13 +84,14 @@ const hexTableDimensions = {
 };
 
 /**
+ * Generate a nicely formatted hex editor style table.
  *
  * @param {DataBuffer|DataStream} input Input data to print out as a hex table.
  * @param {number} offset Offset in the DataStream to start from.
  * @param {HexTableDimensions} dimensions Table size parameters for columns, rows and byte grouping.
  * @param {HexTableHeader} header The values for building the table header with offset, bytes and ASCII values.
  * @param {HexTableFormater} format The formatting functions for displaying offset, bytes and ASCII values.
- * @returns {string} The hex table output
+ * @returns {string} The hex table ASCII.
  */
 const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
   // Do not manipulate the input data.
@@ -163,7 +164,6 @@ const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = h
     }
   }
 
-  // console.log(output);
   return output.trim();
 };
 

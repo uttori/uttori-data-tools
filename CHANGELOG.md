@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.0](https://github.com/uttori/uttori-data-tools/compare/v2.3.0...v2.4.0) - 2021-05-30
+
+- 🎁 Update dev dependencies
+- 🧰 Add `ShiftJIS` class for reading and parsing Shift-JIS enocded text
+
 ## [2.3.0](https://github.com/uttori/uttori-data-tools/compare/v2.2.0...v2.3.0) - 2021-12-20
 
 - 🎁 Update dev dependencies

@@ -174,7 +174,7 @@ Compares another DataBuffer against the current data buffer at a specified offse
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| input | [<code>DataBuffer</code>](#DataBuffer) |  | The size of the requested DataBuffer. |
+| input | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The size of the requested DataBuffer. |
 | [offset] | <code>number</code> | <code>0</code> | The size of the requested DataBuffer. |
 
 <a name="DataBuffer+copy"></a>

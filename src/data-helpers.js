@@ -1,5 +1,5 @@
 /**
- * Convert the current buffer into a Turbo Pascal 48 bit float value.
+ * Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
  * May be faulty with large numbers due to float percision.
  *
  * While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,

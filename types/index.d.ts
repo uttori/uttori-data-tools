@@ -4,6 +4,7 @@ declare module "underflow-error" {
     export = UnderflowError;
     class UnderflowError extends Error {
         constructor(message: string);
+        stack: string;
     }
 }
 declare module "data-helpers" {
@@ -23,7 +24,7 @@ declare module "data-buffer" {
         offset: number;
         buffer: number[];
         get length(): number;
-        compare(input: DataBuffer, offset?: number): boolean;
+        compare(input: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): boolean;
         copy(): DataBuffer;
         slice(position: number, length?: number): DataBuffer;
         remainingBytes(): number;
@@ -204,7 +205,7 @@ declare module "data-formating" {
         maxRows: number;
     };
     export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-    export function formatASCII(value: number, asciiFlags: object, _data: DataBuffer | DataStream): [string, number];
+    export function formatASCII(value: number, asciiFlags: object, _data: DataBuffer | DataStream): any[];
     export function hexTable(input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
     export namespace hexTableDimensions {
         const columns: number;
@@ -231,15 +232,31 @@ declare module "data-hash-crc32" {
     import DataBuffer = require("data-buffer");
     export { calculate as of };
 }
+declare module "encodings/shift-jis" {
+    export type UttoriCharacterEncoding = {
+        shiftjs: number;
+        unicode: number;
+        string: string;
+        ascii: string;
+        name: string;
+    };
+    export const characterEncoding: {
+        [x: number]: UttoriCharacterEncoding;
+    };
+    export function parse(data: DataBuffer): string;
+    import DataBuffer = require("data-buffer");
+}
 declare module "index" {
     export const CRC32: {
         of: (data: string | number | any[] | Uint8Array | ArrayBuffer | Uint32Array | import("data-buffer") | Buffer | Int8Array | Int16Array | Int32Array | Uint16Array) => string;
     };
     export const DataBitstream: typeof import("data-bitstream");
-    export const DataBuffer: typeof import("data-buffer");
+    const DataBuffer_1: typeof import("data-buffer");
+    export { DataBuffer_1 as DataBuffer };
     export const DataBufferList: typeof import("data-buffer-list");
     export const DataStream: typeof import("data-stream");
     export const formatBytes: (input: number, decimals?: number, bytes?: number, sizes?: string[]) => string;
     export const hexTable: (input: import("data-buffer") | import("data-stream"), offset?: number, dimensions?: import("data-formating").HexTableDimensions, header?: import("data-formating").HexTableHeader, format?: import("data-formating").HexTableFormater) => string;
     export const UnderflowError: typeof import("underflow-error");
+    export const ShiftJIS: typeof import("encodings/shift-jis");
 }
