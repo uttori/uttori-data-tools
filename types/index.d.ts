@@ -204,26 +204,31 @@ declare module "data-formating" {
         grouping: number;
         maxRows: number;
     };
+    export type TableFormatStyle = {
+        topRow: boolean;
+        bottomRow: boolean;
+        upperLeft: string;
+        upperRight: string;
+        lowerLeft: string;
+        lowerRight: string;
+        intersection: string;
+        line: string;
+        wall: string;
+        intersectionTop: string;
+        intersectionBottom: string;
+        intersectionLeft: string;
+        intersectionRight: string;
+    };
     export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
     export function formatASCII(value: number, asciiFlags: object, _data: DataBuffer | DataStream): any[];
     export function hexTable(input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
-    export namespace hexTableDimensions {
-        const columns: number;
-        const grouping: number;
-        const maxRows: number;
-    }
-    export namespace hexTableHeader {
-        const offset: string;
-        const value: string[];
-        const ascii: string;
-    }
-    export namespace hexTableFormaters {
-        export function offset_1(value: any): any;
-        export { offset_1 as offset };
-        export function value_1(value: any): any;
-        export { value_1 as value };
-        export { formatASCII as ascii };
-    }
+    export const hexTableDimensions: HexTableDimensions;
+    export const hexTableHeader: HexTableHeader;
+    export const hexTableFormaters: HexTableFormater;
+    export function formatTable(data: string[][], options: object): string;
+    export const formatTableThemeMySQL: TableFormatStyle;
+    export const formatTableThemeUnicode: TableFormatStyle;
+    export const formatTableThemeMarkdown: TableFormatStyle;
     import DataBuffer = require("data-buffer");
     import DataStream = require("data-stream");
 }
@@ -232,31 +237,19 @@ declare module "data-hash-crc32" {
     import DataBuffer = require("data-buffer");
     export { calculate as of };
 }
-declare module "encodings/shift-jis" {
-    export type UttoriCharacterEncoding = {
-        shiftjs: number;
-        unicode: number;
-        string: string;
-        ascii: string;
-        name: string;
-    };
-    export const characterEncoding: {
-        [x: number]: UttoriCharacterEncoding;
-    };
-    export function parse(data: DataBuffer): string;
-    import DataBuffer = require("data-buffer");
-}
 declare module "index" {
     export const CRC32: {
         of: (data: string | number | any[] | Uint8Array | ArrayBuffer | Uint32Array | import("data-buffer") | Buffer | Int8Array | Int16Array | Int32Array | Uint16Array) => string;
     };
     export const DataBitstream: typeof import("data-bitstream");
-    const DataBuffer_1: typeof import("data-buffer");
-    export { DataBuffer_1 as DataBuffer };
+    export const DataBuffer: typeof import("data-buffer");
     export const DataBufferList: typeof import("data-buffer-list");
     export const DataStream: typeof import("data-stream");
     export const formatBytes: (input: number, decimals?: number, bytes?: number, sizes?: string[]) => string;
+    export const formatTable: (data: string[][], options: any) => string;
+    export const formatTableThemeMySQL: import("data-formating").TableFormatStyle;
+    export const formatTableThemeUnicode: import("data-formating").TableFormatStyle;
+    export const formatTableThemeMarkdown: import("data-formating").TableFormatStyle;
     export const hexTable: (input: import("data-buffer") | import("data-stream"), offset?: number, dimensions?: import("data-formating").HexTableDimensions, header?: import("data-formating").HexTableHeader, format?: import("data-formating").HexTableFormater) => string;
     export const UnderflowError: typeof import("underflow-error");
-    export const ShiftJIS: typeof import("encodings/shift-jis");
 }

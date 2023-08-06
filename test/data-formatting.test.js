@@ -1,5 +1,13 @@
 const test = require('ava');
-const { DataStream, formatBytes, hexTable } = require('../src');
+const {
+  DataStream,
+  formatBytes,
+  hexTable,
+  formatTable,
+  formatTableThemeMySQL,
+  formatTableThemeUnicode,
+  formatTableThemeMarkdown,
+} = require('../src');
 
 test('formatBytes', (t) => {
   t.is(formatBytes(0), '0 Bytes');
@@ -91,4 +99,59 @@ test('hexTable: custom output options odd', (t) => {
 |   37 | 428288 6d6174 72 | B**matr |
 |   44 | 6f736b 614287 81 | oskaB** |
 |   51 | 044285           | *B*     |`);
+});
+
+test('formatTable: can create a table like MySQL', (t) => {
+  const data = [
+    ['Name', 'Age', 'color'],
+    ['John', 23, 'green'],
+    ['Mary', 16, 'brown'],
+    ['Rita', 47, 'blue'],
+    ['Peter', 8, 'brown'],
+  ];
+  t.is(formatTable(data, { align: ['left', 'right', 'left'], theme: formatTableThemeMySQL }), `+-------+-----+-------+
+| Name  | Age | color |
++-------+-----+-------+
+| John  |  23 | green |
+| Mary  |  16 | brown |
+| Rita  |  47 | blue  |
+| Peter |   8 | brown |
++-------+-----+-------+`);
+});
+
+test('formatTable: can create a table as Markdown', (t) => {
+  const data = [
+    ['Name', 'Age', 'color'],
+    ['John', 23, 'green'],
+    ['Mary', 16, 'brown'],
+    ['Rita', 47, 'blue'],
+    ['Peter', 8, 'brown'],
+  ];
+  t.is(formatTable(data, { align: ['right', 'left', 'right'], theme: formatTableThemeMarkdown }), `|  Name | Age | color |
+|-------|-----|-------|
+|  John | 23  | green |
+|  Mary | 16  | brown |
+|  Rita | 47  |  blue |
+| Peter | 8   | brown |
+`);
+});
+
+test('formatTable: can create a table with Emoji', (t) => {
+  const data = [
+    ['Name', 'Age', 'Emoji'],
+    ['John', 23, '🫠'],
+    ['Mary', 16, '👩‍👩‍👧‍👧'],
+    ['Rita', 47, '💪🏼'],
+    ['Peter', 8, '🕧'],
+  ];
+  t.is(formatTable(data, { align: ['right', 'left', 'right'], title: 'Emoji', theme: formatTableThemeUnicode }), `╔═══════════════════════════╗
+║           Emoji           ║
+╠═══════╦═════╦═════════════╣
+║  Name ║ Age ║       Emoji ║
+╠═══════╬═════╬═════════════╣
+║  John ║ 23  ║          🫠 ║
+║  Mary ║ 16  ║ 👩‍👩‍👧‍👧 ║
+║  Rita ║ 47  ║        💪🏼 ║
+║ Peter ║ 8   ║          🕧 ║
+╚═══════╩═════╩═════════════╝`);
 });

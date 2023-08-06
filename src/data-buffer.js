@@ -1,3 +1,4 @@
+/* eslint-disable no-multi-spaces */
 /** @type {Function} */
 let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBuffer'); } catch {} }
 
@@ -6,23 +7,21 @@ const { float48, float80 } = require('./data-helpers');
 
 /**
  * Helper class for manipulating binary data.
- *
  * @property {Buffer|Uint8Array} data The data to process.
  * @property {number} length The size of the data in bytes.
  * @property {DataBuffer} next The next DataBuffer when part of a DataBufferList.
  * @property {DataBuffer} prev The previous DataBuffer when part of a DataBufferList.
  * @example <caption>new DataBuffer(stream)</caption>
  * const buffer = new DataBuffer(new Uint8Array([0xFC, 0x08]));
- * buffer.readUint8();
+ * buffer.readUInt8();
  * ➜ 0xFC
- * buffer.readUint8();
+ * buffer.readUInt8();
  * ➜ 0x08
  * @class
  */
 class DataBuffer {
 /**
  * Creates an instance of DataBuffer.
- *
  * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} [input] The data to process.
  * @throws {TypeError} Missing input data.
  * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
@@ -32,7 +31,7 @@ class DataBuffer {
     this.writing = false;
 
     /** @type {Array|Buffer|Uint8Array} The bytes avaliable to read. */
-    this.data = null;
+    this.data = [];
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
       debug('constructor: from Buffer');
       this.data = Buffer.from(input);
@@ -88,7 +87,6 @@ class DataBuffer {
 
   /**
    * Creates an instance of DataBuffer with given size.
-   *
    * @param {number} size The size of the requested DataBuffer.
    * @returns {DataBuffer} The new DataBuffer.
    */
@@ -99,7 +97,6 @@ class DataBuffer {
 
   /**
    * Helper to match arrays by returning the data length.
-   *
    * @returns {number} The data length of the DataBuffer.
    */
   get length() {
@@ -108,7 +105,6 @@ class DataBuffer {
 
   /**
    * Compares another DataBuffer against the current data buffer at a specified offset.
-   *
    * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The size of the requested DataBuffer.
    * @param {number} [offset=0] The size of the requested DataBuffer.
    * @returns {boolean} Returns true when both DataBuffers are equal, false if there is any difference.
@@ -136,7 +132,6 @@ class DataBuffer {
 
   /**
    * Creates a copy of the current DataBuffer.
-   *
    * @returns {DataBuffer} A new copy of the current DataBuffer.
    */
   copy() {
@@ -146,7 +141,6 @@ class DataBuffer {
 
   /**
    * Creates a copy of the current DataBuffer from a specified offset and a specified length.
-   *
    * @param {number} position The starting offset to begin the copy of the new DataBuffer.
    * @param {number} [length=this.length] The size of the new DataBuffer.
    * @returns {DataBuffer} The new DataBuffer
@@ -163,7 +157,6 @@ class DataBuffer {
 
   /**
    * Returns the remaining bytes to be read in the DataBuffer.
-   *
    * @returns {number} The remaining bytes to bre read in the DataBuffer.
    */
   remainingBytes() {
@@ -173,7 +166,6 @@ class DataBuffer {
   /**
    * Checks if a given number of bytes are avaliable in the DataBuffer.
    * If writing mode is enabled, this is always true.
-   *
    * @param {number} bytes The number of bytes to check for.
    * @returns {boolean} True if there are the requested amount, or more, of bytes left in the DataBuffer.
    */
@@ -184,7 +176,6 @@ class DataBuffer {
   /**
    * Checks if a given number of bytes are avaliable after a given offset in the buffer.
    * If writing mode is enabled, this is always true.
-   *
    * @param {number} bytes The number of bytes to check for.
    * @param {number} offset The offset to start from.
    * @returns {boolean} - True if there are the requested amount, or more, of bytes left in the stream.
@@ -195,7 +186,6 @@ class DataBuffer {
 
   /**
    * Advance the offset by a given number of bytes.
-   *
    * @param {number} bytes The number of bytes to advance.
    * @throws {UnderflowError} Insufficient Bytes in the DataBuffer.
    */
@@ -210,7 +200,6 @@ class DataBuffer {
 
   /**
    * Rewind the offset by a given number of bytes.
-   *
    * @param {number} bytes The number of bytes to go back.
    * @throws {UnderflowError} Insufficient Bytes in the DataBuffer.
    */
@@ -225,7 +214,6 @@ class DataBuffer {
 
   /**
    * Go to a specified offset in the stream.
-   *
    * @param {number} position The offset to go to.
    */
   seek(position) {
@@ -241,7 +229,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @returns {number} The UInt8 value at the current offset.
    * @throws {UnderflowError} Insufficient Bytes in the stream.
    */
@@ -256,7 +243,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @returns {number} The UInt8 value at the current offset.
    * @throws {UnderflowError} Insufficient Bytes in the stream.
@@ -270,7 +256,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {number} bytes The number of bytes to read.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {Uint8Array} - The UInt8 value at the current offset.
@@ -293,7 +278,6 @@ class DataBuffer {
 
   /**
    * Read from the provided offset and return the value.
-   *
    * @param {number} bytes The number of bytes to read.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
@@ -316,7 +300,6 @@ class DataBuffer {
 
   /**
    * Read the bits from the bytes from the provided offset and return the value.
-   *
    * @param {number} position The bit position to read, 0 to 7.
    * @param {number} [length=1] The number of bits to read, 1 to 8.
    * @param {number} [offset=0] The offset to read from.
@@ -338,7 +321,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @returns {*} The Int8 value at the current offset.
    */
   readInt8() {
@@ -349,7 +331,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @returns {*} The Int8 value at the current offset.
    */
@@ -361,7 +342,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The UInt16 value at the current offset.
    */
@@ -373,7 +353,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int8 value at the current offset.
@@ -386,7 +365,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int16 value at the current offset.
    */
@@ -398,7 +376,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int16 value at the current offset.
@@ -411,7 +388,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The UInt24 value at the current offset.
    */
@@ -424,7 +400,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The UInt24 value at the current offset.
@@ -438,7 +413,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int24 value at the current offset.
    */
@@ -451,7 +425,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int24 value at the current offset.
@@ -465,7 +438,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The UInt32 value at the current offset.
    */
@@ -477,7 +449,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The UInt32 value at the current offset.
@@ -490,7 +461,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int32 value at the current offset.
    */
@@ -502,7 +472,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Int32 value at the current offset.
@@ -515,7 +484,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Float32 value at the current offset.
    */
@@ -527,7 +495,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Float32 value at the current offset.
@@ -541,7 +508,6 @@ class DataBuffer {
   /**
    * Read from the current offset and return the Turbo Pascal 48 bit extended float value.
    * May be faulty with large numbers due to float percision.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {number} The Float48 value at the current offset.
    */
@@ -553,7 +519,6 @@ class DataBuffer {
   /**
    * Read from the specified offset without advancing the offsets and return the Turbo Pascal 48 bit extended float value.
    * May be faulty with large numbers due to float percision.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {number} The Float48 value at the specified offset.
@@ -565,7 +530,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   *
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Float64 value at the current offset.
    */
@@ -577,7 +541,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
    * @returns {*} The Float64 value at the current offset.
@@ -590,7 +553,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the IEEE 80 bit extended float value.
-   *
    * @param {boolean} [littleEndian=this.nativeEndian] Read in Little Endian format, defaults to system value.
    * @returns {*} The Float80 value at the current offset.
    */
@@ -601,7 +563,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
-   *
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=this.nativeEndian] Read in Little Endian format, defaults to system value.
    * @returns {*} The Float80 value at the current offset.
@@ -613,7 +574,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value as a DataBuffer.
-   *
    * @param {number} length The number of bytes to read.
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
    */
@@ -627,7 +587,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset and return the value as a DataBuffer.
-   *
    * @param {number} offset The offset to read from.
    * @param {number} length The number of bytes to read.
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
@@ -642,7 +601,6 @@ class DataBuffer {
 
   /**
    * Read from the current offset for a given length and return the value as a string.
-   *
    * @param {number} length The number of bytes to read.
    * @param {string} [encoding=ascii] The encoding of the string.
    * @returns {string} The read value as a string.
@@ -654,7 +612,6 @@ class DataBuffer {
 
   /**
    * Read from the specified offset for a given length and return the value as a string.
-   *
    * @param {number} offset The offset to read from.
    * @param {number} length The number of bytes to read.
    * @param {string} [encoding=ascii] The encoding of the string.
@@ -668,7 +625,6 @@ class DataBuffer {
   /**
    * Read from the specified offset for a given length and return the value as a string in a specified encoding, and optionally advance the offsets.
    * Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, utf16-le, utf16bom, utf16-bom
-   *
    * @private
    * @param {number} offset The offset to read from.
    * @param {number|null} length The number of bytes to read, if not defined it is the remaining bytes in the buffer. If NULL a null terminated string will be read.
@@ -814,7 +770,6 @@ class DataBuffer {
 
   /**
    * Writes a single 8 bit byte.
-   *
    * @param {number} data The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {boolean} [advance=true] Flag to increment the offset to the next position.
@@ -829,7 +784,6 @@ class DataBuffer {
 
   /**
    * Writes an unsigned 16 bit value, 2 bytes.
-   *
    * @param {number} data The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {boolean} [advance=true] Flag to increment the offset to the next position.
@@ -838,11 +792,11 @@ class DataBuffer {
   writeUInt16(data, offset = this.offset, advance = true, littleEndian = false) {
     debug('writeUInt16:', { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset] = data & 0xFF;
-      this.buffer[offset + 1] = data >> 8;
+      this.buffer[offset]     =  data & 0xFF;
+      this.buffer[offset + 1] = (data & 0xFF00) >> 8;
     } else {
-      this.buffer[offset] = data >> 8;
-      this.buffer[offset + 1] = data & 0xFF;
+      this.buffer[offset]     = (data & 0xFF00) >> 8;
+      this.buffer[offset + 1] =  data & 0xFF;
     }
     if (advance) {
       this.offset += 2;
@@ -851,7 +805,6 @@ class DataBuffer {
 
   /**
    * Writes an unsigned 24 bit value, 3 bytes.
-   *
    * @param {number} data The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {boolean} [advance=true] Flag to increment the offset to the next position.
@@ -860,13 +813,13 @@ class DataBuffer {
   writeUInt24(data, offset = this.offset, advance = true, littleEndian = false) {
     debug('writeUInt24:', { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset] = data & 0x0000FF;
+      this.buffer[offset]     =  data & 0x0000FF;
       this.buffer[offset + 1] = (data & 0x00FF00) >> 8;
       this.buffer[offset + 2] = (data & 0xFF0000) >> 16;
     } else {
-      this.buffer[offset] = (data & 0xFF0000) >> 16;
+      this.buffer[offset]     = (data & 0xFF0000) >> 16;
       this.buffer[offset + 1] = (data & 0x00FF00) >> 8;
-      this.buffer[offset + 2] = data & 0x0000FF;
+      this.buffer[offset + 2] =  data & 0x0000FF;
     }
     if (advance) {
       this.offset += 3;
@@ -875,7 +828,6 @@ class DataBuffer {
 
   /**
    * Writes an unsigned 32 bit value, 4 bytes.
-   *
    * @param {number} data The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {boolean} [advance=true] Flag to increment the offset to the next position.
@@ -884,15 +836,15 @@ class DataBuffer {
   writeUInt32(data, offset = this.offset, advance = true, littleEndian = false) {
     debug('writeUInt32:', { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset] = data & 0x000000FF;
+      this.buffer[offset]     =  data & 0x000000FF;
       this.buffer[offset + 1] = (data & 0x0000FF00) >> 8;
       this.buffer[offset + 2] = (data & 0x00FF0000) >> 16;
       this.buffer[offset + 3] = (data & 0xFF000000) >> 24;
     } else {
-      this.buffer[offset] = (data & 0xFF000000) >> 24;
+      this.buffer[offset]     = (data & 0xFF000000) >> 24;
       this.buffer[offset + 1] = (data & 0x00FF0000) >> 16;
       this.buffer[offset + 2] = (data & 0x0000FF00) >> 8;
-      this.buffer[offset + 3] = data & 0x000000FF;
+      this.buffer[offset + 3] =  data & 0x000000FF;
     }
     if (advance) {
       this.offset += 4;
@@ -901,7 +853,6 @@ class DataBuffer {
 
   /**
    * Write a series of bytes.
-   *
    * @param {number[]|Int8Array|Int16Array|Int32Array|Uint8Array|Uint16Array|Uint32Array} data The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {boolean} [advance=true] Flag to increment the offset to the next position.
@@ -928,7 +879,6 @@ class DataBuffer {
    * The continuation bytes begin with 10, and the other 6 bits encode bits of the character.
    *
    * UTF-8 conversion interpreted from https://stackoverflow.com/posts/18729931/revisions
-   *
    * @param {string} string The data to write.
    * @param {number} [offset=this.offset] The offset to write the data to.
    * @param {string} [encoding=ascii] The encoding of the string.

@@ -110,9 +110,9 @@ Creates an instance of DataBuffer.
 **Example** *(new DataBuffer(stream))*  
 ```js
 const buffer = new DataBuffer(new Uint8Array([0xFC, 0x08]));
-buffer.readUint8();
+buffer.readUInt8();
 ➜ 0xFC
-buffer.readUint8();
+buffer.readUInt8();
 ➜ 0x08
 ```
 <a name="DataBuffer+writing"></a>

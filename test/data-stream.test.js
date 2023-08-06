@@ -4,7 +4,6 @@ const { DataBuffer, DataBufferList, DataStream } = require('../src');
 
 /**
  * Return a new DataStream.
- *
  * @param  {Array} arrays - Arrays of numbers
  * @returns {DataStream} A new DataStream
  */

@@ -19,7 +19,6 @@
  * S[1]: Sign
  *
  * Value: (-1)^s * 2^(e - 129) * (1.f)
- *
  * @param {Uint8Array} uint8 The data to process to a float48 value.
  * @returns {number} The read value as a number.
  * @see {@link http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real|Turbo Pascal Real}
@@ -53,7 +52,6 @@ const float48 = (uint8) => {
 
 /**
  * Convert the current buffer into an IEEE 80 bit extended float value.
- *
  * @param {Uint8Array} uint8 The raw data to convert to a float80.
  * @returns {number} The read value as a number.
  * @see {@link https://en.wikipedia.org/wiki/Extended_precision|Extended_Precision}

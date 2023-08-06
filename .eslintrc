@@ -2,6 +2,7 @@
   "extends": [
     "airbnb",
     "plugin:ava/recommended",
+    "plugin:import/recommended",
     "plugin:jsdoc/recommended",
     "plugin:node/recommended",
     "plugin:optimize-regex/all",
@@ -11,6 +12,7 @@
   "plugins": [
     "anti-trojan-source",
     "ava",
+    "import",
     "jsdoc",
     "node",
     "optimize-regex",
@@ -19,26 +21,26 @@
     "xss"
   ],
   "env": {
-    "es6": true,
     "browser": true,
     "node": true
   },
   "globals": {
-    "jest": true,
     "expect": true,
-    "test": true,
-    "JSX": true
+    "test": true
   },
   "parserOptions": {
     "sourceType": "module",
-    "ecmaVersion": 2021,
-    "ecmaFeatures": {
-      "jsx": true
-    },
+    "ecmaVersion": 2022,
     "requireConfigFile": false
   },
   "rules": {
     "anti-trojan-source/no-bidi": "error",
+    "ava/no-only-test": 0,
+    "camelcase": 0,
+    "class-methods-use-this": 0,
+    "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
+    "global-require": 0,
+    "import/no-dynamic-require": 0,
     "import/no-extraneous-dependencies": [
       "error", {
         "devDependencies": ["**/*.test.js", "**/test/**/*.js"],
@@ -46,13 +48,8 @@
         "peerDependencies": false
       }
     ],
-    "ava/no-only-test": 0,
-    "camelcase": 0,
-    "class-methods-use-this": 0,
-    "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
-    "global-require": 0,
-    "import/no-dynamic-require": 0,
     "import/no-unresolved": [0, { "commonjs": true }],
+    "jsdoc/no-defaults": 0,
     "max-classes-per-file": 0,
     "max-len": 0,
     "no-bitwise": 0,

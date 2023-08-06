@@ -1,3 +1,17 @@
+## Constants
+
+<dl>
+<dt><a href="#formatTableThemeMySQL">formatTableThemeMySQL</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
+<dd><p>MySQL Style Table Layout</p>
+</dd>
+<dt><a href="#formatTableThemeUnicode">formatTableThemeUnicode</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
+<dd><p>Unicode Table Layout</p>
+</dd>
+<dt><a href="#formatTableThemeMarkdown">formatTableThemeMarkdown</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
+<dd><p>Markdown Table Layout</p>
+</dd>
+</dl>
+
 ## Functions
 
 <dl>
@@ -10,6 +24,12 @@
 <dt><a href="#hexTable">hexTable(input, offset, dimensions, header, format)</a> ⇒ <code>string</code></dt>
 <dd><p>Generate a nicely formatted hex editor style table.</p>
 </dd>
+<dt><a href="#formatTableLine">formatTableLine(columnLengths, type, options)</a> ⇒ <code>string</code></dt>
+<dd><p>Format a table line seperator for a given theme.</p>
+</dd>
+<dt><a href="#formatTable">formatTable(data, options)</a> ⇒ <code>string</code></dt>
+<dd><p>Crate an ASCII table from provided data and configuration.</p>
+</dd>
 </dl>
 
 ## Typedefs
@@ -19,13 +39,35 @@
 <dd><p>Formatting functions for all value types.</p>
 </dd>
 <dt><a href="#HexTableHeader">HexTableHeader</a> : <code>object</code></dt>
-<dd><p>Header layout definitions.</p>
+<dd><p>Header layout definitions.
+GNU poke hexTableHeader.value = [&#39;00&#39;, &#39;11&#39;, &#39;22&#39;, &#39;33&#39;, &#39;44&#39;, &#39;55&#39;, &#39;66&#39;, &#39;77&#39;, &#39;88&#39;, &#39;99&#39;, &#39;aa&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;dd&#39;, &#39;ee&#39;, &#39;ff&#39;]</p>
 </dd>
 <dt><a href="#HexTableDimensions">HexTableDimensions</a> : <code>object</code></dt>
 <dd><p>Header layout definitions.</p>
 </dd>
+<dt><a href="#TableFormatStyle">TableFormatStyle</a> : <code>object</code></dt>
+<dd><p>Table Format Style definitions.</p>
+</dd>
 </dl>
 
+<a name="formatTableThemeMySQL"></a>
+
+## formatTableThemeMySQL : [<code>TableFormatStyle</code>](#TableFormatStyle)
+MySQL Style Table Layout
+
+**Kind**: global constant  
+<a name="formatTableThemeUnicode"></a>
+
+## formatTableThemeUnicode : [<code>TableFormatStyle</code>](#TableFormatStyle)
+Unicode Table Layout
+
+**Kind**: global constant  
+<a name="formatTableThemeMarkdown"></a>
+
+## formatTableThemeMarkdown : [<code>TableFormatStyle</code>](#TableFormatStyle)
+Markdown Table Layout
+
+**Kind**: global constant  
 <a name="formatBytes"></a>
 
 ## formatBytes(input, [decimals], [bytes], [sizes]) ⇒ <code>string</code>
@@ -72,6 +114,35 @@ Generate a nicely formatted hex editor style table.
 | header | [<code>HexTableHeader</code>](#HexTableHeader) |  | The values for building the table header with offset, bytes and ASCII values. |
 | format | [<code>HexTableFormater</code>](#HexTableFormater) |  | The formatting functions for displaying offset, bytes and ASCII values. |
 
+<a name="formatTableLine"></a>
+
+## formatTableLine(columnLengths, type, options) ⇒ <code>string</code>
+Format a table line seperator for a given theme.
+
+**Kind**: global function  
+**Returns**: <code>string</code> - The seperator  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| columnLengths | <code>Array</code> | An array with each columns length |
+| type | <code>string</code> | The type of the separator |
+| options | <code>object</code> | The options |
+| options.theme | [<code>TableFormatStyle</code>](#TableFormatStyle) | The theme to use for formatting. |
+| options.padding | <code>number</code> | The amount of padding to use. |
+
+<a name="formatTable"></a>
+
+## formatTable(data, options) ⇒ <code>string</code>
+Crate an ASCII table from provided data and configuration.
+
+**Kind**: global function  
+**Returns**: <code>string</code> - The ASCII table of data.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| data | <code>Array.&lt;Array.&lt;string&gt;&gt;</code> | The data to add to the table. |
+| options | <code>object</code> | Configuration. |
+
 <a name="HexTableFormater"></a>
 
 ## HexTableFormater : <code>object</code>
@@ -90,6 +161,7 @@ Formatting functions for all value types.
 
 ## HexTableHeader : <code>object</code>
 Header layout definitions.
+GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
 
 **Kind**: global typedef  
 **Properties**
@@ -113,4 +185,28 @@ Header layout definitions.
 | columns | <code>number</code> | The number of columns to show in the byte value section of the table. |
 | grouping | <code>number</code> | The number of bytes to cluster together in the byte value section of the table. |
 | maxRows | <code>number</code> | The maxiumum number of rows to show excluding the header & seperator rows. |
+
+<a name="TableFormatStyle"></a>
+
+## TableFormatStyle : <code>object</code>
+Table Format Style definitions.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| topRow | <code>boolean</code> | If true, show the top frame, if false, hide the top frame. Typically used for full framed styles. |
+| bottomRow | <code>boolean</code> | If true, show the bottom frame, if false, hide the top frame. Typically used for full framed styles. |
+| upperLeft | <code>string</code> | Top Left Character |
+| upperRight | <code>string</code> | Top Right Chcaracter |
+| lowerLeft | <code>string</code> | Bottom Left Character |
+| lowerRight | <code>string</code> | Bottom Right Character |
+| intersection | <code>string</code> | 4 Way Intersection Character |
+| line | <code>string</code> | Horizontal Line Character |
+| wall | <code>string</code> | Vertical Line Character |
+| intersectionTop | <code>string</code> | 2 Way Intersection from the bottom Character |
+| intersectionBottom | <code>string</code> | 2 Way Intersection from the top Character |
+| intersectionLeft | <code>string</code> | 2 Way Intersection from the right Character |
+| intersectionRight | <code>string</code> | 2 Way Intersection from the left Character |
 

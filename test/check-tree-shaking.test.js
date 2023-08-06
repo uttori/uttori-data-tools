@@ -33,8 +33,8 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',
@@ -55,8 +55,8 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',
@@ -78,8 +78,8 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
+  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',

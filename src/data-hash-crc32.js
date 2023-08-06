@@ -38,7 +38,6 @@ const CRC32_TABLE = [
 /**
  * Derive the Cyclic Redundancy Check of a data blob.
  * This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16, and complements the final CRC.
- *
  * @see {@link https://rosettacode.org/wiki/CRC-32|CRC-32}
  * @see {@link https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks|Computation of cyclic redundancy checks}
  * @example <caption>CRC32.of(...)</caption>

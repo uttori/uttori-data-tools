@@ -6,7 +6,6 @@ const DataBufferList = require('./data-buffer-list');
 
 /**
  * Read a DataStream as a stream of bits.
- *
  * @property {DataStream} stream The DataStream to process.
  * @property {number} bitPosition The number of buffers in the list.
  * @example <caption>new DataBitstream(stream)</caption>
@@ -21,7 +20,6 @@ const DataBufferList = require('./data-buffer-list');
 class DataBitstream {
 /**
  * Creates an instance of DataBitstream.
- *
  * @param {DataStream} stream The DataStream to process.
  */
   constructor(stream) {
@@ -34,7 +32,6 @@ class DataBitstream {
 
   /**
    * Creates a new DataBitstream from file data.
-   *
    * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
    * @returns {DataBitstream} The new DataBitstream instance for the provided file data.
    * @static
@@ -49,7 +46,6 @@ class DataBitstream {
 
   /**
    * Creates a new DataBitstream from an array of bytes.
-   *
    * @param {number[]} bytes The data to read as a bitstream.
    * @returns {DataBitstream} The new DataBitstream instance for the provided bytes.
    * @static
@@ -61,7 +57,6 @@ class DataBitstream {
 
   /**
    * Creates a copy of the DataBitstream.
-   *
    * @returns {DataBitstream} The copied DataBufferList.
    */
   copy() {
@@ -73,7 +68,6 @@ class DataBitstream {
 
   /**
    * Returns the current stream offset in bits.
-   *
    * @returns {number} The number of bits read thus far.
    */
   offset() {
@@ -83,7 +77,6 @@ class DataBitstream {
 
   /**
    * Returns if the specified number of bits is avaliable in the stream.
-   *
    * @param {number} bits The number of bits to check for avaliablity.
    * @returns {boolean} If the requested number of bits are avaliable in the stream.
    */
@@ -94,7 +87,6 @@ class DataBitstream {
 
   /**
    * Advance the bit position by the specified number of bits in the stream.
-   *
    * @param {number} bits The number of bits to advance.
    */
   advance(bits) {
@@ -106,7 +98,6 @@ class DataBitstream {
 
   /**
    * Rewind the bit position by the specified number of bits in the stream.
-   *
    * @param {number} bits The number of bits to go back.
    */
   rewind(bits) {
@@ -118,7 +109,6 @@ class DataBitstream {
 
   /**
    * Go to the specified offset in the stream.
-   *
    * @param {number} offset The offset to go to.
    */
   seek(offset) {
@@ -144,7 +134,6 @@ class DataBitstream {
 
   /**
    * Read the specified number of bits.
-   *
    * @param {number} bits The number of bits to be read.
    * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
    * @param {boolean} [advance=true] If true, advance the bit position.
@@ -201,7 +190,6 @@ class DataBitstream {
 
   /**
    * Read the specified number of bits without advancing the bit position.
-   *
    * @param {number} bits The number of bits to be read.
    * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
    * @returns {number} The value read in from the stream.
@@ -216,7 +204,6 @@ class DataBitstream {
    * In computing, the least significant bit (LSB) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd.
    * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
    * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
-   *
    * @param {number} bits The number of bits to be read.
    * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
    * @param {boolean} [advance=true] If true, advance the bit position.
@@ -275,7 +262,6 @@ class DataBitstream {
    * In computing, the least significant bit (LSB) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd.
    * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
    * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
-   *
    * @param {number} bits The number of bits to be read.
    * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
    * @returns {number} The value read in from the stream.
