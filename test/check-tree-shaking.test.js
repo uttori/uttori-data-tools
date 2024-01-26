@@ -1,10 +1,10 @@
-const path = require('path');
-const test = require('ava');
+import path from 'path';
+import test from 'ava';
 
 // https://rollupjs.org/guide/en/#javascript-api
-const rollup = require('rollup');
-const commonjs = require('@rollup/plugin-commonjs');
-const replace = require('@rollup/plugin-replace');
+import { rollup } from 'rollup';
+import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace';
 
 // eslint-disable-next-line no-console
 const onwarn = console.warn;
@@ -23,8 +23,8 @@ const plugins = [
 // });
 
 test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
-  const bundle = await rollup.rollup({
-    input: './test/tree-shaking/3-of-3.mjs',
+  const bundle = await rollup({
+    input: './test/tree-shaking/3-of-3.js',
     onwarn,
     plugins,
   });
@@ -35,18 +35,17 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
 
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
-    'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
-    '3-of-3.mjs',
+    '3-of-3.js',
   ]);
 });
 
 test('Tree Shaking: { DataBitstream }', async (t) => {
-  const bundle = await rollup.rollup({
-    input: './test/tree-shaking/4-of-1.mjs',
+  const bundle = await rollup({
+    input: './test/tree-shaking/4-of-1.js',
     onwarn,
     plugins,
   });
@@ -57,19 +56,18 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
 
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
-    'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
     'data-bitstream.js',
-    '4-of-1.mjs',
+    '4-of-1.js',
   ]);
 });
 
 test('Tree Shaking: { CRC32 }', async (t) => {
-  const bundle = await rollup.rollup({
-    input: './test/tree-shaking/3-of-2.mjs',
+  const bundle = await rollup({
+    input: './test/tree-shaking/3-of-2.js',
     onwarn,
     plugins,
   });
@@ -80,10 +78,9 @@ test('Tree Shaking: { CRC32 }', async (t) => {
 
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
-    'underflow-error.js',
     'data-helpers.js',
     'data-buffer.js',
     'data-hash-crc32.js',
-    '3-of-2.mjs',
+    '3-of-2.js',
   ]);
 });

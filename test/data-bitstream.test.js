@@ -1,5 +1,5 @@
-const test = require('ava');
-const { DataBitstream } = require('../src');
+import test from 'ava';
+import { DataBitstream } from '../src/index.js';
 
 const makeDataBitstream = (bytes) => DataBitstream.fromBytes(bytes);
 

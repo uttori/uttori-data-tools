@@ -1,9 +1,12 @@
 /* eslint-disable no-multi-spaces */
-/** @type {Function} */
-let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBuffer'); } catch {} }
 
-const UnderflowError = require('./underflow-error');
-const { float48, float80 } = require('./data-helpers');
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
+
+
+import UnderflowError from './underflow-error.js';
+import { float48, float80 } from './data-helpers.js';
 
 /**
  * Helper class for manipulating binary data.
@@ -113,7 +116,6 @@ class DataBuffer {
     // debug('compare:', input.length, offset);
     const buffer = new DataBuffer(input);
     const { length } = buffer;
-    /* istanbul ignore next */
     if (!length) {
       debug('compare: no input provided');
       return false;
@@ -959,4 +961,4 @@ class DataBuffer {
   }
 }
 
-module.exports = DataBuffer;
+export default DataBuffer;

@@ -1,6 +1,8 @@
-/** @type {Function} */
-let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBufferList'); } catch {} }
-const DataBuffer = require('./data-buffer');
+import DataBuffer from './data-buffer.js';
+
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBufferList'); } catch {} }
 
 /**
  * A linked list of DataBuffers.
@@ -149,4 +151,4 @@ class DataBufferList {
   }
 }
 
-module.exports = DataBufferList;
+export default DataBufferList;

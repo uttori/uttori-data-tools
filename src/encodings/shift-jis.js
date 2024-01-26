@@ -1,4 +1,4 @@
-const DataBuffer = require('../data-buffer');
+import DataBuffer from '../data-buffer.js';
 
 /**
  * @typedef UttoriCharacterEncoding
@@ -17,7 +17,7 @@ const DataBuffer = require('../data-buffer');
  * @see {@link https://en.wikipedia.org/wiki/Shift_JIS|Shift-JIS}
  * @type {Object<number,UttoriCharacterEncoding>}
  */
-const characterEncoding = {
+export const characterEncoding = {
   32: {
     shiftjs: 32,
     unicode: 32,
@@ -49286,7 +49286,7 @@ const characterEncoding = {
  * @param {DataBuffer} data The data to convert to text.
  * @returns {string} The Shift-JIS data converted to Unicode text.
  */
-const parse = (data) => {
+export const parse = (data) => {
   let output = '';
   while (data.remainingBytes()) {
     let value = data.peekUInt8(data.offset);
@@ -49315,7 +49315,7 @@ const parse = (data) => {
   return output;
 };
 
-module.exports = {
+export default {
   characterEncoding,
   parse,
 };

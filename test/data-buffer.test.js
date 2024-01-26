@@ -1,6 +1,5 @@
-// @ts-nocheck
-const test = require('ava');
-const { DataBuffer } = require('../src');
+import test from 'ava';
+import { DataBuffer } from '../src/index.js';
 
 test('create from ArrayBuffer', (t) => {
   const buf = new DataBuffer(new ArrayBuffer(9));

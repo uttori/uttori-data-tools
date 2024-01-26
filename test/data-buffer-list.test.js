@@ -1,5 +1,5 @@
-const test = require('ava');
-const { DataBuffer, DataBufferList } = require('../src');
+import test from 'ava';
+import { DataBuffer, DataBufferList } from '../src/index.js';
 
 test('constructor', (t) => {
   const list = new DataBufferList([DataBuffer.allocate(3), DataBuffer.allocate(3)]);

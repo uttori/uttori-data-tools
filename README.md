@@ -29,7 +29,7 @@ npm install --save @uttori/data-tools
 ## Examples
 
 ```js
-const { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } = require('uttori-data-tools');
+import { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } from 'uttori-data-tools';
 
 const CRC32 = require('uttori-data-tools');
 CRC32.of('The quick brown fox jumps over the lazy dog');
@@ -50,8 +50,8 @@ list.append(buffer);
 To enable tree-shaking with [RollUp](https://rollupjs.org/), you will need to at the very least use `commonjs()` of [@rollup/plugin-commonjs](https://www.npmjs.com/package/@rollup/plugin-commonjs) and will likely want to use `replace()` of [@rollup/plugin-replace](https://www.npmjs.com/package/@rollup/plugin-replace) like the following example to get a clean output:
 
 ```js
-rollup.rollup({
-  input: './you-entry-file.mjs',
+rollup({
+  input: './you-entry-file.js',
   plugins: [
   replace({
     'process.env.UTTORI_DATA_DEBUG': 'false',

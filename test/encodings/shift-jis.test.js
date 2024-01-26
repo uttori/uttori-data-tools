@@ -1,8 +1,8 @@
 // @ts-nocheck
-const fs = require('fs');
-const test = require('ava');
-const { DataBuffer } = require('../../src');
-const { parse } = require('../../src/encodings/shift-jis');
+import fs from 'fs';
+import test from 'ava';
+import { DataBuffer } from '../../src/index.js';
+import { parse } from '../../src/encodings/shift-jis.js';
 
 test('can decode Shift-JIS to Unicode', (t) => {
   const file = fs.readFileSync('./test/data/shift-jis.txt');

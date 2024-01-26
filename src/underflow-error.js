@@ -23,4 +23,4 @@ class UnderflowError extends Error {
   }
 }
 
-module.exports = UnderflowError;
+export default UnderflowError;

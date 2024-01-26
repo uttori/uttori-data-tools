@@ -1,9 +1,11 @@
-/** @type {Function} */
-let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataStream'); } catch {} }
-const DataBuffer = require('./data-buffer');
-const DataBufferList = require('./data-buffer-list');
-const UnderflowError = require('./underflow-error');
-const { float48, float80 } = require('./data-helpers');
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataStream'); } catch {} }
+
+import DataBuffer from './data-buffer.js';
+import DataBufferList from './data-buffer-list.js';
+import UnderflowError from './underflow-error.js';
+import { float48, float80 } from './data-helpers.js';
 
 /**
  * Helpter class to ease working with binary files.
@@ -836,4 +838,4 @@ class DataStream {
   }
 }
 
-module.exports = DataStream;
+export default DataStream;

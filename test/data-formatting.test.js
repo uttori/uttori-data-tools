@@ -1,5 +1,5 @@
-const test = require('ava');
-const {
+import test from 'ava';
+import {
   DataStream,
   formatBytes,
   hexTable,
@@ -7,7 +7,7 @@ const {
   formatTableThemeMySQL,
   formatTableThemeUnicode,
   formatTableThemeMarkdown,
-} = require('../src');
+} from '../src/index.js';
 
 test('formatBytes', (t) => {
   t.is(formatBytes(0), '0 Bytes');

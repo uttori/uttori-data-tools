@@ -1,6 +1,6 @@
 /* eslint-disable ramda/prefer-ramda-boolean */
-const test = require('ava');
-const { DataBuffer, DataBufferList, DataStream } = require('../src');
+import test from 'ava';
+import { DataBuffer, DataBufferList, DataStream } from '../src/index.js';
 
 /**
  * Return a new DataStream.

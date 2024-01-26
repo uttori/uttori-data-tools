@@ -1,8 +1,10 @@
-/** @type {Function} */
-let debug = () => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataBitstream'); } catch {} }
-const DataStream = require('./data-stream');
-const DataBuffer = require('./data-buffer');
-const DataBufferList = require('./data-buffer-list');
+import DataStream from './data-stream.js';
+import DataBuffer from './data-buffer.js';
+import DataBufferList from './data-buffer-list.js';
+
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBitstream'); } catch {} }
 
 /**
  * Read a DataStream as a stream of bits.
@@ -273,4 +275,4 @@ class DataBitstream {
   }
 }
 
-module.exports = DataBitstream;
+export default DataBitstream;

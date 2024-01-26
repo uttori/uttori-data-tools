@@ -1,7 +1,9 @@
-const DataBuffer = require('./data-buffer');
-const DataStream = require('./data-stream');
+import DataBuffer from './data-buffer.js';
+import DataStream from './data-stream.js';
 
-let debug = (_) => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DEBUG) { try { debug = require('debug')('DataFormatting'); } catch {} }
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataFormatting'); } catch {} }
 
 /**
  * Format an amount of bytes to a human friendly string.
@@ -12,7 +14,7 @@ let debug = (_) => {}; /* istanbul ignore next */ if (process.env.UTTORI_DATA_DE
  * @returns {string} The human friendly representation of the number of bytes.
  * @see {@link https://en.wikipedia.org/wiki/Byte#Multiple-byte_units|Multiple-byte units}
  */
-const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']) => {
+export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']) => {
   if (input === 0) {
     return `0 ${sizes[0]}`;
   }
@@ -27,7 +29,7 @@ const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 
  * @param {DataBuffer|DataStream} _data The data being processed.
  * @returns {any[]} Returns an array with the Character to represent this value and any flags for the function.
  */
-const formatASCII = (value, asciiFlags, _data) => {
+export const formatASCII = (value, asciiFlags, _data) => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
   if (value < 0x20) {
     return [' ', asciiFlags];
@@ -46,7 +48,7 @@ const formatASCII = (value, asciiFlags, _data) => {
  * @property {Function} value - Byte value formating function.
  * @property {Function} ascii - ASCII text formatting function.
  */
-const hexTableFormaters = {
+export const hexTableFormaters = {
   offset: (value) => value.toString(16).padStart(8, '0'),
   value: (value) => value.toString(16).padStart(2, '0').toUpperCase(),
   ascii: formatASCII,
@@ -60,7 +62,7 @@ const hexTableFormaters = {
  * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
  * @property {string} ascii - ASCII text presentation.
  */
-const hexTableHeader = {
+export const hexTableHeader = {
   offset: '76543210',
   value: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0A', '0B', '0C', '0D', '0E', '0F'],
   ascii: '0123456789ABCDEF',
@@ -73,7 +75,7 @@ const hexTableHeader = {
  * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
  * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
  */
-const hexTableDimensions = {
+export const hexTableDimensions = {
   columns: 16,
   grouping: 4,
   maxRows: 40,
@@ -88,7 +90,7 @@ const hexTableDimensions = {
  * @param {HexTableFormater} format The formatting functions for displaying offset, bytes and ASCII values.
  * @returns {string} The hex table ASCII.
  */
-const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
+export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
   // Do not manipulate the input data.
   const data = input.copy();
   // Build the header, offset, then bytes with grouping & the dashed line seperator
@@ -171,7 +173,7 @@ const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = h
  * @param {number} options.padding The amount of padding to use.
  * @returns {string} The seperator
  */
-const formatTableLine = (columnLengths, type, options) => {
+export const formatTableLine = (columnLengths, type, options) => {
   // Separator for top bottom mid
   let separator = '';
   const { theme } = options;
@@ -253,7 +255,7 @@ const formatTableLine = (columnLengths, type, options) => {
  * MySQL Style Table Layout
  * @type {TableFormatStyle}
  */
-const formatTableThemeMySQL = {
+export const formatTableThemeMySQL = {
   topRow: true,
   bottomRow: true,
   upperLeft: '+',
@@ -273,7 +275,7 @@ const formatTableThemeMySQL = {
  * Unicode Table Layout
  * @type {TableFormatStyle}
  */
-const formatTableThemeUnicode = {
+export const formatTableThemeUnicode = {
   topRow: true,
   bottomRow: true,
   upperLeft: '╔',
@@ -293,7 +295,7 @@ const formatTableThemeUnicode = {
  * Markdown Table Layout
  * @type {TableFormatStyle}
  */
-const formatTableThemeMarkdown = {
+export const formatTableThemeMarkdown = {
   topRow: false,
   bottomRow: false,
   upperLeft: '|',
@@ -326,7 +328,7 @@ const formatTableThemeMarkdown = {
  * @param {object} options Configuration.
  * @returns {string} The ASCII table of data.
  */
-const formatTable = (data, options) => {
+export const formatTable = (data, options) => {
   // Use JSON parse & stringify to get a deep copy of the parameter array
   data = JSON.parse(JSON.stringify(data));
   options = {
@@ -338,7 +340,7 @@ const formatTable = (data, options) => {
 
   // Ensure all the rows have the same number of columns.
   const allSameLength = data.every(({ length }) => length === data[0].length);
-  /* istanbul ignore next */
+  /* c8 ignore next 3 */
   if (!allSameLength) {
     debug('Uneven number of columns');
   }
@@ -416,7 +418,7 @@ const formatTable = (data, options) => {
   return outputString;
 };
 
-module.exports = {
+export default {
   formatBytes,
   formatASCII,
   hexTable,

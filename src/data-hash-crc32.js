@@ -1,6 +1,6 @@
-const DataBuffer = require('./data-buffer');
+import DataBuffer from './data-buffer.js';
 
-const CRC32_TABLE = [
+export const CRC32_TABLE = [
   0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
   0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
   0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -47,7 +47,7 @@ const CRC32_TABLE = [
  * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data to process.
  * @returns {string} The 8 character CRC32 value.
  */
-const calculate = (data) => {
+export const calculate = (data) => {
   const buffer = new DataBuffer(data);
   let crc = -1;
   for (const byte of buffer.data) {
@@ -56,6 +56,6 @@ const calculate = (data) => {
   return (~crc >>> 0).toString(16).toUpperCase();
 };
 
-module.exports = {
+export default {
   of: calculate,
 };
