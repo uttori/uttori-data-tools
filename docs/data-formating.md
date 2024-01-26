@@ -29,7 +29,7 @@
 <dd><p>Markdown Table Layout</p>
 </dd>
 <dt><a href="#formatTable">formatTable</a> ⇒ <code>string</code></dt>
-<dd><p>Crate an ASCII table from provided data and configuration.</p>
+<dd><p>Create an ASCII table from provided data and configuration.</p>
 </dd>
 </dl>
 
@@ -150,7 +150,7 @@ Markdown Table Layout
 <a name="formatTable"></a>
 
 ## formatTable ⇒ <code>string</code>
-Crate an ASCII table from provided data and configuration.
+Create an ASCII table from provided data and configuration.
 
 **Kind**: global constant  
 **Returns**: <code>string</code> - The ASCII table of data.  

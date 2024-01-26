@@ -321,19 +321,14 @@ export const formatTableThemeMarkdown = {
   intersectionRight: '|',
 };
 
-// Prior Arts:
-// https://github.com/akisman/js-ascii-table
-// https://github.com/AllMightySauron/ascii-table3
-// https://github.com/sorensen/ascii-table/blob/master/ascii-table.js
 // TODO: Emoji length is incorrect, for example:
 // TODO: [...new Intl.Segmenter().segment('👩‍👩‍👧‍👦')].length === 1
 // TODO: '👩‍👩‍👧‍👦'.length === 11
 // TODO: From https://stackoverflow.com/questions/54369513/how-to-count-the-correct-length-of-a-string-with-emojis-in-javascript
 // TODO: Add a flag to check for multibyte emoji
 // TODO: See https://github.com/orling/grapheme-splitter for an indepth explination
-
 /**
- * Crate an ASCII table from provided data and configuration.
+ * Create an ASCII table from provided data and configuration.
  * @param {string[][]} data The data to add to the table.
  * @param {object} options Configuration.
  * @param {string[]} options.align The alignment of each column, left or right.
