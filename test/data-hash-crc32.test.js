@@ -1,5 +1,5 @@
-const test = require('ava');
-const { CRC32 } = require('../src');
+import test from 'ava';
+import { CRC32 } from '../src/index.js';
 
 test('CRC32.of(data)', (t) => {
   let input;

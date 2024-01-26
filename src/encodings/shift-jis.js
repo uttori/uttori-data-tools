@@ -1,4 +1,4 @@
-const DataBuffer = require('../data-buffer');
+import DataBuffer from '../data-buffer.js';
 
 /**
  * @typedef UttoriCharacterEncoding
@@ -14,11 +14,10 @@ const DataBuffer = require('../data-buffer');
  * Shift JIS (Shift Japanese Industrial Standards, also SJIS, MIME name Shift_JIS, known as PCK in Solaris contexts) is a character encoding for the Japanese language, originally developed by a Japanese company called ASCII Corporation in conjunction with Microsoft and standardized as JIS X 0208 Appendix 1.
  * Shift-JIS is also called MS Kanji, or DOS Kanji, and is a Microsoft standard (codepage 932).
  * Shift-JIS is an 8-bit encoding with 1 to 2 bytes per character.
- *
  * @see {@link https://en.wikipedia.org/wiki/Shift_JIS|Shift-JIS}
- * @type {Object<number,UttoriCharacterEncoding>}
+ * @type {Record<number, UttoriCharacterEncoding>}
  */
-const characterEncoding = {
+export const characterEncoding = {
   32: {
     shiftjs: 32,
     unicode: 32,
@@ -49284,11 +49283,10 @@ const characterEncoding = {
  * Convert Shift-JIS data to Unicode text.
  *
  * Does not check for out of bounds characters and will use the `String.fromCharCode` value.
- *
  * @param {DataBuffer} data The data to convert to text.
  * @returns {string} The Shift-JIS data converted to Unicode text.
  */
-const parse = (data) => {
+export const parse = (data) => {
   let output = '';
   while (data.remainingBytes()) {
     let value = data.peekUInt8(data.offset);
@@ -49317,7 +49315,7 @@ const parse = (data) => {
   return output;
 };
 
-module.exports = {
+export default {
   characterEncoding,
   parse,
 };

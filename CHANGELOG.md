@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0](https://github.com/uttori/uttori-data-tools/compare/v2.4.0...v3.0.0) - 2024-01-25
+
+- 💥 BREAKING CHANGES!
+- 💥 ESM only, no more CommonJS support
+- 💥 Node v20 or higher required
+- 🧰 Add `formatTable` to format a 2 dimentional array as an ASCII table
+- 🧹 Documentation & Types clean up
+- 🎁 Update dev dependencies
+- 🎁 Update tests and fix warnings
+
 ## [2.4.0](https://github.com/uttori/uttori-data-tools/compare/v2.3.0...v2.4.0) - 2022-05-30
 
 - 🎁 Update dev dependencies

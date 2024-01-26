@@ -1,7 +1,7 @@
-## Functions
+## Constants
 
 <dl>
-<dt><a href="#float48">float48(uint8)</a> ⇒ <code>number</code></dt>
+<dt><a href="#float48">float48</a> ⇒ <code>number</code></dt>
 <dd><p>Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.</p>
 <p>While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
@@ -17,14 +17,14 @@ M[39]: Mantissa
 S[1]: Sign</p>
 <p>Value: (-1)^s * 2^(e - 129) * (1.f)</p>
 </dd>
-<dt><a href="#float80">float80(uint8)</a> ⇒ <code>number</code></dt>
+<dt><a href="#float80">float80</a> ⇒ <code>number</code></dt>
 <dd><p>Convert the current buffer into an IEEE 80 bit extended float value.</p>
 </dd>
 </dl>
 
 <a name="float48"></a>
 
-## float48(uint8) ⇒ <code>number</code>
+## float48 ⇒ <code>number</code>
 Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.
 
@@ -46,7 +46,7 @@ S[1]: Sign
 
 Value: (-1)^s * 2^(e - 129) * (1.f)
 
-**Kind**: global function  
+**Kind**: global constant  
 **Returns**: <code>number</code> - The read value as a number.  
 **See**: [Turbo Pascal Real](http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real)  
 
@@ -56,10 +56,10 @@ Value: (-1)^s * 2^(e - 129) * (1.f)
 
 <a name="float80"></a>
 
-## float80(uint8) ⇒ <code>number</code>
+## float80 ⇒ <code>number</code>
 Convert the current buffer into an IEEE 80 bit extended float value.
 
-**Kind**: global function  
+**Kind**: global constant  
 **Returns**: <code>number</code> - The read value as a number.  
 **See**: [Extended_Precision](https://en.wikipedia.org/wiki/Extended_precision)  
 

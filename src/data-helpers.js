@@ -19,12 +19,11 @@
  * S[1]: Sign
  *
  * Value: (-1)^s * 2^(e - 129) * (1.f)
- *
  * @param {Uint8Array} uint8 The data to process to a float48 value.
  * @returns {number} The read value as a number.
  * @see {@link http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real|Turbo Pascal Real}
  */
-const float48 = (uint8) => {
+export const float48 = (uint8) => {
   let mantissa = 0;
 
   // Bias is 129, which is 0x81
@@ -53,12 +52,11 @@ const float48 = (uint8) => {
 
 /**
  * Convert the current buffer into an IEEE 80 bit extended float value.
- *
  * @param {Uint8Array} uint8 The raw data to convert to a float80.
  * @returns {number} The read value as a number.
  * @see {@link https://en.wikipedia.org/wiki/Extended_precision|Extended_Precision}
  */
-const float80 = (uint8) => {
+export const float80 = (uint8) => {
   const uint32 = new Uint32Array(uint8.buffer, uint8.byteOffset, uint8.byteLength / 4);
   const [high, low] = [...uint32];
   const a0 = uint8[9];
@@ -91,7 +89,7 @@ const float80 = (uint8) => {
   return sign * out;
 };
 
-module.exports = {
+export default {
   float48,
   float80,
 };

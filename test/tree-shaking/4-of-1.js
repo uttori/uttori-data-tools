@@ -1,5 +1,4 @@
-/* eslint-disable import/extensions */
-import { DataBitstream } from '../../esm/index.js';
+import { DataBitstream } from '../../src/index.js';
 
 const main = () => {
   const dbs = new DataBitstream();

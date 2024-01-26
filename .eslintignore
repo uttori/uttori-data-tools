@@ -1,3 +1,6 @@
 .nyc_output
 coverage
-types
+site/themes/*
+convert
+node_modules
+dist/*

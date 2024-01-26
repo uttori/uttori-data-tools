@@ -1,7 +1,6 @@
 [![view on npm](https://img.shields.io/npm/v/@uttori/data-tools.svg)](https://www.npmjs.com/package/@uttori/data-tools)
 [![npm module downloads](https://img.shields.io/npm/dt/@uttori/data-tools)](https://www.npmjs.com/package/@uttori/data-tools)
 [![Build Status](https://travis-ci.com/uttori/uttori-data-tools.svg?branch=master)](https://travis-ci.com/uttori/uttori-data-tools)
-[![Dependency Status](https://david-dm.org/uttori/uttori-data-tools.svg)](https://david-dm.org/uttori/uttori-data-tools)
 [![Coverage Status](https://coveralls.io/repos/uttori/uttori-data-tools/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-data-tools?branch=master)
 [![Tree-Shaking Support](https://badgen.net/bundlephobia/tree-shaking/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
 [![Dependency Count](https://badgen.net/bundlephobia/dependency-count/@uttori/data-tools)](https://bundlephobia.com/result?p=@uttori/data-tools)
@@ -29,9 +28,8 @@ npm install --save @uttori/data-tools
 ## Examples
 
 ```js
-const { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } = require('uttori-data-tools');
+import { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } from 'uttori-data-tools';
 
-const CRC32 = require('uttori-data-tools');
 CRC32.of('The quick brown fox jumps over the lazy dog');
 ➜ '414FA339'
 
@@ -47,16 +45,15 @@ list.append(buffer);
 
 ## Tree Shaking with ESM Modules
 
-To enable tree-shaking with [RollUp](https://rollupjs.org/), you will need to at the very least use `commonjs()` of [@rollup/plugin-commonjs](https://www.npmjs.com/package/@rollup/plugin-commonjs) and will likely want to use `replace()` of [@rollup/plugin-replace](https://www.npmjs.com/package/@rollup/plugin-replace) like the following example to get a clean output:
+To enable tree-shaking with [RollUp](https://rollupjs.org/), you will likely want to use `replace()` of [@rollup/plugin-replace](https://www.npmjs.com/package/@rollup/plugin-replace) like the following example to get a clean output:
 
 ```js
-rollup.rollup({
-  input: './you-entry-file.mjs',
+rollup({
+  input: './you-entry-file.js',
   plugins: [
-  replace({
-    'process.env.UTTORI_DATA_DEBUG': 'false',
-  }),
-  commonjs(),
+    replace({
+      'process.env.UTTORI_DATA_DEBUG': 'false',
+    }),
   ],
 });
 ```

@@ -1,6 +1,5 @@
 {
   "include": [
-    "node_modules/@uttori/**/src/*",
     "src/**/*"
   ],
   "exclude": [
@@ -9,20 +8,27 @@
   ],
   "compilerOptions": {
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "checkJs": true,
     "declaration": true,
     "downlevelIteration": true,
     "emitDeclarationOnly": true,
     "extendedDiagnostics": true,
-    "module": "nodenext",
-    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "outDir": "dist",
     "noEmit": false,
-    "outFile": "types/index.d.ts",
-    "removeComments": true,
     "sourceMap": true,
     "strict": false,
     "target": "esnext",
-    "resolveJsonModule": true,
-    "skipLibCheck": true
+    "removeComments": false,
+    "skipLibCheck": true,
+    "declarationMap": true
   }
 }

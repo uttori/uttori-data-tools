@@ -1,6 +1,11 @@
-const test = require('ava');
-const { DataBitstream } = require('../src');
+import test from 'ava';
+import { DataBitstream } from '../src/index.js';
 
+/**
+ * Creates a DataBitstream from an array of bytes.
+ * @param {number[]} bytes The bytes to create the DataBitstream from.
+ * @returns {DataBitstream} The created DataBitstream.
+ */
 const makeDataBitstream = (bytes) => DataBitstream.fromBytes(bytes);
 
 const tooLargeError = 'Too Large: 128 bits';

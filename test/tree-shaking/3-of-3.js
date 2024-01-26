@@ -1,5 +1,4 @@
-/* eslint-disable import/extensions */
-import { DataBuffer, DataBufferList, DataStream } from '../../esm/index.js';
+import { DataBuffer, DataBufferList, DataStream } from '../../src/index.js';
 
 const main = () => {
   const data_buffer = new DataBuffer();

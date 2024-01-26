@@ -17,100 +17,101 @@
     "parsing"
   ],
   "engines": {
-    "node": ">= 14"
+    "node": ">= 20"
   },
   "optionalDependencies": {
     "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.18.2",
-    "@rollup/plugin-commonjs": "^22.0.0",
-    "@rollup/plugin-replace": "^4.0.0",
-    "@types/node": "^17.0.36",
-    "@typescript-eslint/parser": "^5.27.0",
-    "ava": "^4.2.0",
-    "eslint": "^8.16.0",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20.11.6",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "ava": "^6.1.0",
+    "c8": "^9.1.0",
+    "eslint": "^8.56.0",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-plugin-anti-trojan-source": "^1.1.0",
-    "eslint-plugin-ava": "^13.2.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jsdoc": "^39.3.2",
-    "eslint-plugin-jsx-a11y": "^6.5.1",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-anti-trojan-source": "^1.1.1",
+    "eslint-plugin-ava": "^14.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^48.0.4",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-no-inferred-method-name": "^2.0.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
-    "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.30.0",
-    "eslint-plugin-react-hooks": "^4.5.0",
-    "eslint-plugin-security": "^1.5.0",
-    "eslint-plugin-xss": "^0.1.11",
-    "jsdoc": "^3.6.10",
-    "jsdoc-to-markdown": "^7.1.1",
-    "nyc": "^15.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-security": "^2.1.0",
+    "eslint-plugin-sonarjs": "^0.23.0",
+    "eslint-plugin-xss": "^0.1.12",
+    "jsdoc": "^4.0.2",
+    "jsdoc-to-markdown": "^8.0.0",
+    "jsdoc-tsimport-plugin": "^1.0.5",
     "pre-commit": "^1.2.2",
-    "release-it": "^15.0.0",
-    "rollup": "^2.75.3",
-    "sinon": "^14.0.0",
-    "typescript": "^4.7.2",
-    "uttori-utilities": "^3.0.0"
+    "release-it": "^17.0.3",
+    "rollup": "^3.27.2",
+    "sinon": "^17.0.1",
+    "typescript": "^5.3.3"
   },
   "files": [
-    "esm/*",
-    "src/*",
-    "types/*"
+    "dist/*",
+    "src/*"
   ],
-  "main": "./src/index.js",
-  "module": "./esm/index.js",
-  "types": "./types/index.d.ts",
-  "typings": "./types/index.d.ts",
+  "module": "src/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
-      "require": "./src/index.js",
-      "import": "./esm/index.js"
+      "import": "./src/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./data-bitstream": {
-      "require": "./src/data-bitstream.js"
+      "import": "./src/data-bitstream.js",
+      "types": "./dist/data-bitstream.d.ts"
     },
     "./data-buffer-list": {
-      "require": "./src/data-buffer-list.js"
+      "import": "./src/data-buffer-list.js",
+      "types": "./dist/data-buffer-list.d.ts"
     },
     "./data-buffer": {
-      "require": "./src/data-buffer.js"
+      "import": "./src/data-buffer.js",
+      "types": "./dist/data-buffer.d.ts"
     },
     "./data-formating": {
-      "require": "./src/data-formating.js"
+      "import": "./src/data-formating.js",
+      "types": "./dist/data-formating.d.ts"
     },
     "./data-hash-crc32": {
-      "require": "./src/data-hash-crc32.js"
+      "import": "./src/data-hash-crc32.js",
+      "types": "./dist/data-hash-crc32.d.ts"
     },
     "./data-helpers": {
-      "require": "./src/data-helpers.js"
+      "import": "./src/data-helpers.js",
+      "types": "./dist/data-helpers.d.ts"
     },
     "./data-stream": {
-      "require": "./src/data-stream.js"
+      "import": "./src/data-stream.js",
+      "types": "./dist/data-stream.d.ts"
     },
     "./underflow-error": {
-      "require": "./src/underflow-error.js"
-    },
-    "./encodings/shift-jis": {
-      "require": "./src/encodings/shift-jis"
+      "import": "./src/underflow-error.js",
+      "types": "./dist/underflow-error.d.ts"
     }
   },
   "ava": {
     "files": [
       "test/**/*.test.js"
     ],
-    "ignoredByWatcher": [
-      "!src/**/*.js"
-    ],
-    "concurrency": 4,
+    "concurrency": 10,
     "failFast": false,
     "tap": false,
     "verbose": true
   },
-  "nyc": {
-    "cache": true,
-    "all": true,
+  "c8": {
+    "clean": true,
+    "per-file": true,
     "check-coverage": false,
     "include": [
       "src/**/*.js"
@@ -123,13 +124,12 @@
     }
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --private --example-lang js src/data-formating.js > docs/data-formating.md; jsdoc2md --private --example-lang js src/encodings/shift-jis.js > docs/encodings-shift-jis.md ",
+    "docs": "jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-formating.js > docs/data-formating.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/encodings/shift-jis.js > docs/encodings-shift-jis.md",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
-    "make-types": "rm types/index.d.ts && tsc --project .tsconfig.json",
+    "make-types": "tsc --module nodenext --project ./tsconfig.json",
     "release": "release-it",
-    "report": "nyc report --reporter=html",
-    "test": "NODE_ENV=test nyc ava",
+    "test": "NODE_ENV=test c8 ava",
     "test-debug": "UTTORI_DATA_DEBUG=true DEBUG=* NODE_ENV=test ava --serial --concurrency=1",
     "validate": "npm ls"
   },
