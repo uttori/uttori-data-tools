@@ -1,5 +1,5 @@
 export const CRC32_TABLE: number[];
-export function calculate(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): string;
+export function calculate(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): string;
 declare namespace _default {
     export { calculate as of };
 }

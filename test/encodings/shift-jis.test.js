@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'fs';
 import test from 'ava';
 import { DataBuffer } from '../../src/index.js';

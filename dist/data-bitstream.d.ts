@@ -15,11 +15,11 @@ export default DataBitstream;
 declare class DataBitstream {
     /**
      * Creates a new DataBitstream from file data.
-     * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
      * @returns {DataBitstream} The new DataBitstream instance for the provided file data.
      * @static
      */
-    static fromData(data: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
+    static fromData(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
     /**
      * Creates a new DataBitstream from an array of bytes.
      * @param {number[]} bytes The data to read as a bitstream.

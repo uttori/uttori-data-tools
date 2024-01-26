@@ -1,11 +1,11 @@
-let debug = (..._) => {};
-/* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataStream'); } catch {} }
-
 import DataBuffer from './data-buffer.js';
 import DataBufferList from './data-buffer-list.js';
 import UnderflowError from './underflow-error.js';
 import { float48, float80 } from './data-helpers.js';
+
+let debug = (..._) => {};
+/* c8 ignore next */
+if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataStream'); } catch {} }
 
 /**
  * Helpter class to ease working with binary files.
@@ -269,7 +269,7 @@ class DataStream {
 
   /**
    * Read from the current offset and return the value.
-   * @returns {*} The UInt8 value at the current offset.
+   * @returns {number} The UInt8 value at the current offset.
    * @throws {UnderflowError} Insufficient Bytes in the stream.
    */
   readUInt8() {
@@ -293,7 +293,7 @@ class DataStream {
   /**
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
-   * @returns {*} The UInt8 value at the current offset.
+   * @returns {number} The UInt8 value at the current offset.
    * @throws {UnderflowError} Insufficient Bytes in the stream.
    */
   peekUInt8(offset = 0) {
@@ -331,9 +331,8 @@ class DataStream {
         this.uint8[i] = this.readUInt8();
       }
     }
-    const output = this.uint8.slice(0, bytes);
     // debug('read =', output.toString('hex'));
-    return output;
+    return this.uint8.slice(0, bytes);
   }
 
   /**
@@ -341,7 +340,7 @@ class DataStream {
    * @param {number} bytes The number of bytes to read.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt8 value at the current offset.
+   * @returns {Uint8Array} The UInt8 value at the current offset.
    */
   peek(bytes, offset = 0, littleEndian = false) {
     // debug('peek:', bytes, offset, littleEndian);
@@ -354,9 +353,8 @@ class DataStream {
         this.uint8[bytes - i - 1] = this.peekUInt8(offset + i);
       }
     }
-    const output = this.uint8.slice(0, bytes);
     // debug('peek =', output.toString('hex'));
-    return output;
+    return this.uint8.slice(0, bytes);
   }
 
   /**
@@ -382,7 +380,7 @@ class DataStream {
 
   /**
    * Read from the current offset and return the value.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   readInt8() {
     this.read(1);
@@ -392,7 +390,7 @@ class DataStream {
   /**
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   peekInt8(offset = 0) {
     this.peek(1, offset);
@@ -402,7 +400,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt16 value at the current offset.
+   * @returns {number} The UInt16 value at the current offset.
    */
   readUInt16(littleEndian) {
     this.read(2, littleEndian);
@@ -413,7 +411,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   peekUInt16(offset = 0, littleEndian = false) {
     this.peek(2, offset, littleEndian);
@@ -423,7 +421,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int16 value at the current offset.
+   * @returns {number} The Int16 value at the current offset.
    */
   readInt16(littleEndian = false) {
     this.read(2, littleEndian);
@@ -434,7 +432,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int16 value at the current offset.
+   * @returns {number} The Int16 value at the current offset.
    */
   peekInt16(offset = 0, littleEndian = false) {
     this.peek(2, offset, littleEndian);
@@ -444,7 +442,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt24 value at the current offset.
+   * @returns {number} The UInt24 value at the current offset.
    */
   readUInt24(littleEndian = false) {
     if (littleEndian) {
@@ -457,7 +455,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt24 value at the current offset.
+   * @returns {number} The UInt24 value at the current offset.
    */
   peekUInt24(offset = 0, littleEndian = false) {
     if (littleEndian) {
@@ -469,7 +467,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int24 value at the current offset.
+   * @returns {number} The Int24 value at the current offset.
    */
   readInt24(littleEndian = false) {
     if (littleEndian) {
@@ -482,7 +480,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int24 value at the current offset.
+   * @returns {number} The Int24 value at the current offset.
    */
   peekInt24(offset = 0, littleEndian = false) {
     if (littleEndian) {
@@ -494,7 +492,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt32 value at the current offset.
+   * @returns {number} The UInt32 value at the current offset.
    */
   readUInt32(littleEndian = false) {
     this.read(4, littleEndian);
@@ -505,7 +503,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt32 value at the current offset.
+   * @returns {number} The UInt32 value at the current offset.
    */
   peekUInt32(offset = 0, littleEndian = false) {
     this.peek(4, offset, littleEndian);
@@ -515,7 +513,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int32 value at the current offset.
+   * @returns {number} The Int32 value at the current offset.
    */
   readInt32(littleEndian = false) {
     this.read(4, littleEndian);
@@ -526,7 +524,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int32 value at the current offset.
+   * @returns {number} The Int32 value at the current offset.
    */
   peekInt32(offset = 0, littleEndian = false) {
     this.peek(4, offset, littleEndian);
@@ -536,7 +534,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float32 value at the current offset.
+   * @returns {number} The Float32 value at the current offset.
    */
   readFloat32(littleEndian = false) {
     this.read(4, littleEndian);
@@ -547,7 +545,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float32 value at the current offset.
+   * @returns {number} The Float32 value at the current offset.
    */
   peekFloat32(offset = 0, littleEndian = false) {
     this.peek(4, offset, littleEndian);
@@ -580,7 +578,7 @@ class DataStream {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float64 value at the current offset.
+   * @returns {number} The Float64 value at the current offset.
    */
   readFloat64(littleEndian = false) {
     this.read(8, littleEndian);
@@ -591,7 +589,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float64 value at the current offset.
+   * @returns {number} The Float64 value at the current offset.
    */
   peekFloat64(offset = 0, littleEndian = false) {
     this.peek(8, offset, littleEndian);
@@ -601,7 +599,7 @@ class DataStream {
   /**
    * Read from the current offset and return the IEEE 80 bit extended float value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float80 value at the current offset.
+   * @returns {number} The Float80 value at the current offset.
    */
   readFloat80(littleEndian = false) {
     this.read(10, littleEndian);
@@ -612,7 +610,7 @@ class DataStream {
    * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float80 value at the current offset.
+   * @returns {number} The Float80 value at the current offset.
    */
   peekFloat80(offset = 0, littleEndian = false) {
     this.peek(10, offset, littleEndian);
@@ -732,7 +730,6 @@ class DataStream {
           }
           let b2;
           let b3;
-          /* istanbul ignore else */
           if ((b1 & 0x80) === 0) {
             result += String.fromCharCode(b1);
           } else if ((b1 & 0xE0) === 0xC0) {

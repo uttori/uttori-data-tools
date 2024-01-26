@@ -1,4 +1,3 @@
-/* eslint-disable node/no-unpublished-import, node/no-unsupported-features/es-syntax, import/extensions */
 import CRC32 from './data-hash-crc32.js';
 import DataBitstream from './data-bitstream.js';
 import DataBuffer from './data-buffer.js';

@@ -12,11 +12,9 @@
  * Shift-JIS is also called MS Kanji, or DOS Kanji, and is a Microsoft standard (codepage 932).
  * Shift-JIS is an 8-bit encoding with 1 to 2 bytes per character.
  * @see {@link https://en.wikipedia.org/wiki/Shift_JIS|Shift-JIS}
- * @type {Object<number,UttoriCharacterEncoding>}
+ * @type {Record<number, UttoriCharacterEncoding>}
  */
-export const characterEncoding: {
-    [x: number]: UttoriCharacterEncoding;
-};
+export const characterEncoding: Record<number, UttoriCharacterEncoding>;
 export function parse(data: DataBuffer): string;
 declare namespace _default {
     export { characterEncoding };

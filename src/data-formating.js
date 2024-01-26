@@ -25,9 +25,9 @@ export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes',
 /**
  * ASCII text formatting function.
  * @param {number} value Input data to print out as a hex table.
- * @param {object} asciiFlags Any flags needed by the formatter.
+ * @param {Record<string, boolean|number|string>} asciiFlags Any flags needed by the formatter.
  * @param {DataBuffer|DataStream} _data The data being processed.
- * @returns {any[]} Returns an array with the Character to represent this value and any flags for the function.
+ * @returns {[string, Record<string, boolean|number|string>]} Returns an array with the Character to represent this value and any flags for the function.
  */
 export const formatASCII = (value, asciiFlags, _data) => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
@@ -44,9 +44,12 @@ export const formatASCII = (value, asciiFlags, _data) => {
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
- * @property {Function} offset - Offset formatting fuction.
- * @property {Function} value - Byte value formating function.
- * @property {Function} ascii - ASCII text formatting function.
+ * @property {(value: number) => string} offset - Offset formatting fuction.
+ * @property {(value: number) => string} value - Byte value formating function.
+ * @property {(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean|number|string>]} ascii - ASCII text formatting function.
+ */
+/**
+ * @type {HexTableFormater}
  */
 export const hexTableFormaters = {
   offset: (value) => value.toString(16).padStart(8, '0'),
@@ -62,6 +65,9 @@ export const hexTableFormaters = {
  * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
  * @property {string} ascii - ASCII text presentation.
  */
+/**
+ * @type {HexTableHeader}
+ */
 export const hexTableHeader = {
   offset: '76543210',
   value: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0A', '0B', '0C', '0D', '0E', '0F'],
@@ -74,6 +80,9 @@ export const hexTableHeader = {
  * @property {number} columns - The number of columns to show in the byte value section of the table.
  * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
  * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
+ */
+/**
+ * @type {HexTableDimensions}
  */
 export const hexTableDimensions = {
   columns: 16,
@@ -109,6 +118,7 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
   // Build the actual data portion of the table, starting from the provided offset.
   let ascii = '';
   let asciiValue = '';
+  /** @type {Record<string, boolean|number|string>} */
   let asciiFlags = {};
   let row = 0;
   let column = 0;
@@ -166,7 +176,7 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
 
 /**
  * Format a table line seperator for a given theme.
- * @param {Array} columnLengths An array with each columns length
+ * @param {number[]} columnLengths An array with each columns length
  * @param {string} type The type of the separator
  * @param {object} options The options
  * @param {TableFormatStyle} options.theme The theme to use for formatting.
@@ -326,11 +336,15 @@ export const formatTableThemeMarkdown = {
  * Crate an ASCII table from provided data and configuration.
  * @param {string[][]} data The data to add to the table.
  * @param {object} options Configuration.
+ * @param {string[]} options.align The alignment of each column, left or right.
+ * @param {number} options.padding Amount of padding to add to each cell.
+ * @param {TableFormatStyle} options.theme The theme to use for formatting.
+ * @param {string} options.title The title to display at the top of the table.
  * @returns {string} The ASCII table of data.
  */
 export const formatTable = (data, options) => {
   // Use JSON parse & stringify to get a deep copy of the parameter array
-  data = JSON.parse(JSON.stringify(data));
+  data = structuredClone(data);
   options = {
     padding: 1,
     theme: formatTableThemeMySQL,

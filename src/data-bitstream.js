@@ -34,7 +34,7 @@ class DataBitstream {
 
   /**
    * Creates a new DataBitstream from file data.
-   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
    * @returns {DataBitstream} The new DataBitstream instance for the provided file data.
    * @static
    */
@@ -173,7 +173,6 @@ class DataBitstream {
     }
 
     if (signed) {
-      /* istanbul ignore else */
       if (mBits < 32) {
         if (output >>> (bits - 1)) {
           output = (((1 << bits) >>> 0) - output) * -1;
@@ -243,7 +242,6 @@ class DataBitstream {
     }
 
     if (signed) {
-      /* istanbul ignore else */
       if (mBits < 32) {
         if (output >>> (bits - 1)) {
           output = (((1 << bits) >>> 0) - output) * -1;

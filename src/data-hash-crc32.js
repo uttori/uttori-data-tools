@@ -44,7 +44,7 @@ export const CRC32_TABLE = [
  * import CRC32 from 'uttori-data-tools/data-hash-crc32';
  * CRC32.of('The quick brown fox jumps over the lazy dog');
  * ➜ '414FA339'
- * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data to process.
+ * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data to process.
  * @returns {string} The 8 character CRC32 value.
  */
 export const calculate = (data) => {

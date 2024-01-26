@@ -130,7 +130,6 @@ class DataBufferList {
     }
 
     this.first = this.first ? this.first.prev : this.last;
-    /* istanbul ignore else */
     if (this.first) {
       this.availableBytes += this.first.length;
       this.availableBuffers++;
@@ -145,7 +144,6 @@ class DataBufferList {
   reset() {
     debug('reset');
     while (this.rewind()) {
-      // eslint-disable-next-line no-continue
       continue;
     }
   }

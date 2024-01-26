@@ -1,12 +1,10 @@
 /* eslint-disable no-multi-spaces */
+import UnderflowError from './underflow-error.js';
+import { float48, float80 } from './data-helpers.js';
 
 let debug = (..._) => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
-
-
-import UnderflowError from './underflow-error.js';
-import { float48, float80 } from './data-helpers.js';
 
 /**
  * Helper class for manipulating binary data.
@@ -25,7 +23,7 @@ import { float48, float80 } from './data-helpers.js';
 class DataBuffer {
 /**
  * Creates an instance of DataBuffer.
- * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} [input] The data to process.
+ * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} [input] The data to process.
  * @throws {TypeError} Missing input data.
  * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
  */
@@ -33,7 +31,7 @@ class DataBuffer {
     /** @type {boolean} Is this instance for creating a new file? */
     this.writing = false;
 
-    /** @type {Array|Buffer|Uint8Array} The bytes avaliable to read. */
+    /** @type {number[]|Buffer|Uint8Array} The bytes avaliable to read. */
     this.data = [];
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
       debug('constructor: from Buffer');
@@ -108,7 +106,7 @@ class DataBuffer {
 
   /**
    * Compares another DataBuffer against the current data buffer at a specified offset.
-   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The size of the requested DataBuffer.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The size of the requested DataBuffer.
    * @param {number} [offset=0] The size of the requested DataBuffer.
    * @returns {boolean} Returns true when both DataBuffers are equal, false if there is any difference.
    */
@@ -323,7 +321,7 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the value.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   readInt8() {
     const uint8 = this.read(1);
@@ -334,7 +332,7 @@ class DataBuffer {
   /**
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   peekInt8(offset = 0) {
     const uint8 = this.peek(1, offset);
@@ -345,7 +343,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt16 value at the current offset.
+   * @returns {number} The UInt16 value at the current offset.
    */
   readUInt16(littleEndian) {
     const uint8 = this.read(2);
@@ -357,7 +355,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int8 value at the current offset.
+   * @returns {number} The Int8 value at the current offset.
    */
   peekUInt16(offset = 0, littleEndian = false) {
     const uint8 = this.peek(2, offset);
@@ -368,7 +366,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int16 value at the current offset.
+   * @returns {number} The Int16 value at the current offset.
    */
   readInt16(littleEndian = false) {
     const uint8 = this.read(2);
@@ -380,7 +378,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int16 value at the current offset.
+   * @returns {number} The Int16 value at the current offset.
    */
   peekInt16(offset = 0, littleEndian = false) {
     const uint8 = this.peek(2, offset);
@@ -391,7 +389,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt24 value at the current offset.
+   * @returns {number} The UInt24 value at the current offset.
    */
   readUInt24(littleEndian = false) {
     if (littleEndian) {
@@ -404,7 +402,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt24 value at the current offset.
+   * @returns {number} The UInt24 value at the current offset.
    */
   peekUInt24(offset = 0, littleEndian = false) {
     if (littleEndian) {
@@ -416,7 +414,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int24 value at the current offset.
+   * @returns {number} The Int24 value at the current offset.
    */
   readInt24(littleEndian = false) {
     if (littleEndian) {
@@ -429,7 +427,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int24 value at the current offset.
+   * @returns {number} The Int24 value at the current offset.
    */
   peekInt24(offset = 0, littleEndian = false) {
     if (littleEndian) {
@@ -441,7 +439,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt32 value at the current offset.
+   * @returns {number} The UInt32 value at the current offset.
    */
   readUInt32(littleEndian = false) {
     const uint8 = this.read(4);
@@ -453,7 +451,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The UInt32 value at the current offset.
+   * @returns {number} The UInt32 value at the current offset.
    */
   peekUInt32(offset = 0, littleEndian = false) {
     const uint8 = this.peek(4, offset);
@@ -464,7 +462,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int32 value at the current offset.
+   * @returns {number} The Int32 value at the current offset.
    */
   readInt32(littleEndian = false) {
     const uint8 = this.read(4);
@@ -476,7 +474,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Int32 value at the current offset.
+   * @returns {number} The Int32 value at the current offset.
    */
   peekInt32(offset = 0, littleEndian = false) {
     const uint8 = this.peek(4, offset);
@@ -487,7 +485,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float32 value at the current offset.
+   * @returns {number} The Float32 value at the current offset.
    */
   readFloat32(littleEndian = false) {
     const uint8 = this.read(4);
@@ -499,7 +497,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float32 value at the current offset.
+   * @returns {number} The Float32 value at the current offset.
    */
   peekFloat32(offset = 0, littleEndian = false) {
     const uint8 = this.peek(4, offset);
@@ -533,7 +531,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the value.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float64 value at the current offset.
+   * @returns {number} The Float64 value at the current offset.
    */
   readFloat64(littleEndian = false) {
     const uint8 = this.read(8);
@@ -545,7 +543,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {*} The Float64 value at the current offset.
+   * @returns {number} The Float64 value at the current offset.
    */
   peekFloat64(offset = 0, littleEndian = false) {
     const uint8 = this.peek(8, offset);
@@ -556,7 +554,7 @@ class DataBuffer {
   /**
    * Read from the current offset and return the IEEE 80 bit extended float value.
    * @param {boolean} [littleEndian=this.nativeEndian] Read in Little Endian format, defaults to system value.
-   * @returns {*} The Float80 value at the current offset.
+   * @returns {number} The Float80 value at the current offset.
    */
   readFloat80(littleEndian = this.nativeEndian) {
     const uint8 = this.read(10, littleEndian);
@@ -567,7 +565,7 @@ class DataBuffer {
    * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
    * @param {number} [offset=0] The offset to read from.
    * @param {boolean} [littleEndian=this.nativeEndian] Read in Little Endian format, defaults to system value.
-   * @returns {*} The Float80 value at the current offset.
+   * @returns {number} The Float80 value at the current offset.
    */
   peekFloat80(offset = 0, littleEndian = this.nativeEndian) {
     const uint8 = this.peek(10, offset, littleEndian);
@@ -667,7 +665,6 @@ class DataBuffer {
           }
           let b2;
           let b3;
-          /* istanbul ignore else */
           if ((b1 & 0x80) === 0) {
             result += String.fromCharCode(b1);
           } else if ((b1 & 0xE0) === 0xC0) {

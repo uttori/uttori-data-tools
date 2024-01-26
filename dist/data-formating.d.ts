@@ -1,24 +1,41 @@
 export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-export function formatASCII(value: number, asciiFlags: object, _data: DataBuffer | DataStream): any[];
-export namespace hexTableFormaters {
-    export function offset(value: any): any;
-    export function value(value: any): any;
-    export { formatASCII as ascii };
-}
-export namespace hexTableHeader {
-    let offset_1: string;
-    export { offset_1 as offset };
-    let value_1: string[];
-    export { value_1 as value };
-    export let ascii: string;
-}
-export namespace hexTableDimensions {
-    let columns: number;
-    let grouping: number;
-    let maxRows: number;
-}
+export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): [string, Record<string, boolean | number | string>];
+/**
+ * Formatting functions for all value types.
+ * @typedef {object} HexTableFormater
+ * @property {(value: number) => string} offset - Offset formatting fuction.
+ * @property {(value: number) => string} value - Byte value formating function.
+ * @property {(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean|number|string>]} ascii - ASCII text formatting function.
+ */
+/**
+ * @type {HexTableFormater}
+ */
+export const hexTableFormaters: HexTableFormater;
+/**
+ * Header layout definitions.
+ * GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
+ * @typedef {object} HexTableHeader
+ * @property {string} offset - Offset header column presentation.
+ * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
+ * @property {string} ascii - ASCII text presentation.
+ */
+/**
+ * @type {HexTableHeader}
+ */
+export const hexTableHeader: HexTableHeader;
+/**
+ * Header layout definitions.
+ * @typedef {object} HexTableDimensions
+ * @property {number} columns - The number of columns to show in the byte value section of the table.
+ * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
+ * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
+ */
+/**
+ * @type {HexTableDimensions}
+ */
+export const hexTableDimensions: HexTableDimensions;
 export function hexTable(input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
-export function formatTableLine(columnLengths: any[], type: string, options: {
+export function formatTableLine(columnLengths: number[], type: string, options: {
     theme: TableFormatStyle;
     padding: number;
 }): string;
@@ -54,7 +71,12 @@ export const formatTableThemeUnicode: TableFormatStyle;
  * @type {TableFormatStyle}
  */
 export const formatTableThemeMarkdown: TableFormatStyle;
-export function formatTable(data: string[][], options: object): string;
+export function formatTable(data: string[][], options: {
+    align: string[];
+    padding: number;
+    theme: TableFormatStyle;
+    title: string;
+}): string;
 declare namespace _default {
     export { formatBytes };
     export { formatASCII };
@@ -75,15 +97,15 @@ export type HexTableFormater = {
     /**
      * - Offset formatting fuction.
      */
-    offset: Function;
+    offset: (value: number) => string;
     /**
      * - Byte value formating function.
      */
-    value: Function;
+    value: (value: number) => string;
     /**
      * - ASCII text formatting function.
      */
-    ascii: Function;
+    ascii: (value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean | number | string>];
 };
 /**
  * Header layout definitions.

@@ -1,10 +1,9 @@
-/* eslint-disable ramda/prefer-ramda-boolean */
 import test from 'ava';
 import { DataBuffer, DataBufferList, DataStream } from '../src/index.js';
 
 /**
  * Return a new DataStream.
- * @param  {Array} arrays - Arrays of numbers
+ * @param  {number[][]} arrays - Arrays of numbers
  * @returns {DataStream} A new DataStream
  */
 const makeStream = (...arrays) => {
@@ -26,7 +25,7 @@ test('fromData', (t) => {
 });
 
 test('fromBuffer', (t) => {
-  const stream = DataStream.fromBuffer(new DataBuffer([10, 160], [20, 29, 119]));
+  const stream = DataStream.fromBuffer(new DataBuffer([10, 160]));
   const copy = stream.copy();
 
   t.not(copy, stream);
