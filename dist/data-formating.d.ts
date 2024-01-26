@@ -1,23 +1,23 @@
 export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): [string, Record<string, boolean | number | string>];
+export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): import('../dist/custom.js').FormatASCIIOutput;
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
- * @property {(value: number) => string} offset - Offset formatting fuction.
- * @property {(value: number) => string} value - Byte value formating function.
- * @property {(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean|number|string>]} ascii - ASCII text formatting function.
+ * @property {import('../dist/custom.js').FormatNumber} offset Offset formatting fuction.
+ * @property {import('../dist/custom.js').FormatNumber} value Byte value formating function.
+ * @property {import('../dist/custom.js').FormatNumberToASCII} ascii ASCII text formatting function.
  */
 /**
- * @type {HexTableFormater}
+ * @type {import('../dist/custom.js').HexTableFormater}
  */
-export const hexTableFormaters: HexTableFormater;
+export const hexTableFormaters: import('../dist/custom.js').HexTableFormater;
 /**
  * Header layout definitions.
  * GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
  * @typedef {object} HexTableHeader
- * @property {string} offset - Offset header column presentation.
- * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
- * @property {string} ascii - ASCII text presentation.
+ * @property {string} offset Offset header column presentation.
+ * @property {string[]} value Byte value header values, grouped as defined in the provided HexTableDimensions.
+ * @property {string} ascii ASCII text presentation.
  */
 /**
  * @type {HexTableHeader}
@@ -26,9 +26,9 @@ export const hexTableHeader: HexTableHeader;
 /**
  * Header layout definitions.
  * @typedef {object} HexTableDimensions
- * @property {number} columns - The number of columns to show in the byte value section of the table.
- * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
- * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
+ * @property {number} columns The number of columns to show in the byte value section of the table.
+ * @property {number} grouping The number of bytes to cluster together in the byte value section of the table.
+ * @property {number} maxRows The maxiumum number of rows to show excluding the header & seperator rows.
  */
 /**
  * @type {HexTableDimensions}
@@ -95,17 +95,17 @@ export default _default;
  */
 export type HexTableFormater = {
     /**
-     * - Offset formatting fuction.
+     * Offset formatting fuction.
      */
-    offset: (value: number) => string;
+    offset: import('../dist/custom.js').FormatNumber;
     /**
-     * - Byte value formating function.
+     * Byte value formating function.
      */
-    value: (value: number) => string;
+    value: import('../dist/custom.js').FormatNumber;
     /**
-     * - ASCII text formatting function.
+     * ASCII text formatting function.
      */
-    ascii: (value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean | number | string>];
+    ascii: import('../dist/custom.js').FormatNumberToASCII;
 };
 /**
  * Header layout definitions.
@@ -113,15 +113,15 @@ export type HexTableFormater = {
  */
 export type HexTableHeader = {
     /**
-     * - Offset header column presentation.
+     * Offset header column presentation.
      */
     offset: string;
     /**
-     * - Byte value header values, grouped as defined in the provided HexTableDimensions.
+     * Byte value header values, grouped as defined in the provided HexTableDimensions.
      */
     value: string[];
     /**
-     * - ASCII text presentation.
+     * ASCII text presentation.
      */
     ascii: string;
 };
@@ -130,15 +130,15 @@ export type HexTableHeader = {
  */
 export type HexTableDimensions = {
     /**
-     * - The number of columns to show in the byte value section of the table.
+     * The number of columns to show in the byte value section of the table.
      */
     columns: number;
     /**
-     * - The number of bytes to cluster together in the byte value section of the table.
+     * The number of bytes to cluster together in the byte value section of the table.
      */
     grouping: number;
     /**
-     * - The maxiumum number of rows to show excluding the header & seperator rows.
+     * The maxiumum number of rows to show excluding the header & seperator rows.
      */
     maxRows: number;
 };

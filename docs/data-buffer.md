@@ -1,18 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#DataBuffer">DataBuffer</a></dt>
-<dd><p>Helper class for manipulating binary data.</p>
-</dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#debug">debug()</a> : <code>function</code></dt>
-<dd></dd>
-</dl>
-
 <a name="DataBuffer"></a>
 
 ## DataBuffer
@@ -33,7 +18,7 @@ Helper class for manipulating binary data.
     * [new DataBuffer([input])](#new_DataBuffer_new)
     * _instance_
         * [.writing](#DataBuffer+writing) : <code>boolean</code>
-        * [.data](#DataBuffer+data) : <code>Array</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
+        * [.data](#DataBuffer+data) : <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
         * [.next](#DataBuffer+next) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.prev](#DataBuffer+prev) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.nativeEndian](#DataBuffer+nativeEndian) : <code>boolean</code>
@@ -54,28 +39,28 @@ Helper class for manipulating binary data.
         * [.read(bytes, [littleEndian])](#DataBuffer+read) ⇒ <code>Uint8Array</code>
         * [.peek(bytes, [offset], [littleEndian])](#DataBuffer+peek) ⇒ <code>Uint8Array</code>
         * [.peekBit(position, [length], [offset])](#DataBuffer+peekBit) ⇒ <code>number</code>
-        * [.readInt8()](#DataBuffer+readInt8) ⇒ <code>\*</code>
-        * [.peekInt8([offset])](#DataBuffer+peekInt8) ⇒ <code>\*</code>
-        * [.readUInt16([littleEndian])](#DataBuffer+readUInt16) ⇒ <code>\*</code>
-        * [.peekUInt16([offset], [littleEndian])](#DataBuffer+peekUInt16) ⇒ <code>\*</code>
-        * [.readInt16([littleEndian])](#DataBuffer+readInt16) ⇒ <code>\*</code>
-        * [.peekInt16([offset], [littleEndian])](#DataBuffer+peekInt16) ⇒ <code>\*</code>
-        * [.readUInt24([littleEndian])](#DataBuffer+readUInt24) ⇒ <code>\*</code>
-        * [.peekUInt24([offset], [littleEndian])](#DataBuffer+peekUInt24) ⇒ <code>\*</code>
-        * [.readInt24([littleEndian])](#DataBuffer+readInt24) ⇒ <code>\*</code>
-        * [.peekInt24([offset], [littleEndian])](#DataBuffer+peekInt24) ⇒ <code>\*</code>
-        * [.readUInt32([littleEndian])](#DataBuffer+readUInt32) ⇒ <code>\*</code>
-        * [.peekUInt32([offset], [littleEndian])](#DataBuffer+peekUInt32) ⇒ <code>\*</code>
-        * [.readInt32([littleEndian])](#DataBuffer+readInt32) ⇒ <code>\*</code>
-        * [.peekInt32([offset], [littleEndian])](#DataBuffer+peekInt32) ⇒ <code>\*</code>
-        * [.readFloat32([littleEndian])](#DataBuffer+readFloat32) ⇒ <code>\*</code>
-        * [.peekFloat32([offset], [littleEndian])](#DataBuffer+peekFloat32) ⇒ <code>\*</code>
+        * [.readInt8()](#DataBuffer+readInt8) ⇒ <code>number</code>
+        * [.peekInt8([offset])](#DataBuffer+peekInt8) ⇒ <code>number</code>
+        * [.readUInt16([littleEndian])](#DataBuffer+readUInt16) ⇒ <code>number</code>
+        * [.peekUInt16([offset], [littleEndian])](#DataBuffer+peekUInt16) ⇒ <code>number</code>
+        * [.readInt16([littleEndian])](#DataBuffer+readInt16) ⇒ <code>number</code>
+        * [.peekInt16([offset], [littleEndian])](#DataBuffer+peekInt16) ⇒ <code>number</code>
+        * [.readUInt24([littleEndian])](#DataBuffer+readUInt24) ⇒ <code>number</code>
+        * [.peekUInt24([offset], [littleEndian])](#DataBuffer+peekUInt24) ⇒ <code>number</code>
+        * [.readInt24([littleEndian])](#DataBuffer+readInt24) ⇒ <code>number</code>
+        * [.peekInt24([offset], [littleEndian])](#DataBuffer+peekInt24) ⇒ <code>number</code>
+        * [.readUInt32([littleEndian])](#DataBuffer+readUInt32) ⇒ <code>number</code>
+        * [.peekUInt32([offset], [littleEndian])](#DataBuffer+peekUInt32) ⇒ <code>number</code>
+        * [.readInt32([littleEndian])](#DataBuffer+readInt32) ⇒ <code>number</code>
+        * [.peekInt32([offset], [littleEndian])](#DataBuffer+peekInt32) ⇒ <code>number</code>
+        * [.readFloat32([littleEndian])](#DataBuffer+readFloat32) ⇒ <code>number</code>
+        * [.peekFloat32([offset], [littleEndian])](#DataBuffer+peekFloat32) ⇒ <code>number</code>
         * [.readFloat48([littleEndian])](#DataBuffer+readFloat48) ⇒ <code>number</code>
         * [.peekFloat48([offset], [littleEndian])](#DataBuffer+peekFloat48) ⇒ <code>number</code>
-        * [.readFloat64([littleEndian])](#DataBuffer+readFloat64) ⇒ <code>\*</code>
-        * [.peekFloat64([offset], [littleEndian])](#DataBuffer+peekFloat64) ⇒ <code>\*</code>
-        * [.readFloat80([littleEndian])](#DataBuffer+readFloat80) ⇒ <code>\*</code>
-        * [.peekFloat80([offset], [littleEndian])](#DataBuffer+peekFloat80) ⇒ <code>\*</code>
+        * [.readFloat64([littleEndian])](#DataBuffer+readFloat64) ⇒ <code>number</code>
+        * [.peekFloat64([offset], [littleEndian])](#DataBuffer+peekFloat64) ⇒ <code>number</code>
+        * [.readFloat80([littleEndian])](#DataBuffer+readFloat80) ⇒ <code>number</code>
+        * [.peekFloat80([offset], [littleEndian])](#DataBuffer+peekFloat80) ⇒ <code>number</code>
         * [.readBuffer(length)](#DataBuffer+readBuffer) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.peekBuffer(offset, length)](#DataBuffer+peekBuffer) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.readString(length, [encoding])](#DataBuffer+readString) ⇒ <code>string</code>
@@ -105,7 +90,7 @@ Creates an instance of DataBuffer.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [input] | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> | The data to process. |
+| [input] | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> | The data to process. |
 
 **Example** *(new DataBuffer(stream))*  
 ```js
@@ -123,7 +108,7 @@ Is this instance for creating a new file?
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+data"></a>
 
-### dataBuffer.data : <code>Array</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
+### dataBuffer.data : <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
 The bytes avaliable to read.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
@@ -174,7 +159,7 @@ Compares another DataBuffer against the current data buffer at a specified offse
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| input | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The size of the requested DataBuffer. |
+| input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The size of the requested DataBuffer. |
 | [offset] | <code>number</code> | <code>0</code> | The size of the requested DataBuffer. |
 
 <a name="DataBuffer+copy"></a>
@@ -224,7 +209,7 @@ Checks if a given number of bytes are avaliable after a given offset in the buff
 If writing mode is enabled, this is always true.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>boolean</code> - - True if there are the requested amount, or more, of bytes left in the stream.  
+**Returns**: <code>boolean</code> - True if there are the requested amount, or more, of bytes left in the stream.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -305,7 +290,7 @@ Read from the specified offset without advancing the offsets and return the valu
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>Uint8Array</code> - - The UInt8 value at the current offset.  
+**Returns**: <code>Uint8Array</code> - The UInt8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -347,18 +332,18 @@ Read the bits from the bytes from the provided offset and return the value.
 
 <a name="DataBuffer+readInt8"></a>
 
-### dataBuffer.readInt8() ⇒ <code>\*</code>
+### dataBuffer.readInt8() ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int8 value at the current offset.  
+**Returns**: <code>number</code> - The Int8 value at the current offset.  
 <a name="DataBuffer+peekInt8"></a>
 
-### dataBuffer.peekInt8([offset]) ⇒ <code>\*</code>
+### dataBuffer.peekInt8([offset]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int8 value at the current offset.  
+**Returns**: <code>number</code> - The Int8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -366,11 +351,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readUInt16"></a>
 
-### dataBuffer.readUInt16([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readUInt16([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The UInt16 value at the current offset.  
+**Returns**: <code>number</code> - The UInt16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -378,11 +363,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekUInt16"></a>
 
-### dataBuffer.peekUInt16([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekUInt16([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int8 value at the current offset.  
+**Returns**: <code>number</code> - The Int8 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -391,11 +376,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readInt16"></a>
 
-### dataBuffer.readInt16([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readInt16([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int16 value at the current offset.  
+**Returns**: <code>number</code> - The Int16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -403,11 +388,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekInt16"></a>
 
-### dataBuffer.peekInt16([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekInt16([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int16 value at the current offset.  
+**Returns**: <code>number</code> - The Int16 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -416,11 +401,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readUInt24"></a>
 
-### dataBuffer.readUInt24([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readUInt24([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The UInt24 value at the current offset.  
+**Returns**: <code>number</code> - The UInt24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -428,11 +413,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekUInt24"></a>
 
-### dataBuffer.peekUInt24([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekUInt24([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The UInt24 value at the current offset.  
+**Returns**: <code>number</code> - The UInt24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -441,11 +426,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readInt24"></a>
 
-### dataBuffer.readInt24([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readInt24([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int24 value at the current offset.  
+**Returns**: <code>number</code> - The Int24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -453,11 +438,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekInt24"></a>
 
-### dataBuffer.peekInt24([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekInt24([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int24 value at the current offset.  
+**Returns**: <code>number</code> - The Int24 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -466,11 +451,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readUInt32"></a>
 
-### dataBuffer.readUInt32([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readUInt32([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The UInt32 value at the current offset.  
+**Returns**: <code>number</code> - The UInt32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -478,11 +463,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekUInt32"></a>
 
-### dataBuffer.peekUInt32([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekUInt32([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The UInt32 value at the current offset.  
+**Returns**: <code>number</code> - The UInt32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -491,11 +476,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readInt32"></a>
 
-### dataBuffer.readInt32([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readInt32([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int32 value at the current offset.  
+**Returns**: <code>number</code> - The Int32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -503,11 +488,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekInt32"></a>
 
-### dataBuffer.peekInt32([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekInt32([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Int32 value at the current offset.  
+**Returns**: <code>number</code> - The Int32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -516,11 +501,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readFloat32"></a>
 
-### dataBuffer.readFloat32([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readFloat32([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float32 value at the current offset.  
+**Returns**: <code>number</code> - The Float32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -528,11 +513,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekFloat32"></a>
 
-### dataBuffer.peekFloat32([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekFloat32([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float32 value at the current offset.  
+**Returns**: <code>number</code> - The Float32 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -568,11 +553,11 @@ May be faulty with large numbers due to float percision.
 
 <a name="DataBuffer+readFloat64"></a>
 
-### dataBuffer.readFloat64([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readFloat64([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float64 value at the current offset.  
+**Returns**: <code>number</code> - The Float64 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -580,11 +565,11 @@ Read from the current offset and return the value.
 
 <a name="DataBuffer+peekFloat64"></a>
 
-### dataBuffer.peekFloat64([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekFloat64([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float64 value at the current offset.  
+**Returns**: <code>number</code> - The Float64 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -593,11 +578,11 @@ Read from the specified offset without advancing the offsets and return the valu
 
 <a name="DataBuffer+readFloat80"></a>
 
-### dataBuffer.readFloat80([littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.readFloat80([littleEndian]) ⇒ <code>number</code>
 Read from the current offset and return the IEEE 80 bit extended float value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float80 value at the current offset.  
+**Returns**: <code>number</code> - The Float80 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -605,11 +590,11 @@ Read from the current offset and return the IEEE 80 bit extended float value.
 
 <a name="DataBuffer+peekFloat80"></a>
 
-### dataBuffer.peekFloat80([offset], [littleEndian]) ⇒ <code>\*</code>
+### dataBuffer.peekFloat80([offset], [littleEndian]) ⇒ <code>number</code>
 Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>\*</code> - The Float80 value at the current offset.  
+**Returns**: <code>number</code> - The Float80 value at the current offset.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -801,7 +786,3 @@ Creates an instance of DataBuffer with given size.
 | --- | --- | --- |
 | size | <code>number</code> | The size of the requested DataBuffer. |
 
-<a name="debug"></a>
-
-## debug() : <code>function</code>
-**Kind**: global function  

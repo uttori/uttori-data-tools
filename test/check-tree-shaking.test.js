@@ -3,7 +3,6 @@ import test from 'ava';
 
 // https://rollupjs.org/guide/en/#javascript-api
 import { rollup } from 'rollup';
-import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 
 // eslint-disable-next-line no-console
@@ -13,7 +12,6 @@ const plugins = [
     preventAssignment: true,
     'process.env.UTTORI_DATA_DEBUG': 'false',
   }),
-  commonjs(),
 ];
 
 // Debugging File Output

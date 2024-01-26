@@ -23,7 +23,6 @@
     "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-replace": "^5.0.5",
     "@types/debug": "^4.1.12",
     "@types/node": "^20.11.6",
@@ -125,7 +124,7 @@
     }
   },
   "scripts": {
-    "docs": "jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2m --configure ./jsdoc.conf.json --private --example-lang js src/data-formating.js > docs/data-formating.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/encodings/shift-jis.js > docs/encodings-shift-jis.md",
+    "docs": "jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-stream.js > docs/data-stream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-hash-crc32.js > docs/data-hash-crc32.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer-list.js > docs/data-buffer-list.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-bitstream.js > docs/data-bitstream.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-buffer.js > docs/data-buffer.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-helpers.js > docs/data-helpers.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/data-formating.js > docs/data-formating.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/encodings/shift-jis.js > docs/encodings-shift-jis.md",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
     "make-types": "tsc --module nodenext --project ./tsconfig.json",

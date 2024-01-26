@@ -8,7 +8,7 @@
 class UnderflowError extends Error {
   /**
    * Creates a new UnderflowError.
-   * @param {string} message - Message to show when the error is thrown.
+   * @param {string} message Message to show when the error is thrown.
    * @class
    */
   constructor(message) {

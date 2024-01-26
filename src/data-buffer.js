@@ -178,7 +178,7 @@ class DataBuffer {
    * If writing mode is enabled, this is always true.
    * @param {number} bytes The number of bytes to check for.
    * @param {number} offset The offset to start from.
-   * @returns {boolean} - True if there are the requested amount, or more, of bytes left in the stream.
+   * @returns {boolean} True if there are the requested amount, or more, of bytes left in the stream.
    */
   availableAt(bytes, offset) {
     return this.writing || bytes <= this.length - offset;
@@ -258,7 +258,7 @@ class DataBuffer {
    * Read from the current offset and return the value.
    * @param {number} bytes The number of bytes to read.
    * @param {boolean} [littleEndian=false] Read in Little Endian format.
-   * @returns {Uint8Array} - The UInt8 value at the current offset.
+   * @returns {Uint8Array} The UInt8 value at the current offset.
    */
   read(bytes, littleEndian = false) {
     // debug('read:', bytes, this.offset, littleEndian);

@@ -1,45 +1,45 @@
 export default DataStream;
 /**
  * Helpter class to ease working with binary files.
- * @property {number} size - ArrayBuffer byteLength
- * @property {ArrayBuffer} buf - Instance of ArrayBuffer used for the various typed arrays
- * @property {Uint8Array} uint8 - octet / uint8_t
- * @property {Int8Array} int8 - byte / int8_t
- * @property {Uint16Array} uint16 - unsigned short / uint16_t
- * @property {Int16Array} int16 - short / int16_t
- * @property {Uint32Array} uint32 - unsigned long / uint32_t
- * @property {Int32Array} int32 - long / int32_t
- * @property {Float32Array} float32 - unrestricted float / float
- * @property {Float64Array} float64 - unrestricted double / double
- * @property {BigInt64Array} int64 - bigint / int64_t (signed long long)
- * @property {BigUint64Array} uint64 - bigint / uint64_t (unsigned long long)
- * @property {boolean} nativeEndian - Native Endianness of the machine, true is Little Endian, false is Big Endian
- * @property {DataBufferList} list - The DataBufferList to process
- * @property {number} localOffset - Reading offset for the current chunk
- * @property {number} offset - Reading offset for all chunks
+ * @property {number} size ArrayBuffer byteLength
+ * @property {ArrayBuffer} buf Instance of ArrayBuffer used for the various typed arrays
+ * @property {Uint8Array} uint8 octet / uint8_t
+ * @property {Int8Array} int8 byte / int8_t
+ * @property {Uint16Array} uint16 unsigned short / uint16_t
+ * @property {Int16Array} int16 short / int16_t
+ * @property {Uint32Array} uint32 unsigned long / uint32_t
+ * @property {Int32Array} int32 long / int32_t
+ * @property {Float32Array} float32 unrestricted float / float
+ * @property {Float64Array} float64 unrestricted double / double
+ * @property {BigInt64Array} int64 bigint / int64_t (signed long long)
+ * @property {BigUint64Array} uint64 bigint / uint64_t (unsigned long long)
+ * @property {boolean} nativeEndian Native Endianness of the machine, true is Little Endian, false is Big Endian
+ * @property {DataBufferList} list The DataBufferList to process
+ * @property {number} localOffset Reading offset for the current chunk
+ * @property {number} offset Reading offset for all chunks
  * @example <caption>new DataStream(list, options)</caption>
  * @class
  */
 declare class DataStream {
     /**
      * Creates a new DataStream from file data.
-     * @param {string | Buffer} data - The data of the image to process.
+     * @param {string | Buffer} data The data of the image to process.
      * @returns {DataStream} The new DataStream instance for the provided file data.
      * @static
      */
     static fromData(data: string | Buffer): DataStream;
     /**
      * Creates a new DataStream from a DataBuffer.
-     * @param {DataBuffer} buffer - The DataBuffer of the image to process.
+     * @param {DataBuffer} buffer The DataBuffer of the image to process.
      * @returns {DataStream} The new DataStream instance for the provided DataBuffer.
      * @static
      */
     static fromBuffer(buffer: DataBuffer): DataStream;
     /**
      * Creates a new DataStream.
-     * @param {DataBufferList} list - The DataBufferList to process
-     * @param {object} options - Options for this instance
-     * @param {number} [options.size=16] - ArrayBuffer byteLength for the underlying binary parsing
+     * @param {DataBufferList} list The DataBufferList to process
+     * @param {object} options Options for this instance
+     * @param {number} [options.size=16] ArrayBuffer byteLength for the underlying binary parsing
      */
     constructor(list: DataBufferList, options?: {
         size?: number;
@@ -78,20 +78,20 @@ declare class DataStream {
     offset: number;
     /**
      * Compares input data against the current data.
-     * @param {DataStream} input - The DataStream to compare against.
-     * @param {number} [offset=0] - The offset to begin comparing at.
-     * @returns {boolean} - True if the data is the same as the input, starting at the offset, false is there is any difference.
+     * @param {DataStream} input The DataStream to compare against.
+     * @param {number} [offset=0] The offset to begin comparing at.
+     * @returns {boolean} True if the data is the same as the input, starting at the offset, false is there is any difference.
      */
     compare(input: DataStream, offset?: number): boolean;
     /**
      * Compares input data against the upcoming data, byte by byte.
-     * @param {number[] | Buffer} input - The data to check for in upcoming bytes.
-     * @returns {boolean} - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+     * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+     * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
      */
     next(input: number[] | Buffer): boolean;
     /**
      * Create a copy of the current DataStream and offset.
-     * @returns {DataStream} - A new copy of the DataStream.
+     * @returns {DataStream} A new copy of the DataStream.
      */
     copy(): DataStream;
     /**
@@ -104,7 +104,7 @@ declare class DataStream {
      * Checks if a given number of bytes are avaliable after a given offset in the stream.
      * @param {number} bytes The number of bytes to check for.
      * @param {number} offset The offset to start from.
-     * @returns {boolean} - True if there are the requested amount, or more, of bytes left in the stream.
+     * @returns {boolean} True if there are the requested amount, or more, of bytes left in the stream.
      */
     availableAt(bytes: number, offset: number): boolean;
     /**
@@ -149,7 +149,7 @@ declare class DataStream {
      * Read from the current offset and return the value.
      * @param {number} bytes The number of bytes to read.
      * @param {boolean} [littleEndian=false] Read in Little Endian format.
-     * @returns {Uint8Array} - The UInt8 value at the current offset.
+     * @returns {Uint8Array} The UInt8 value at the current offset.
      */
     read(bytes: number, littleEndian?: boolean): Uint8Array;
     /**

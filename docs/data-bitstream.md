@@ -1,18 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#DataBitstream">DataBitstream</a></dt>
-<dd><p>Read a DataStream as a stream of bits.</p>
-</dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#debug">debug()</a> : <code>function</code></dt>
-<dd></dd>
-</dl>
-
 <a name="DataBitstream"></a>
 
 ## DataBitstream
@@ -221,7 +206,7 @@ Creates a new DataBitstream from file data.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The data of the image to process. |
+| data | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint32Array</code> | The data of the image to process. |
 
 <a name="DataBitstream.fromBytes"></a>
 
@@ -235,7 +220,3 @@ Creates a new DataBitstream from an array of bytes.
 | --- | --- | --- |
 | bytes | <code>Array.&lt;number&gt;</code> | The data to read as a bitstream. |
 
-<a name="debug"></a>
-
-## debug() : <code>function</code>
-**Kind**: global function  

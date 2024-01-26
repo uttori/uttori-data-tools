@@ -1,18 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#DataBufferList">DataBufferList</a></dt>
-<dd><p>A linked list of DataBuffers.</p>
-</dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#debug">debug()</a> : <code>function</code></dt>
-<dd></dd>
-</dl>
-
 <a name="DataBufferList"></a>
 
 ## DataBufferList
@@ -137,7 +122,3 @@ Rewind the buffer list to the previous buffer.
 Reset the list to the beginning.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
-<a name="debug"></a>
-
-## debug() : <code>function</code>
-**Kind**: global function  

@@ -27,7 +27,7 @@ export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes',
  * @param {number} value Input data to print out as a hex table.
  * @param {Record<string, boolean|number|string>} asciiFlags Any flags needed by the formatter.
  * @param {DataBuffer|DataStream} _data The data being processed.
- * @returns {[string, Record<string, boolean|number|string>]} Returns an array with the Character to represent this value and any flags for the function.
+ * @returns {import('../dist/custom.js').FormatASCIIOutput} Returns an array with the Character to represent this value and any flags for the function.
  */
 export const formatASCII = (value, asciiFlags, _data) => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
@@ -44,12 +44,12 @@ export const formatASCII = (value, asciiFlags, _data) => {
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
- * @property {(value: number) => string} offset - Offset formatting fuction.
- * @property {(value: number) => string} value - Byte value formating function.
- * @property {(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => [string, Record<string, boolean|number|string>]} ascii - ASCII text formatting function.
+ * @property {import('../dist/custom.js').FormatNumber} offset Offset formatting fuction.
+ * @property {import('../dist/custom.js').FormatNumber} value Byte value formating function.
+ * @property {import('../dist/custom.js').FormatNumberToASCII} ascii ASCII text formatting function.
  */
 /**
- * @type {HexTableFormater}
+ * @type {import('../dist/custom.js').HexTableFormater}
  */
 export const hexTableFormaters = {
   offset: (value) => value.toString(16).padStart(8, '0'),
@@ -61,9 +61,9 @@ export const hexTableFormaters = {
  * Header layout definitions.
  * GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
  * @typedef {object} HexTableHeader
- * @property {string} offset - Offset header column presentation.
- * @property {string[]} value - Byte value header values, grouped as defined in the provided HexTableDimensions.
- * @property {string} ascii - ASCII text presentation.
+ * @property {string} offset Offset header column presentation.
+ * @property {string[]} value Byte value header values, grouped as defined in the provided HexTableDimensions.
+ * @property {string} ascii ASCII text presentation.
  */
 /**
  * @type {HexTableHeader}
@@ -77,9 +77,9 @@ export const hexTableHeader = {
 /**
  * Header layout definitions.
  * @typedef {object} HexTableDimensions
- * @property {number} columns - The number of columns to show in the byte value section of the table.
- * @property {number} grouping - The number of bytes to cluster together in the byte value section of the table.
- * @property {number} maxRows - The maxiumum number of rows to show excluding the header & seperator rows.
+ * @property {number} columns The number of columns to show in the byte value section of the table.
+ * @property {number} grouping The number of bytes to cluster together in the byte value section of the table.
+ * @property {number} maxRows The maxiumum number of rows to show excluding the header & seperator rows.
  */
 /**
  * @type {HexTableDimensions}
