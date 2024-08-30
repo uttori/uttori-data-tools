@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.1.0](https://github.com/uttori/uttori-data-tools/compare/v3.0.0...v3.1.0) - 2024-08-29
+
+- 🧹 Documentation & Types clean up
+- 🎁 Update dev dependencies
+- 🎁 Update tests and fix warnings
+
 ## [3.0.0](https://github.com/uttori/uttori-data-tools/compare/v2.4.0...v3.0.0) - 2024-01-25
 
 - 💥 BREAKING CHANGES!

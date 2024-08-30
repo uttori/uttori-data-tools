@@ -25,6 +25,7 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     input: './test/tree-shaking/3-of-3.js',
     onwarn,
     plugins,
+    external: ["debug"],
   });
 
   const output = await bundle.generate({
@@ -46,6 +47,7 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     input: './test/tree-shaking/4-of-1.js',
     onwarn,
     plugins,
+    external: ["debug"],
   });
 
   const output = await bundle.generate({
@@ -68,6 +70,7 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     input: './test/tree-shaking/3-of-2.js',
     onwarn,
     plugins,
+    external: ["debug"],
   });
 
   const output = await bundle.generate({

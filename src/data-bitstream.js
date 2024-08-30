@@ -137,8 +137,8 @@ class DataBitstream {
   /**
    * Read the specified number of bits.
    * @param {number} bits The number of bits to be read.
-   * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
-   * @param {boolean} [advance=true] If true, advance the bit position.
+   * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+   * @param {boolean} [advance] If true, advance the bit position, default is false.
    * @returns {number} The value read in from the stream.
    */
   read(bits, signed = false, advance = true) {
@@ -192,7 +192,7 @@ class DataBitstream {
   /**
    * Read the specified number of bits without advancing the bit position.
    * @param {number} bits The number of bits to be read.
-   * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
+   * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
    * @returns {number} The value read in from the stream.
    */
   peek(bits, signed = false) {
@@ -206,8 +206,8 @@ class DataBitstream {
    * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
    * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
    * @param {number} bits The number of bits to be read.
-   * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
-   * @param {boolean} [advance=true] If true, advance the bit position.
+   * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+   * @param {boolean} [advance] If true, advance the bit position, default is true.
    * @returns {number} The value read in from the stream.
    * @throws {Error} Too Large, too many bits.
    */
@@ -263,7 +263,7 @@ class DataBitstream {
    * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
    * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
    * @param {number} bits The number of bits to be read.
-   * @param {boolean} [signed=false] If the sign bit is turned on, flip the bits and add one to convert to a negative value.
+   * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
    * @returns {number} The value read in from the stream.
    * @throws {Error} Too Large, too many bits.
    */

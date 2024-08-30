@@ -139,8 +139,8 @@ Read the specified number of bits.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bits | <code>number</code> |  | The number of bits to be read. |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
-| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false. |
+| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position, default is false. |
 
 <a name="DataBitstream+peek"></a>
 
@@ -153,7 +153,7 @@ Read the specified number of bits without advancing the bit position.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bits | <code>number</code> |  | The number of bits to be read. |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false. |
 
 <a name="DataBitstream+readLSB"></a>
 
@@ -173,8 +173,8 @@ It is analogous to the least significant digit of a decimal integer, which is th
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bits | <code>number</code> |  | The number of bits to be read. |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
-| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false. |
+| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position, default is true. |
 
 <a name="DataBitstream+peekLSB"></a>
 
@@ -194,7 +194,7 @@ It is analogous to the least significant digit of a decimal integer, which is th
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bits | <code>number</code> |  | The number of bits to be read. |
-| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value. |
+| [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false. |
 
 <a name="DataBitstream.fromData"></a>
 

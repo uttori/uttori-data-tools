@@ -1,7 +1,7 @@
 <a name="DataStream"></a>
 
 ## DataStream
-Helpter class to ease working with binary files.
+Helper class to ease working with binary files.
 
 **Kind**: global class  
 **Properties**
@@ -99,11 +99,11 @@ Helpter class to ease working with binary files.
 Creates a new DataStream.
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| list | <code>DataBufferList</code> |  | The DataBufferList to process |
-| options | <code>object</code> |  | Options for this instance |
-| [options.size] | <code>number</code> | <code>16</code> | ArrayBuffer byteLength for the underlying binary parsing |
+| Param | Type | Description |
+| --- | --- | --- |
+| list | <code>DataBufferList</code> | The DataBufferList to process |
+| options | <code>object</code> | Options for this instance |
+| [options.size] | <code>number</code> | ArrayBuffer byteLength for the underlying binary parsing |
 
 **Example** *(new DataStream(list, options))*  
 ```js
@@ -215,7 +215,7 @@ Compares input data against the current data.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | input | [<code>DataStream</code>](#DataStream) |  | The DataStream to compare against. |
-| [offset] | <code>number</code> | <code>0</code> | The offset to begin comparing at. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to begin comparing at, default is 0. |
 
 <a name="DataStream+next"></a>
 
@@ -337,7 +337,7 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataStream+read"></a>
 
@@ -350,7 +350,7 @@ Read from the current offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bytes | <code>number</code> |  | The number of bytes to read. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peek"></a>
 
@@ -363,8 +363,8 @@ Read from the provided offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bytes | <code>number</code> |  | The number of bytes to read. |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekBit"></a>
 
@@ -382,8 +382,8 @@ Read the bits from the bytes from the provided offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | position | <code>number</code> |  | The bit position to read, 0 to 7. |
-| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8. |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8, default is 1. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataStream+readInt8"></a>
 
@@ -402,7 +402,7 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataStream+readUInt16"></a>
 
@@ -412,9 +412,9 @@ Read from the current offset and return the value.
 **Kind**: instance method of [<code>DataStream</code>](#DataStream)  
 **Returns**: <code>number</code> - The UInt16 value at the current offset.  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| Param | Type | Description |
+| --- | --- | --- |
+| [littleEndian] | <code>boolean</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekUInt16"></a>
 
@@ -426,8 +426,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readInt16"></a>
 
@@ -439,7 +439,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekInt16"></a>
 
@@ -451,8 +451,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readUInt24"></a>
 
@@ -464,7 +464,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekUInt24"></a>
 
@@ -476,8 +476,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readInt24"></a>
 
@@ -489,7 +489,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekInt24"></a>
 
@@ -501,8 +501,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readUInt32"></a>
 
@@ -514,7 +514,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekUInt32"></a>
 
@@ -526,8 +526,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readInt32"></a>
 
@@ -539,7 +539,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekInt32"></a>
 
@@ -551,8 +551,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readFloat32"></a>
 
@@ -564,7 +564,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekFloat32"></a>
 
@@ -576,8 +576,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readFloat48"></a>
 
@@ -590,7 +590,7 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekFloat48"></a>
 
@@ -603,8 +603,8 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> |  | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readFloat64"></a>
 
@@ -616,7 +616,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekFloat64"></a>
 
@@ -628,8 +628,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readFloat80"></a>
 
@@ -641,7 +641,7 @@ Read from the current offset and return the IEEE 80 bit extended float value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+peekFloat80"></a>
 
@@ -653,8 +653,8 @@ Read from the specified offset without advancing the offsets and return the IEEE
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readBuffer"></a>
 
@@ -717,7 +717,7 @@ Read from the current offset for a given length and return the value as a string
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | length | <code>number</code> |  | The number of bytes to read. |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
 
 <a name="DataStream+peekString"></a>
 
@@ -731,7 +731,7 @@ Read from the specified offset for a given length and return the value as a stri
 | --- | --- | --- | --- |
 | offset | <code>number</code> |  | The offset to read from. |
 | length | <code>number</code> |  | The number of bytes to read. |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
 
 <a name="DataStream+decodeString"></a>
 
@@ -766,7 +766,7 @@ Creates a new DataStream from file data.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>string</code> \| <code>Buffer</code> | The data of the image to process. |
+| data | <code>string</code> \| <code>number</code> \| <code>ArrayBuffer</code> \| <code>Uint8Array</code> \| <code>Int8Array</code> \| <code>Uint16Array</code> \| <code>Int16Array</code> \| <code>Uint32Array</code> \| <code>Int32Array</code> \| <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>DataBuffer</code> | The data to process. |
 
 <a name="DataStream.fromBuffer"></a>
 
@@ -778,5 +778,5 @@ Creates a new DataStream from a DataBuffer.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| buffer | <code>DataBuffer</code> | The DataBuffer of the image to process. |
+| buffer | <code>DataBuffer</code> | The DataBuffer containing the data to process. |
 

@@ -8,9 +8,9 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
 /**
  * Format an amount of bytes to a human friendly string.
  * @param {number} input The number of bytes.
- * @param {number} [decimals=2] The number of trailing decimal places to chop to.
- * @param {number} [bytes=1024] The byte division value, alternatively could be 1000 for decimal values rather than binary values.
- * @param {string[]} [sizes=['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']] An array of the various size suffixes.
+ * @param {number} [decimals] The number of trailing decimal places to chop to, default is 2.
+ * @param {number} [bytes] The byte division value, alternatively could be 1000 for decimal values rather than binary values, default is 1024.
+ * @param {string[]} [sizes] An optional array of the various size suffixes in ascending order of size: `['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']`
  * @returns {string} The human friendly representation of the number of bytes.
  * @see {@link https://en.wikipedia.org/wiki/Byte#Multiple-byte_units|Multiple-byte units}
  */

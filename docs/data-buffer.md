@@ -19,6 +19,7 @@ Helper class for manipulating binary data.
     * _instance_
         * [.writing](#DataBuffer+writing) : <code>boolean</code>
         * [.data](#DataBuffer+data) : <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
+        * [.lengthInBytes](#DataBuffer+lengthInBytes) : <code>number</code>
         * [.next](#DataBuffer+next) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.prev](#DataBuffer+prev) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.nativeEndian](#DataBuffer+nativeEndian) : <code>boolean</code>
@@ -112,16 +113,22 @@ Is this instance for creating a new file?
 The bytes avaliable to read.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
+<a name="DataBuffer+lengthInBytes"></a>
+
+### dataBuffer.lengthInBytes : <code>number</code>
+The number of bytes avaliable to read.
+
+**Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+next"></a>
 
 ### dataBuffer.next : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
-The next DataBuffer in the list.
+When the buffer is part of a bufferlist, the next DataBuffer in the list.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+prev"></a>
 
 ### dataBuffer.prev : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
-The previous DataBuffer in the list.
+When the buffer is part of a bufferlist, the previous DataBuffer in the list.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+nativeEndian"></a>
@@ -160,7 +167,7 @@ Compares another DataBuffer against the current data buffer at a specified offse
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The size of the requested DataBuffer. |
-| [offset] | <code>number</code> | <code>0</code> | The size of the requested DataBuffer. |
+| [offset] | <code>number</code> | <code>0</code> | The size of the requested DataBuffer, default is 0. |
 
 <a name="DataBuffer+copy"></a>
 
@@ -177,10 +184,10 @@ Creates a copy of the current DataBuffer from a specified offset and a specified
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
 **Returns**: [<code>DataBuffer</code>](#DataBuffer) - The new DataBuffer  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| position | <code>number</code> |  | The starting offset to begin the copy of the new DataBuffer. |
-| [length] | <code>number</code> | <code>this.length</code> | The size of the new DataBuffer. |
+| Param | Type | Description |
+| --- | --- | --- |
+| position | <code>number</code> | The starting offset to begin the copy of the new DataBuffer. |
+| [length] | <code>number</code> | The size of the new DataBuffer, defaults to the current length. |
 
 <a name="DataBuffer+remainingBytes"></a>
 
@@ -282,7 +289,7 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataBuffer+read"></a>
 
@@ -295,7 +302,7 @@ Read from the current offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bytes | <code>number</code> |  | The number of bytes to read. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peek"></a>
 
@@ -308,8 +315,8 @@ Read from the provided offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | bytes | <code>number</code> |  | The number of bytes to read. |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekBit"></a>
 
@@ -327,8 +334,8 @@ Read the bits from the bytes from the provided offset and return the value.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | position | <code>number</code> |  | The bit position to read, 0 to 7. |
-| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8. |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [length] | <code>number</code> | <code>1</code> | The number of bits to read, 1 to 8, default is 1. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataBuffer+readInt8"></a>
 
@@ -347,7 +354,7 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 
 <a name="DataBuffer+readUInt16"></a>
 
@@ -357,9 +364,9 @@ Read from the current offset and return the value.
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
 **Returns**: <code>number</code> - The UInt16 value at the current offset.  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| Param | Type | Description |
+| --- | --- | --- |
+| [littleEndian] | <code>boolean</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekUInt16"></a>
 
@@ -371,8 +378,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readInt16"></a>
 
@@ -384,7 +391,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekInt16"></a>
 
@@ -396,8 +403,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readUInt24"></a>
 
@@ -409,7 +416,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekUInt24"></a>
 
@@ -421,8 +428,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readInt24"></a>
 
@@ -434,7 +441,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekInt24"></a>
 
@@ -446,8 +453,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readUInt32"></a>
 
@@ -459,7 +466,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekUInt32"></a>
 
@@ -471,8 +478,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readInt32"></a>
 
@@ -484,7 +491,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekInt32"></a>
 
@@ -496,8 +503,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readFloat32"></a>
 
@@ -509,7 +516,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekFloat32"></a>
 
@@ -521,8 +528,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readFloat48"></a>
 
@@ -535,7 +542,7 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekFloat48"></a>
 
@@ -548,8 +555,8 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> |  | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readFloat64"></a>
 
@@ -561,7 +568,7 @@ Read from the current offset and return the value.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+peekFloat64"></a>
 
@@ -573,8 +580,8 @@ Read from the specified offset without advancing the offsets and return the valu
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readFloat80"></a>
 
@@ -584,9 +591,9 @@ Read from the current offset and return the IEEE 80 bit extended float value.
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
 **Returns**: <code>number</code> - The Float80 value at the current offset.  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | <code>this.nativeEndian</code> | Read in Little Endian format, defaults to system value. |
+| Param | Type | Description |
+| --- | --- | --- |
+| [littleEndian] | <code>boolean</code> | Read in Little Endian format, defaults to system value. |
 
 <a name="DataBuffer+peekFloat80"></a>
 
@@ -598,8 +605,8 @@ Read from the specified offset without advancing the offsets and return the IEEE
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> | <code>0</code> | The offset to read from. |
-| [littleEndian] | <code>boolean</code> | <code>this.nativeEndian</code> | Read in Little Endian format, defaults to system value. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> |  | Read in Little Endian format, defaults to system value. |
 
 <a name="DataBuffer+readBuffer"></a>
 
@@ -637,7 +644,7 @@ Read from the current offset for a given length and return the value as a string
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | length | <code>number</code> |  | The number of bytes to read. |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
 
 <a name="DataBuffer+peekString"></a>
 
@@ -651,7 +658,7 @@ Read from the specified offset for a given length and return the value as a stri
 | --- | --- | --- | --- |
 | offset | <code>number</code> |  | The offset to read from. |
 | length | <code>number</code> |  | The number of bytes to read. |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
 
 <a name="DataBuffer+decodeString"></a>
 
@@ -686,8 +693,8 @@ Writes a single 8 bit byte.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | data | <code>number</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
 
 <a name="DataBuffer+writeUInt16"></a>
 
@@ -699,9 +706,9 @@ Writes an unsigned 16 bit value, 2 bytes.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | data | <code>number</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order, little Endian when `true`, default is big Endian `false`. |
 
 <a name="DataBuffer+writeUInt24"></a>
 
@@ -713,9 +720,9 @@ Writes an unsigned 24 bit value, 3 bytes.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | data | <code>number</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order, little Endian when `true`, default is big Endian `false`. |
 
 <a name="DataBuffer+writeUInt32"></a>
 
@@ -727,9 +734,9 @@ Writes an unsigned 32 bit value, 4 bytes.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | data | <code>number</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
-| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Endianness of the write order, little Endian when `true`, default is big Endian `false`. |
 
 <a name="DataBuffer+writeBytes"></a>
 
@@ -741,8 +748,8 @@ Write a series of bytes.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | data | <code>Array.&lt;number&gt;</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
 
 <a name="DataBuffer+writeString"></a>
 
@@ -764,9 +771,9 @@ UTF-8 conversion interpreted from https://stackoverflow.com/posts/18729931/revis
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | string | <code>string</code> |  | The data to write. |
-| [offset] | <code>number</code> | <code>this.offset</code> | The offset to write the data to. |
-| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string. |
-| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position. |
+| [offset] | <code>number</code> |  | The offset to write the data to, default is current offset. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, defailt is `ascii`. |
+| [advance] | <code>boolean</code> | <code>true</code> | Flag to increment the offset to the next position, default is true. |
 
 <a name="DataBuffer+commit"></a>
 

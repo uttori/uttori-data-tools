@@ -1,5 +1,5 @@
 export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): import('../dist/custom.js').FormatASCIIOutput;
+export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): import("../dist/custom.js").FormatASCIIOutput;
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
@@ -10,7 +10,7 @@ export function formatASCII(value: number, asciiFlags: Record<string, boolean | 
 /**
  * @type {import('../dist/custom.js').HexTableFormater}
  */
-export const hexTableFormaters: import('../dist/custom.js').HexTableFormater;
+export const hexTableFormaters: import("../dist/custom.js").HexTableFormater;
 /**
  * Header layout definitions.
  * GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
@@ -97,15 +97,15 @@ export type HexTableFormater = {
     /**
      * Offset formatting fuction.
      */
-    offset: import('../dist/custom.js').FormatNumber;
+    offset: import("../dist/custom.js").FormatNumber;
     /**
      * Byte value formating function.
      */
-    value: import('../dist/custom.js').FormatNumber;
+    value: import("../dist/custom.js").FormatNumber;
     /**
      * ASCII text formatting function.
      */
-    ascii: import('../dist/custom.js').FormatNumberToASCII;
+    ascii: import("../dist/custom.js").FormatNumberToASCII;
 };
 /**
  * Header layout definitions.
