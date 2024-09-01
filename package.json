@@ -42,10 +42,10 @@
     "eslint-plugin-security": "^2.1.0",
     "eslint-plugin-xss": "^0.1.12",
     "jsdoc": "^4.0.3",
-    "jsdoc-to-markdown": "^8.0.3",
+    "jsdoc-to-markdown": "^9.0.0",
     "jsdoc-tsimport-plugin": "^1.0.5",
     "pre-commit": "^1.2.2",
-    "release-it": "^17.0.3",
+    "release-it": "^17.6.0",
     "rollup": "^4.21.2",
     "sinon": "^18.0.0",
     "typescript": "^5.5.4"
