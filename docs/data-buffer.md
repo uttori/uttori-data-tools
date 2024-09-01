@@ -555,7 +555,7 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> |  | The offset to read from, default is 0. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataBuffer+readFloat64"></a>
@@ -593,7 +593,7 @@ Read from the current offset and return the IEEE 80 bit extended float value.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [littleEndian] | <code>boolean</code> | Read in Little Endian format, defaults to system value. |
+| [littleEndian] | <code>boolean</code> | Read in Little Endian format, defaults to system value, default is the current nativeEndian value. |
 
 <a name="DataBuffer+peekFloat80"></a>
 
@@ -606,7 +606,7 @@ Read from the specified offset without advancing the offsets and return the IEEE
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
-| [littleEndian] | <code>boolean</code> |  | Read in Little Endian format, defaults to system value. |
+| [littleEndian] | <code>boolean</code> |  | Read in Little Endian format, defaults to system value, default is the current nativeEndian value. |
 
 <a name="DataBuffer+readBuffer"></a>
 

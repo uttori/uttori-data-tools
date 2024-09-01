@@ -138,7 +138,7 @@ class DataBitstream {
    * Read the specified number of bits.
    * @param {number} bits The number of bits to be read.
    * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
-   * @param {boolean} [advance] If true, advance the bit position, default is false.
+   * @param {boolean} [advance] If true, advance the bit position, default is true.
    * @returns {number} The value read in from the stream.
    */
   read(bits, signed = false, advance = true) {

@@ -522,7 +522,7 @@ class DataBuffer {
    * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
    * @returns {number} The Float48 value at the specified offset.
    */
-  peekFloat48(offset, littleEndian = false) {
+  peekFloat48(offset = 0, littleEndian = false) {
     const uint8 = this.peek(6, offset, littleEndian || this.nativeEndian);
     return float48(uint8);
   }
@@ -552,7 +552,7 @@ class DataBuffer {
 
   /**
    * Read from the current offset and return the IEEE 80 bit extended float value.
-   * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value.
+   * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value, default is the current nativeEndian value.
    * @returns {number} The Float80 value at the current offset.
    */
   readFloat80(littleEndian = this.nativeEndian) {
@@ -563,7 +563,7 @@ class DataBuffer {
   /**
    * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
    * @param {number} [offset] The offset to read from, default is 0.
-   * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value.
+   * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value, default is the current nativeEndian value.
    * @returns {number} The Float80 value at the current offset.
    */
   peekFloat80(offset = 0, littleEndian = this.nativeEndian) {

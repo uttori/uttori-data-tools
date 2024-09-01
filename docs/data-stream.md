@@ -103,7 +103,7 @@ Creates a new DataStream.
 | --- | --- | --- |
 | list | <code>DataBufferList</code> | The DataBufferList to process |
 | options | <code>object</code> | Options for this instance |
-| [options.size] | <code>number</code> | ArrayBuffer byteLength for the underlying binary parsing |
+| [options.size] | <code>number</code> | ArrayBuffer byteLength for the underlying binary parsing, default is 16. |
 
 **Example** *(new DataStream(list, options))*  
 ```js
@@ -603,7 +603,7 @@ May be faulty with large numbers due to float percision.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [offset] | <code>number</code> |  | The offset to read from, default is 0. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
 <a name="DataStream+readFloat64"></a>

@@ -140,7 +140,7 @@ Read the specified number of bits.
 | --- | --- | --- | --- |
 | bits | <code>number</code> |  | The number of bits to be read. |
 | [signed] | <code>boolean</code> | <code>false</code> | If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false. |
-| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position, default is false. |
+| [advance] | <code>boolean</code> | <code>true</code> | If true, advance the bit position, default is true. |
 
 <a name="DataBitstream+peek"></a>
 

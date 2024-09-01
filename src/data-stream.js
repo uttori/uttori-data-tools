@@ -33,7 +33,7 @@ class DataStream {
    * Creates a new DataStream.
    * @param {DataBufferList} list The DataBufferList to process
    * @param {object} options Options for this instance
-   * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing
+   * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing, default is 16.
    */
   constructor(list, options = {}) {
     options.size = options.size || 16;
@@ -570,7 +570,7 @@ class DataStream {
    * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
    * @returns {number} The Float48 value at the specified offset.
    */
-  peekFloat48(offset, littleEndian = false) {
+  peekFloat48(offset = 0, littleEndian = false) {
     this.peek(6, offset, littleEndian);
     return float48(this.uint8);
   }
