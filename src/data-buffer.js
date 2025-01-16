@@ -1,4 +1,3 @@
-/* eslint-disable no-multi-spaces */
 import UnderflowError from './underflow-error.js';
 import { float48, float80 } from './data-helpers.js';
 
@@ -726,7 +725,6 @@ class DataBuffer {
         }
 
         let w1;
-        // eslint-disable-next-line no-cond-assign
         while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
           offset += 2;
 

@@ -792,7 +792,6 @@ class DataStream {
         }
 
         let w1;
-        // eslint-disable-next-line no-cond-assign
         while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
           offset += 2;
 

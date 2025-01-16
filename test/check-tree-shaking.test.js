@@ -5,7 +5,6 @@ import test from 'ava';
 import { rollup } from 'rollup';
 import replace from '@rollup/plugin-replace';
 
-// eslint-disable-next-line no-console
 const onwarn = console.warn;
 const plugins = [
   replace({

@@ -274,14 +274,14 @@ declare class DataBuffer {
     peekFloat64(offset?: number, littleEndian?: boolean): number;
     /**
      * Read from the current offset and return the IEEE 80 bit extended float value.
-     * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value.
+     * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value, default is the current nativeEndian value.
      * @returns {number} The Float80 value at the current offset.
      */
     readFloat80(littleEndian?: boolean): number;
     /**
      * Read from the specified offset without advancing the offsets and return the IEEE 80 bit extended float value.
      * @param {number} [offset] The offset to read from, default is 0.
-     * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value.
+     * @param {boolean} [littleEndian] Read in Little Endian format, defaults to system value, default is the current nativeEndian value.
      * @returns {number} The Float80 value at the current offset.
      */
     peekFloat80(offset?: number, littleEndian?: boolean): number;

@@ -39,7 +39,7 @@ declare class DataStream {
      * Creates a new DataStream.
      * @param {DataBufferList} list The DataBufferList to process
      * @param {object} options Options for this instance
-     * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing
+     * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing, default is 16.
      */
     constructor(list: DataBufferList, options?: {
         size?: number;
