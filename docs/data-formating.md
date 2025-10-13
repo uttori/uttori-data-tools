@@ -230,6 +230,10 @@ Shows the edit graph with the path taken through it.
 | [options.showFull] | <code>boolean</code> | Show full grid or just the path, default is false (path only). |
 | [options.showLabels] | <code>boolean</code> | Show axis labels, default is true. |
 
+<a name="formatMyersGraph..grid"></a>
+
+### formatMyersGraph~grid : <code>Array.&lt;Array.&lt;string&gt;&gt;</code>
+**Kind**: inner constant of [<code>formatMyersGraph</code>](#formatMyersGraph)  
 <a name="HexTableFormater"></a>
 
 ## HexTableFormater : <code>object</code>

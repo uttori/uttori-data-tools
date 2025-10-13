@@ -31,30 +31,20 @@ const main = async () => {
 
   // Find all JavaScript files, excluding utilities
   const files = await glob('src/**/*.js', {
-    ignore: ['src/plugins/utilities/**']
+    ignore: ['src/index.js']
   });
 
-  // Separate main files from plugin files
-  const mainFiles = files.filter(f => !f.includes('/plugins/'));
-  const pluginFiles = files.filter(f => f.includes('/plugins/') && !f.includes('/utilities/'));
 
   // Generate documentation for main files
-  mainFiles.forEach(file => {
-    const baseName = path.basename(file, '.js');
-    const outputPath = file === 'src/wiki.js' ? 'README.md' : `docs/${baseName}.md`;
-    const useTemplate = file === 'src/wiki.js';
-    generateDoc(file, outputPath, useTemplate);
-  });
+  files.forEach(file => {
+    // Preserve the directory structure from src/
+    const relativePath = path.relative('src', file);
+    const outputPath = path.join('docs', relativePath.replace('.js', '.md'));
 
-  // Generate documentation for plugin files
-  pluginFiles.forEach(file => {
-    const baseName = path.basename(file, '.js');
-    const outputPath = `docs/plugins/${baseName}.md`;
-    try {
-      generateDoc(file, outputPath, false);
-    } catch (error) {
-      console.error(`File ${file}`, error);
-    }
+    // Ensure the output directory exists
+    ensureDir(path.dirname(outputPath));
+
+    generateDoc(file, outputPath, false);
   });
 
   console.log('Documentation generation complete!');

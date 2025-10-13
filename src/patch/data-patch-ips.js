@@ -13,7 +13,7 @@ import DataBuffer from '@uttori/data-tools/data-buffer';
  * @property {number} offset 3 bytes. The starting offset of the change.
  * @property {number} length The length of the change.
  * @property {number} [rle] The type of change, value is not undefined when Run Length Encoding is being used.
- * @property {number[]|Uint8Array} [data] The data to be used for the change when not RLE.
+ * @property {number[]} [data] The data to be used for the change when not RLE.
  */
 
 const IPS_MAX_SIZE = 0x1000000; // 16 megabytes
@@ -100,7 +100,7 @@ class IPS extends DataBuffer {
         const data = this.read(length);
         // debug('XXX:', 'with length', length, 'at offset', offset);
         // debug(hexTable(new DataBuffer(data)));
-        this.hunks.push({ offset, length, data });
+        this.hunks.push({ offset, length, data: Array.from(data) });
       }
     }
 
@@ -231,6 +231,7 @@ class IPS extends DataBuffer {
     }
 
     // solution: save startOffset and endOffset (go looking from 6 to 6 backwards)
+    /** @type {IPSChunk} */
     let previousRecord = { offset: 0, length: 0 };
     while (modified.remainingBytes()) {
       let b1 = !original.remainingBytes() ? 0x00 : original.readUInt8();

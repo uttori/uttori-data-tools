@@ -18,12 +18,28 @@ export type IPSChunk = {
     /**
      * The data to be used for the change when not RLE.
      */
-    data?: number[] | Uint8Array;
+    data?: number[];
 };
 /**
- * IPS is a simple format for binary file patches, popular in the ROM hacking community
+ * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
  * "IPS" allegedly stands for "International Patching System".
  * FuSoYa's LunarIPS extension that writes beyond EOF to support a "cut" / truncate command is also supported.
+ * IPS as a class can be used to:
+ * - Parse IPS patch and apply to file
+ * - Create IPS from file and modified file
+ * - Debug IPS patch
+ * An IPS file starts with the magic number "PATCH" (50 41 54 43 48), followed by a series of hunks and an end-of-file marker "EOF" (45 4f 46).
+ * All numerical values are unsigned and stored big-endian.
+ *
+ * Regular hunks consist of a three-byte offset followed by a two-byte length of the payload and the payload itself.
+ * Applying the hunk is done by writing the payload at the specified offset.
+ *
+ * RLE hunks have their length field set to zero; in place of a payload there is a two-byte length of the run followed by a single byte indicating the value to be written.
+ * Applying the RLE hunk is done by writing this byte the specified number of times at the specified offset.
+ *
+ * As an extension, the end-of-file marker may be followed by a three-byte length to which the resulting file should be truncated.
+ * Not every patching program will implement this extension, however.
+ * @see {@link http://fileformats.archiveteam.org/wiki/IPS_(binary_patch_format)}
  */
 declare class IPS extends DataBuffer {
     /**

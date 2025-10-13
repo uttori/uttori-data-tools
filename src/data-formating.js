@@ -807,6 +807,8 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
   const charHeight = gridHeight * 2;
 
   // Initialize grid with spaces
+  /** @type {string[][]} */
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const grid = Array.from({ length: charHeight }, () => Array(charWidth).fill(' '));
 
   if (config.showFull) {
