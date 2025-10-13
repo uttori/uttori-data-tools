@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file. This projec
 - 🧹 Documentation & Types clean up and corrections
 - 🧹 Update ESLint synatx to v9
 - 🎁 Update dev dependencies
+- 🧰 Add `IPS` class for creating and applying IPS patch files with truncate support.
+
+```js
+const data = await fs.readFile('Chrono Trigger - JP Title Screen (hack).ips');
+const patch = new IPS(data);
+patch.parse();
+
+const original = await fs.readFile('Chrono Trigger (USA).sfc');
+const patched = patch.apply(new DataBuffer(original));
+patched.commit();
+await fs.writeFile('Chrono Trigger - JP Title Screen (hack).sfc', Buffer.from(patched.data));
+```
+
 - 🧰 Add `diff` method to DataBuffer to generate diff operations that can be used to generate various diff formats
 
 ```

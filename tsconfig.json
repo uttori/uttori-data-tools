@@ -25,6 +25,7 @@
     "moduleResolution": "nodenext",
     "outDir": "dist",
     "noEmit": false,
+    "rootDir": "src",
     "sourceMap": true,
     "strict": false,
     "target": "esnext",

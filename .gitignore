@@ -58,3 +58,10 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Test files
+build/Chrono Trigger (USA).patched.sfc
+build/Chrono Trigger (USA).patched.ips
+build/Chrono Trigger (USA).sfc
+build/Chrono Trigger - JP Title Screen (hack).ips
+build/DQ1n2Fix.ips
