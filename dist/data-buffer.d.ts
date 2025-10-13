@@ -56,6 +56,13 @@ declare class DataBuffer {
      */
     compare(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): boolean;
     /**
+     * Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The DataBuffer to compare against.
+     * @param {number} [offset] The offset to start the comparison from, default is 0.
+     * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
+     */
+    diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): import("./diff/diff.js").Edit[];
+    /**
      * Creates a copy of the current DataBuffer.
      * @returns {DataBuffer} A new copy of the current DataBuffer.
      */

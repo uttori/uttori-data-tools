@@ -27,6 +27,7 @@ Helper class for manipulating binary data.
         * [.buffer](#DataBuffer+buffer) : <code>Array.&lt;number&gt;</code>
         * [.length](#DataBuffer+length) ⇒ <code>number</code>
         * [.compare(input, [offset])](#DataBuffer+compare) ⇒ <code>boolean</code>
+        * [.diff(input, [offset])](#DataBuffer+diff) ⇒ <code>Array.&lt;Edit&gt;</code>
         * [.copy()](#DataBuffer+copy) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.slice(position, [length])](#DataBuffer+slice) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.remainingBytes()](#DataBuffer+remainingBytes) ⇒ <code>number</code>
@@ -168,6 +169,19 @@ Compares another DataBuffer against the current data buffer at a specified offse
 | --- | --- | --- | --- |
 | input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The size of the requested DataBuffer. |
 | [offset] | <code>number</code> | <code>0</code> | The size of the requested DataBuffer, default is 0. |
+
+<a name="DataBuffer+diff"></a>
+
+### dataBuffer.diff(input, [offset]) ⇒ <code>Array.&lt;Edit&gt;</code>
+Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>Array.&lt;Edit&gt;</code> - Returns an array of edits describing the differences.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The DataBuffer to compare against. |
+| [offset] | <code>number</code> | <code>0</code> | The offset to start the comparison from, default is 0. |
 
 <a name="DataBuffer+copy"></a>
 

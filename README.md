@@ -28,7 +28,7 @@ npm install --save @uttori/data-tools
 ## Examples
 
 ```js
-import { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } from 'uttori-data-tools';
+import { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } from '@uttori/data-tools';
 
 CRC32.of('The quick brown fox jumps over the lazy dog');
 ➜ '414FA339'

@@ -31,6 +31,17 @@
 <dt><a href="#formatTable">formatTable</a> ⇒ <code>string</code></dt>
 <dd><p>Create an ASCII table from provided data and configuration.</p>
 </dd>
+<dt><a href="#formatDiffHex">formatDiffHex</a> ⇒ <code>string</code></dt>
+<dd><p>Format diff edits as a hex-friendly table showing changes.
+Shows three rows: original data, delta values, and resulting data.</p>
+</dd>
+<dt><a href="#formatDiffHunks">formatDiffHunks</a> ⇒ <code>string</code></dt>
+<dd><p>Format diff hunks as a unified diff style with hex values.</p>
+</dd>
+<dt><a href="#formatMyersGraph">formatMyersGraph</a> ⇒ <code>string</code></dt>
+<dd><p>Format Myers diff result vectors as an ASCII grid visualization.
+Shows the edit graph with the path taken through it.</p>
+</dd>
 </dl>
 
 ## Typedefs
@@ -163,6 +174,61 @@ Create an ASCII table from provided data and configuration.
 | options.padding | <code>number</code> | Amount of padding to add to each cell. |
 | options.theme | [<code>TableFormatStyle</code>](#TableFormatStyle) | The theme to use for formatting. |
 | options.title | <code>string</code> | The title to display at the top of the table. |
+
+<a name="formatDiffHex"></a>
+
+## formatDiffHex ⇒ <code>string</code>
+Format diff edits as a hex-friendly table showing changes.
+Shows three rows: original data, delta values, and resulting data.
+
+**Kind**: global constant  
+**Returns**: <code>string</code> - The formatted diff output.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| edits | <code>Array.&lt;Edit&gt;</code> | The diff edits to format. |
+| [options] | <code>object</code> | Configuration options. |
+| [options.bytesPerRow] | <code>number</code> | Number of bytes per row, default is 16. |
+| [options.showOffset] | <code>boolean</code> | Show byte offsets, default is true. |
+| [options.showAscii] | <code>boolean</code> | Show ASCII representation, default is true. |
+| [options.showBits] | <code>boolean</code> | Show binary representation, default is true. |
+
+<a name="formatDiffHex..rowBuffer"></a>
+
+### formatDiffHex~rowBuffer : <code>Array.&lt;Edit&gt;</code>
+**Kind**: inner property of [<code>formatDiffHex</code>](#formatDiffHex)  
+<a name="formatDiffHunks"></a>
+
+## formatDiffHunks ⇒ <code>string</code>
+Format diff hunks as a unified diff style with hex values.
+
+**Kind**: global constant  
+**Returns**: <code>string</code> - The formatted diff output.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| hunks | <code>Array.&lt;Hunk&gt;</code> | The diff hunks to format. |
+| [options] | <code>object</code> | Configuration options. |
+| [options.context] | <code>number</code> | Number of context lines to show around changes, default is 3. |
+
+<a name="formatMyersGraph"></a>
+
+## formatMyersGraph ⇒ <code>string</code>
+Format Myers diff result vectors as an ASCII grid visualization.
+Shows the edit graph with the path taken through it.
+
+**Kind**: global constant  
+**Returns**: <code>string</code> - The formatted Myers graph.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| rx | <code>Array.&lt;boolean&gt;</code> | Result vector for x (deletions). |
+| ry | <code>Array.&lt;boolean&gt;</code> | Result vector for y (insertions). |
+| x | <code>Array.&lt;any&gt;</code> | The original sequence. |
+| y | <code>Array.&lt;any&gt;</code> | The modified sequence. |
+| [options] | <code>object</code> | Configuration options. |
+| [options.showFull] | <code>boolean</code> | Show full grid or just the path, default is false (path only). |
+| [options.showLabels] | <code>boolean</code> | Show axis labels, default is true. |
 
 <a name="HexTableFormater"></a>
 

@@ -77,6 +77,19 @@ export function formatTable(data: string[][], options: {
     theme: TableFormatStyle;
     title: string;
 }): string;
+export function formatDiffHex(edits: import("./diff/diff.js").Edit[], options?: {
+    bytesPerRow?: number;
+    showOffset?: boolean;
+    showAscii?: boolean;
+    showBits?: boolean;
+}): string;
+export function formatDiffHunks(hunks: import("./diff/diff.js").Hunk[], options?: {
+    context?: number;
+}): string;
+export function formatMyersGraph(rx: boolean[], ry: boolean[], x: any[], y: any[], options?: {
+    showFull?: boolean;
+    showLabels?: boolean;
+}): string;
 declare namespace _default {
     export { formatBytes };
     export { formatASCII };
@@ -88,6 +101,9 @@ declare namespace _default {
     export { formatTableThemeMySQL };
     export { formatTableThemeUnicode };
     export { formatTableThemeMarkdown };
+    export { formatDiffHex };
+    export { formatDiffHunks };
+    export { formatMyersGraph };
 }
 export default _default;
 /**

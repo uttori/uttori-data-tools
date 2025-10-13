@@ -24,7 +24,7 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     input: './test/tree-shaking/3-of-3.js',
     onwarn,
     plugins,
-    external: ["debug"],
+    external: ['debug'],
   });
 
   const output = await bundle.generate({
@@ -32,8 +32,11 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
   });
 
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
+  // DataBuffer now includes diff functionality (diff.js and myers.js)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'data-helpers.js',
+    'myers.js',
+    'diff.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
@@ -46,7 +49,7 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     input: './test/tree-shaking/4-of-1.js',
     onwarn,
     plugins,
-    external: ["debug"],
+    external: ['debug'],
   });
 
   const output = await bundle.generate({
@@ -56,6 +59,8 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'data-helpers.js',
+    'myers.js',
+    'diff.js',
     'data-buffer.js',
     'data-buffer-list.js',
     'data-stream.js',
@@ -69,7 +74,7 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     input: './test/tree-shaking/3-of-2.js',
     onwarn,
     plugins,
-    external: ["debug"],
+    external: ['debug'],
   });
 
   const output = await bundle.generate({
@@ -77,8 +82,11 @@ test('Tree Shaking: { CRC32 }', async (t) => {
   });
 
   // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
+  // DataBuffer now includes diff functionality (diff.js and myers.js)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
     'data-helpers.js',
+    'myers.js',
+    'diff.js',
     'data-buffer.js',
     'data-hash-crc32.js',
     '3-of-2.js',

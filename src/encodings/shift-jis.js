@@ -70,8 +70,8 @@ export const characterEncoding = {
   39: {
     shiftjs: 39,
     unicode: 39,
-    string: "'",
-    ascii: "'",
+    string: '\'',
+    ascii: '\'',
     name: 'APOSTROPHE',
   },
   40: {

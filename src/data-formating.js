@@ -427,6 +427,476 @@ export const formatTable = (data, options) => {
   return outputString;
 };
 
+/**
+ * Format diff edits as a hex-friendly table showing changes.
+ * Shows three rows: original data, delta values, and resulting data.
+ * @param {import('./diff/diff.js').Edit[]} edits The diff edits to format.
+ * @param {object} [options] Configuration options.
+ * @param {number} [options.bytesPerRow] Number of bytes per row, default is 16.
+ * @param {boolean} [options.showOffset] Show byte offsets, default is true.
+ * @param {boolean} [options.showAscii] Show ASCII representation, default is true.
+ * @param {boolean} [options.showBits] Show binary representation, default is true.
+ * @returns {string} The formatted diff output.
+ */
+export const formatDiffHex = (edits, options = {}) => {
+  const config = {
+    bytesPerRow: 16,
+    showOffset: true,
+    showAscii: true,
+    showBits: true,
+    ...options,
+  };
+
+  let output = '';
+  let xOffset = 0;
+  /** @type {import('./diff/diff.js').Edit[]} */
+  let rowBuffer = [];
+
+  const flushRow = () => {
+    if (rowBuffer.length === 0) return;
+
+    // Check if this row has any changes
+    const hasChanges = rowBuffer.some(({ op }) => op !== 0);
+
+    const offsetPrefix = config.showOffset ? `${xOffset.toString(16).padStart(8, '0')} | ` : '';
+
+    // If no changes, just show a single row
+    if (!hasChanges) {
+      let row = offsetPrefix;
+      let rowBits = '';
+      let rowAscii = '';
+
+      for (let i = 0; i < config.bytesPerRow; i++) {
+        if (i < rowBuffer.length) {
+          const { x } = rowBuffer[i];
+          const hex = x.toString(16).padStart(2, '0').toUpperCase();
+          row += hex;
+
+          if (config.showBits) {
+            const bits = x.toString(2).padStart(8, '0');
+            rowBits += bits;
+          }
+
+          if (config.showAscii) {
+            const char = (Number(x) >= 0x20 && Number(x) <= 0x7E) ? String.fromCharCode(Number(x)) : '.';
+            rowAscii += char;
+          }
+        } else {
+          row += '  ';
+          if (config.showBits) rowBits += '        ';
+          if (config.showAscii) rowAscii += ' ';
+        }
+
+        // Add spacing: 1 space between bytes, 2 spaces every 4 bytes
+        if (i < config.bytesPerRow - 1) {
+          row += ((i + 1) % 4 === 0) ? '  ' : ' ';
+          if (config.showBits) rowBits += ((i + 1) % 4 === 0) ? '  ' : ' ';
+        }
+      }
+
+      if (config.showBits) {
+        row += ' | ' + rowBits;
+      }
+
+      if (config.showAscii) {
+        row += ' | ' + rowAscii;
+      }
+
+      output += row + '\n';
+      rowBuffer = [];
+      return;
+    }
+
+    // Has changes, show three-row format
+    const offsetPadding = config.showOffset ? ' '.repeat(11) : '';
+
+    // Row 1: Original data
+    let row1 = offsetPrefix;
+    let row1Bits = '';
+    let row1Ascii = '';
+
+    // Row 2: Delta (difference between y and x)
+    let row2 = offsetPadding;
+    let row2Bits = '';
+
+    // Row 3: Resulting data
+    let row3 = offsetPrefix;
+    let row3Bits = '';
+    let row3Ascii = '';
+
+    for (let i = 0; i < config.bytesPerRow; i++) {
+      if (i < rowBuffer.length) {
+        const { x, y, op } = rowBuffer[i];
+
+        // Original value
+        const hex1 = x.toString(16).padStart(2, '0').toUpperCase();
+        row1 += hex1;
+
+        if (config.showBits) {
+          const bits1 = x.toString(2).padStart(8, '0');
+          row1Bits += bits1;
+        }
+
+        if (config.showAscii) {
+          const char = (Number(x) >= 0x20 && Number(x) <= 0x7E) ? String.fromCharCode(Number(x)) : '.';
+          row1Ascii += char;
+        }
+
+        // Delta calculation - sign goes in the preceding space, then hex value
+        if (op === 0) { // Match - no change
+          row2 += '  ';
+          if (config.showBits) row2Bits += '        ';
+        } else {
+          // Calculate signed difference
+          const diff = Number(y) - Number(x);
+          const sign = diff >= 0 ? '+' : '-';
+          const absDiff = Math.abs(diff);
+          const deltaHex = absDiff.toString(16).padStart(2, '0').toUpperCase();
+          // Back up one character to place sign in the space before the hex
+          row2 = row2.slice(0, -1) + sign + deltaHex;
+
+          if (config.showBits) {
+            // Show XOR of bits to highlight which bits changed
+            const xor = Number(x) ^ Number(y);
+            const xorBits = xor.toString(2).padStart(8, '0');
+            // Replace 0s with spaces, keep 1s to show which bits flipped
+            const diffBits = xorBits.split('').map(b => b === '1' ? '^' : ' ').join('');
+            row2Bits += diffBits;
+          }
+        }
+
+        // Resulting value
+        const hex3 = y.toString(16).padStart(2, '0').toUpperCase();
+        row3 += hex3;
+
+        if (config.showBits) {
+          const bits3 = y.toString(2).padStart(8, '0');
+          row3Bits += bits3;
+        }
+
+        if (config.showAscii) {
+          const char = (Number(y) >= 0x20 && Number(y) <= 0x7E) ? String.fromCharCode(Number(y)) : '.';
+          row3Ascii += char;
+        }
+      } else {
+        row1 += '  ';
+        row2 += '  ';
+        row3 += '  ';
+        if (config.showBits) {
+          row1Bits += '        ';
+          row2Bits += '        ';
+          row3Bits += '        ';
+        }
+        if (config.showAscii) {
+          row1Ascii += ' ';
+          row3Ascii += ' ';
+        }
+      }
+
+      // Add spacing: 1 space between bytes, 2 spaces every 4 bytes
+      if (i < config.bytesPerRow - 1) {
+        if ((i + 1) % 4 === 0) {
+          row1 += '  ';
+          row2 += '  ';
+          row3 += '  ';
+          if (config.showBits) {
+            row1Bits += '  ';
+            row2Bits += '  ';
+            row3Bits += '  ';
+          }
+        } else {
+          row1 += ' ';
+          row2 += ' ';
+          row3 += ' ';
+          if (config.showBits) {
+            row1Bits += ' ';
+            row2Bits += ' ';
+            row3Bits += ' ';
+          }
+        }
+      }
+    }
+
+    if (config.showBits) {
+      row1 += ' | ' + row1Bits;
+      row2 += ' | ' + row2Bits;
+      row3 += ' | ' + row3Bits;
+    }
+
+    if (config.showAscii) {
+      row1 += ' | ' + row1Ascii;
+      row3 += ' | ' + row3Ascii;
+    }
+
+    output += row1 + '\n';
+    output += row2 + '\n';
+    output += row3 + '\n';
+
+    rowBuffer = [];
+  };
+
+  // Process edits, combining delete+insert into replacements
+  for (let i = 0; i < edits.length; i++) {
+    const edit = edits[i];
+    const { op, x, y } = edit;
+
+    if (op === 0) { // Match
+      rowBuffer.push({ x, y, op });
+    } else if (op === 1) { // Delete
+      // Check if next edit is an insert - if so, treat as replacement
+      if (i + 1 < edits.length && edits[i + 1].op === 2) {
+        const nextEdit = edits[i + 1];
+        // Show as change
+        rowBuffer.push({ x, y: nextEdit.y, op: 1 });
+        // Skip the next insert since we combined them
+        i++;
+      } else {
+        // Standalone delete - show as x → x (no visual change in this context)
+        rowBuffer.push({ x, y: x, op: 0 });
+      }
+    } else if (op === 2) { // Insert (standalone, not part of replacement)
+      // Standalone insert - show as 0 → y
+      rowBuffer.push({ x: 0, y, op: 2 });
+    }
+
+    if (rowBuffer.length >= config.bytesPerRow) {
+      flushRow();
+      xOffset += config.bytesPerRow;
+    }
+  }
+
+  flushRow();
+
+  return output.trim();
+};
+
+/**
+ * Format diff hunks as a unified diff style with hex values.
+ * @param {import('./diff/diff.js').Hunk[]} hunks The diff hunks to format.
+ * @param {object} [options] Configuration options.
+ * @param {number} [options.context] Number of context lines to show around changes, default is 3.
+ * @returns {string} The formatted diff output.
+ */
+export const formatDiffHunks = (hunks, options = {}) => {
+  const config = {
+    context: 3,
+    ...options,
+  };
+
+  let output = '';
+
+  for (const hunk of hunks) {
+    const { posX, posY, edits } = hunk;
+
+    // Find the range of changes (non-match operations)
+    let firstChangeIdx = edits.findIndex(e => e.op !== 0);
+    let lastChangeIdx = edits.length - 1 - [...edits].reverse().findIndex(e => e.op !== 0);
+
+    // No changes in this hunk, skip it
+    if (firstChangeIdx === -1) {
+      continue;
+    }
+
+    // Calculate context range
+    const startIdx = Math.max(0, firstChangeIdx - config.context);
+    const endIdx = Math.min(edits.length, lastChangeIdx + config.context + 1);
+
+    // Calculate actual positions for header
+    let xCount = 0;
+    let yCount = 0;
+    for (let i = startIdx; i < endIdx; i++) {
+      // Not an insert
+      if (edits[i].op !== 2) xCount++;
+      // Not a delete
+      if (edits[i].op !== 1) yCount++;
+    }
+
+    const actualPosX = posX + startIdx;
+    const actualPosY = posY + startIdx;
+
+    // Header line
+    output += `@@ -${actualPosX},${xCount} +${actualPosY},${yCount} @@\n`;
+
+    // Process edits with context
+    for (let i = startIdx; i < endIdx; i++) {
+      const edit = edits[i];
+      const { op, x, y } = edit;
+
+      if (typeof x === 'number' || typeof y === 'number') {
+        const value = op === 2 ? y : x;
+        const hex = typeof value === 'number' ? value.toString(16).padStart(2, '0').toUpperCase() : '??';
+
+        let char = '.';
+        if (typeof value === 'number' && value >= 0x20 && value <= 0x7E) {
+          char = String.fromCharCode(value);
+        }
+
+        if (op === 0) {
+          // Match
+          output += ` ${hex}  ${char}\n`;
+        } else if (op === 1) {
+          // Delete
+          output += `-${hex}  ${char}\n`;
+        } else if (op === 2) {
+          // Insert
+          output += `+${hex}  ${char}\n`;
+        }
+      }
+    }
+
+    output += '\n';
+  }
+
+  return output.trim();
+};
+
+/**
+ * Format Myers diff result vectors as an ASCII grid visualization.
+ * Shows the edit graph with the path taken through it.
+ * @param {boolean[]} rx Result vector for x (deletions).
+ * @param {boolean[]} ry Result vector for y (insertions).
+ * @param {any[]} x The original sequence.
+ * @param {any[]} y The modified sequence.
+ * @param {object} [options] Configuration options.
+ * @param {boolean} [options.showFull] Show full grid or just the path, default is false (path only).
+ * @param {boolean} [options.showLabels] Show axis labels, default is true.
+ * @returns {string} The formatted Myers graph.
+ */
+export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
+  const config = {
+    showFull: false,
+    showLabels: true,
+    ...options,
+  };
+
+  const width = x.length;
+  const height = y.length;
+
+  // Trace the path through the grid
+  const path = [];
+  let xi = 0;
+  let yi = 0;
+
+  path.push({ x: xi, y: yi });
+
+  while (xi < width || yi < height) {
+    if (xi < width && yi < height && !rx[xi] && !ry[yi]) {
+      // Match - move diagonally
+      xi++;
+      yi++;
+      path.push({ x: xi, y: yi, diagonal: true });
+    } else if (xi < width && rx[xi]) {
+      // Delete from x - move right
+      xi++;
+      path.push({ x: xi, y: yi, horizontal: true });
+    } else if (yi < height && ry[yi]) {
+      // Insert from y - move down
+      yi++;
+      path.push({ x: xi, y: yi, vertical: true });
+    } else {
+      break;
+    }
+  }
+
+  // Build the grid
+  // Each cell is 4 chars wide: "o---" or "o   "
+  // Each row is 2 lines tall: node line and edge line
+  const gridWidth = width + 1;
+  const gridHeight = height + 1;
+  const charWidth = gridWidth * 4;
+  const charHeight = gridHeight * 2;
+
+  // Initialize grid with spaces
+  const grid = Array.from({ length: charHeight }, () => Array(charWidth).fill(' '));
+
+  if (config.showFull) {
+    // Draw full grid
+    for (let row = 0; row <= height; row++) {
+      for (let col = 0; col <= width; col++) {
+        const gridY = row * 2;
+        const gridX = col * 4;
+
+        // Place node
+        grid[gridY][gridX] = 'o';
+
+        // Horizontal edges
+        if (col < width) {
+          grid[gridY][gridX + 1] = '-';
+          grid[gridY][gridX + 2] = '-';
+          grid[gridY][gridX + 3] = '-';
+        }
+
+        // Vertical edges
+        if (row < height) {
+          grid[gridY + 1][gridX] = '|';
+        }
+
+        // Diagonal edges (only where the elements actually match)
+        if (col < width && row < height) {
+          // Check if x[col] actually equals y[row]
+          if (x[col] === y[row]) {
+            grid[gridY + 1][gridX + 2] = '\\';
+          }
+        }
+      }
+    }
+  } else {
+    // Draw only the path
+    for (let i = 0; i < path.length; i++) {
+      const { x: col, y: row } = path[i];
+      const gridY = row * 2;
+      const gridX = col * 4;
+
+      // Place node
+      grid[gridY][gridX] = 'o';
+
+      // Draw edge to next node
+      if (i < path.length - 1) {
+        const next = path[i + 1];
+
+        if (next.diagonal) {
+          // Diagonal edge
+          grid[gridY + 1][gridX + 2] = '\\';
+        } else if (next.horizontal) {
+          // Horizontal edge
+          grid[gridY][gridX + 1] = '-';
+          grid[gridY][gridX + 2] = '-';
+          grid[gridY][gridX + 3] = '-';
+        } else if (next.vertical) {
+          // Vertical edge
+          grid[gridY + 1][gridX] = '|';
+        }
+      }
+    }
+  }
+
+  // Convert grid to string with labels
+  let output = '';
+
+  if (config.showLabels) {
+    // Top row: column numbers
+    for (let col = 0; col <= width; col++) {
+      output += col.toString().padStart(4, ' ');
+    }
+    output += '\n';
+  }
+
+  // Grid rows
+  for (let row = 0; row < charHeight; row++) {
+    if (config.showLabels && row % 2 === 0) {
+      // Add row number for node lines
+      output += (row / 2).toString().padStart(2, ' ') + ' ';
+    } else if (config.showLabels) {
+      // Spacer for edge lines
+      output += '   ';
+    }
+
+    output += grid[row].join('') + '\n';
+  }
+
+  return output.trimEnd();
+};
+
 export default {
   formatBytes,
   formatASCII,
@@ -438,4 +908,7 @@ export default {
   formatTableThemeMySQL,
   formatTableThemeUnicode,
   formatTableThemeMarkdown,
+  formatDiffHex,
+  formatDiffHunks,
+  formatMyersGraph,
 };

@@ -1,5 +1,6 @@
 import UnderflowError from './underflow-error.js';
 import { float48, float80 } from './data-helpers.js';
+import { edits } from './diff/diff.js';
 
 let debug = (..._) => {};
 /* c8 ignore next */
@@ -126,6 +127,26 @@ class DataBuffer {
     }
     debug('compare: data is the same');
     return true;
+  }
+
+  /**
+   * Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The DataBuffer to compare against.
+   * @param {number} [offset] The offset to start the comparison from, default is 0.
+   * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
+   */
+  diff(input, offset = 0) {
+    // debug('diff:', { inputLength: input?.length, offset });
+    const buffer = new DataBuffer(input);
+
+    // Convert buffers to arrays of bytes
+    const x = Array.from(this.data.slice(offset));
+    const y = Array.from(buffer.data);
+
+    debug('diff: comparing', x.length, 'bytes against', y.length, 'bytes');
+
+    // Use byte-wise comparison
+    return edits(x, y, (a, b) => a === b);
   }
 
   /**
