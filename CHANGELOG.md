@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file. This projec
 - 🧹 Documentation & Types clean up and corrections
 - 🧹 Update ESLint synatx to v9
 - 🎁 Update dev dependencies
+- 🧰 Add `ImageGIF` for parsing GIF images and `GIFLZW` for decompressing GIF data and a general LZW implemenation
+- 🧰 Add `ImagePNG` for parsing PNG images
 - 🧰 Add `IPS` class for creating and applying IPS patch files with truncate support.
 
 ```js
@@ -21,7 +23,7 @@ const patched = patch.apply(new DataBuffer(original));
 patched.commit();
 await fs.writeFile('Chrono Trigger - JP Title Screen (hack).sfc', Buffer.from(patched.data));
 ```
-
+- 🧰 Add `isNextBytes` to DataBuffer to compare an array of bytes as the next few bytes in the upcoming data.
 - 🧰 Add `diff` method to DataBuffer to generate diff operations that can be used to generate various diff formats
 
 ```

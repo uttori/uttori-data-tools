@@ -34,6 +34,7 @@ export default defineConfig([
     "**/coverage",
     "**/node_modules",
     "build/**/*",
+    "demo/**/*",
     "dist/*",
     "eslint.config.js",
   ]),
