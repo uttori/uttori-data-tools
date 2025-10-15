@@ -7,6 +7,9 @@ import { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableT
 import { diff, edits, hunks, Op } from './diff/diff.js';
 import Myers from './diff/myers.js';
 import ShiftJIS from './encodings/shift-jis.js';
+import ImagePNG from './image/data-image-png.js';
+import GIFLZW from './image/gif_lzw.js';
+import ImageGIF from './image/data-image-gif.js';
 
 export default {
   CRC32,
@@ -29,6 +32,9 @@ export default {
   Op,
   Myers,
   ShiftJIS,
+  ImagePNG,
+  GIFLZW,
+  ImageGIF,
 };
 
 export { default as CRC32 } from './data-hash-crc32.js';
@@ -40,3 +46,6 @@ export { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableT
 export { diff, edits, hunks, Op } from './diff/diff.js';
 export { default as Myers } from './diff/myers.js';
 export { default as ShiftJIS } from './encodings/shift-jis.js';
+export { default as ImagePNG } from './image/data-image-png.js';
+export { default as GIFLZW } from './image/gif_lzw.js';
+export { default as ImageGIF } from './image/data-image-gif.js';
