@@ -1390,6 +1390,41 @@ test('writeString - Unknown Encoding', (t) => {
   t.throws(() => stream.writeString(value, stream.offset, 'magic'), { message: 'Unknown Encoding: magic' });
 });
 
+test('isNextBytes: no input provided', (t) => {
+  const stream = new DataBuffer();
+  t.false(stream.isNextBytes(null));
+  t.false(stream.isNextBytes(undefined));
+  t.false(stream.isNextBytes([]));
+  t.false(stream.isNextBytes({}));
+});
+
+test('isNextBytes: can compare against upcoming data', (t) => {
+  const stream = new DataBuffer([10, 160, 20, 29, 119]);
+
+  t.is(stream.isNextBytes(null), false);
+  t.is(stream.isNextBytes(undefined), false);
+  t.is(stream.isNextBytes({}), false);
+  t.is(stream.isNextBytes([]), false);
+  t.is(stream.isNextBytes([11]), false);
+
+  t.is(stream.isNextBytes([10]), true);
+  t.is(stream.isNextBytes([10, 160]), true);
+  t.is(stream.isNextBytes([10, 160, 20]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29]), true);
+  t.is(stream.isNextBytes([]), false);
+  t.is(stream.isNextBytes([11]), false);
+
+  t.is(stream.isNextBytes([10]), true);
+  t.is(stream.isNextBytes([10, 160]), true);
+  t.is(stream.isNextBytes([10, 160, 20]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29, 119]), true);
+  t.notThrows(() => {
+    stream.isNextBytes([10, 160, 20, 29, 119, 255]);
+  });
+  t.is(stream.isNextBytes([10, 160, 20, 29, 119, 255]), false);
+});
+
 test('diff: identical buffers', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);

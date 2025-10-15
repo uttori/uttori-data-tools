@@ -150,6 +150,34 @@ class DataBuffer {
   }
 
   /**
+   * Compares input data against the upcoming data, byte by byte.
+   * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+   * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+   */
+  isNextBytes(input) {
+    debug('isNextBytes:', input);
+    if (!input || typeof input.length !== 'number' || input.length === 0) {
+      debug('isNextBytes: no input provided');
+      return false;
+    }
+    if (!this.available(input.length)) {
+      debug(`isNextBytes: Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+      return false;
+    }
+
+    debug('isNextBytes: this.offset =', this.offset);
+    for (let i = 0; i < input.length; i++) {
+      const data = this.peekUInt8(this.offset + i);
+      if (input[i] !== data) {
+        debug('isNextBytes: first failed match at', i, ', where:', input[i], '!==', data);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Creates a copy of the current DataBuffer.
    * @returns {DataBuffer} A new copy of the current DataBuffer.
    */

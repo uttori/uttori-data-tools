@@ -28,6 +28,7 @@ Helper class for manipulating binary data.
         * [.length](#DataBuffer+length) ⇒ <code>number</code>
         * [.compare(input, [offset])](#DataBuffer+compare) ⇒ <code>boolean</code>
         * [.diff(input, [offset])](#DataBuffer+diff) ⇒ <code>Array.&lt;Edit&gt;</code>
+        * [.isNextBytes(input)](#DataBuffer+isNextBytes) ⇒ <code>boolean</code>
         * [.copy()](#DataBuffer+copy) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.slice(position, [length])](#DataBuffer+slice) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.remainingBytes()](#DataBuffer+remainingBytes) ⇒ <code>number</code>
@@ -182,6 +183,18 @@ Diffs another DataBuffer against the current data buffer at a specified offset a
 | --- | --- | --- | --- |
 | input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> |  | The DataBuffer to compare against. |
 | [offset] | <code>number</code> | <code>0</code> | The offset to start the comparison from, default is 0. |
+
+<a name="DataBuffer+isNextBytes"></a>
+
+### dataBuffer.isNextBytes(input) ⇒ <code>boolean</code>
+Compares input data against the upcoming data, byte by byte.
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>boolean</code> - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| input | <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> | The data to check for in upcoming bytes. |
 
 <a name="DataBuffer+copy"></a>
 

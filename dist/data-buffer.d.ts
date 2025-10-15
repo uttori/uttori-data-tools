@@ -63,6 +63,12 @@ declare class DataBuffer {
      */
     diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): import("./diff/diff.js").Edit[];
     /**
+     * Compares input data against the upcoming data, byte by byte.
+     * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+     * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+     */
+    isNextBytes(input: number[] | Buffer): boolean;
+    /**
      * Creates a copy of the current DataBuffer.
      * @returns {DataBuffer} A new copy of the current DataBuffer.
      */
