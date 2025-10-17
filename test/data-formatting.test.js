@@ -1,5 +1,6 @@
 import test from 'ava';
 import {
+  DataBuffer,
   DataStream,
   formatBytes,
   hexTable,
@@ -7,7 +8,12 @@ import {
   formatTableThemeMySQL,
   formatTableThemeUnicode,
   formatTableThemeMarkdown,
+  formatDiffHex,
+  formatDiffHunks,
+  formatMyersGraph,
+  hunks,
 } from '../src/index.js';
+import Myers from '../src/diff/myers.js';
 
 test('formatBytes', (t) => {
   t.is(formatBytes(0), '0 Bytes');
@@ -154,4 +160,377 @@ test('formatTable: can create a table with Emoji', (t) => {
 ║  Rita ║ 47  ║        💪🏼 ║
 ║ Peter ║ 8   ║          🕧 ║
 ╚═══════╩═════╩═════════════╝`);
+});
+
+test('formatDiffHex: identical bytes show single row', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  // Format has spaces between bytes
+  t.true(output.includes('01 02 03 04'));
+  t.true(output.includes('....'));
+});
+
+test('formatDiffHex: single byte change shows three rows', (t) => {
+  const buf1 = new DataBuffer([0x20, 0x41, 0x42, 0x43]);
+  const buf2 = new DataBuffer([0xFF, 0x41, 0x42, 0x43]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  t.true(output.includes('20 41 42 43')); // Original row
+  t.true(output.includes('+DF')); // Delta
+  t.true(output.includes('FF 41 42 43')); // Result row
+});
+
+test('formatDiffHex: multiple byte changes', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA, 0x05, 0xBB]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  t.true(output.includes('+FD')); // 0x02 → 0xFF: +253
+  t.true(output.includes('+A6')); // 0x04 → 0xAA: +166
+  t.true(output.includes('+B5')); // 0x06 → 0xBB: +181
+});
+
+test('formatDiffHex: with offset disabled', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02]);
+  const buf2 = new DataBuffer([0x01, 0x02]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showOffset: false, showBits: false });
+
+  t.false(output.includes('00000000'));
+  t.true(output.includes('01 02'));
+});
+
+test('formatDiffHex: with ASCII disabled', (t) => {
+  const buf1 = new DataBuffer([0x41, 0x42, 0x43, 0x44]); // ABCD
+  const buf2 = new DataBuffer([0x41, 0x42, 0x43, 0x44]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showAscii: false, showBits: false });
+
+  t.false(output.includes('ABCD'));
+  t.true(output.includes('41 42 43 44'));
+});
+
+test('formatDiffHex: with bits enabled shows binary', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02]);
+  const buf2 = new DataBuffer([0x01, 0x02]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: true });
+
+  t.true(output.includes('00000001')); // Binary for 0x01
+  t.true(output.includes('00000010')); // Binary for 0x02
+});
+
+test('formatDiffHex: bit changes show XOR markers', (t) => {
+  const buf1 = new DataBuffer([0x42]); // 01000010
+  const buf2 = new DataBuffer([0x52]); // 01010010
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: true });
+
+  // Should show ^ where bits changed (bit 4 flipped)
+  t.true(output.includes('^'));
+});
+
+test('formatDiffHex: custom bytes per row', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { bytesPerRow: 4, showBits: false });
+
+  // Should have two rows (8 bytes / 4 per row)
+  const lines = output.split('\n');
+  t.true(lines.length >= 2);
+});
+
+test('formatDiffHex: negative delta', (t) => {
+  const buf1 = new DataBuffer([0xFF]);
+  const buf2 = new DataBuffer([0x20]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  t.true(output.includes('-DF')); // 0xFF → 0x20: -223
+});
+
+test('formatDiffHex: empty edits', (t) => {
+  const edits = [];
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  t.is(output, '');
+});
+
+test('formatDiffHex: insert operations', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  // Should show the inserted bytes
+  t.true(output.includes('03') || output.includes('04'));
+});
+
+test('formatDiffHex: handles partial rows correctly', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { bytesPerRow: 16, showBits: false });
+
+  // Should pad to 16 bytes but only show 3
+  t.true(output.includes('01 02 03'));
+});
+
+test('formatDiffHunks: basic hunk formatting', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0x04]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b);
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Should have hunk header
+  t.true(output.includes('@'));
+  // Should have - for deletions
+  t.true(output.includes('-'));
+  // Should have + for insertions
+  t.true(output.includes('+'));
+});
+
+test('formatDiffHunks: with context option', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0xFF, 0x04, 0x05, 0x06]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+
+  const diffHunksNoContext = hunks(x, y, (a, b) => a === b, 0);
+  const diffHunksWithContext = hunks(x, y, (a, b) => a === b, 2);
+
+  const outputNoContext = formatDiffHunks(diffHunksNoContext, { context: 0 });
+  const outputWithContext = formatDiffHunks(diffHunksWithContext, { context: 2 });
+
+  // With context should be longer (includes surrounding lines)
+  t.true(outputWithContext.length >= outputNoContext.length);
+});
+
+test('formatDiffHunks: empty edits', (t) => {
+  const edits = [];
+
+  const output = formatDiffHunks(edits);
+
+  t.is(output, '');
+});
+
+test('formatDiffHunks: all matches', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b);
+
+  const output = formatDiffHunks(diffHunks);
+
+  // When all match, hunks are empty
+  t.is(output, '');
+});
+
+test('formatDiffHunks: handles insertions at end', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b);
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Should show + lines for insertions
+  t.true(output.includes('+'));
+  t.true(output.includes('3') || output.includes('4'));
+});
+
+test('formatDiffHunks: handles deletions at end', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0x02]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b);
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Should show - lines for deletions
+  t.true(output.includes('-'));
+  t.true(output.includes('3') || output.includes('4'));
+});
+
+test('formatDiffHunks: multiple hunks', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0xAA, 0x0A]);
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b, 1);
+
+  const output = formatDiffHunks(diffHunks, { context: 1 });
+
+  // Should have multiple @@ hunk headers if changes are far apart
+  const hunkCount = (output.match(/@@/g) || []).length;
+  t.true(hunkCount >= 1);
+});
+
+test('formatMyersGraph: simple path only', (t) => {
+  const x = ['a', 'b', 'c'];
+  const y = ['a', 'x', 'c'];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should contain nodes
+  t.true(output.includes('o'));
+  // Should have labels
+  t.true(output.includes('0'));
+  // Should show path with diagonal
+  t.true(output.includes('\\'));
+});
+
+test('formatMyersGraph: path with labels off', (t) => {
+  const x = ['a', 'b', 'c'];
+  const y = ['a', 'x', 'c'];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y, { showLabels: false });
+
+  // Should contain nodes
+  t.true(output.includes('o'));
+  // Should not start with numbers
+  t.false(/^\s*\d/.test(output));
+});
+
+test('formatMyersGraph: full grid display', (t) => {
+  const x = ['a', 'b'];
+  const y = ['a', 'x'];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y, { showFull: true });
+
+  // Should contain nodes
+  t.true(output.includes('o'));
+  // Should show horizontal edges in full grid
+  t.true(output.includes('---'));
+  // Should show vertical edges in full grid
+  t.true(output.includes('|'));
+  // Should show diagonal for match
+  t.true(output.includes('\\'));
+});
+
+test('formatMyersGraph: identical sequences', (t) => {
+  const x = ['a', 'b', 'c'];
+  const y = ['a', 'b', 'c'];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should be all diagonal (matches)
+  const diagonals = (output.match(/\\/g) || []).length;
+  t.is(diagonals, 3);
+});
+
+test('formatMyersGraph: completely different sequences', (t) => {
+  const x = ['a', 'b'];
+  const y = ['x', 'y'];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should show path with no diagonals
+  const diagonals = (output.match(/\\/g) || []).length;
+  t.is(diagonals, 0);
+  // Should have vertical and horizontal edges
+  t.true(output.includes('|'));
+  t.true(output.includes('---'));
+});
+
+test('formatMyersGraph: empty sequences', (t) => {
+  const x = [];
+  const y = [];
+  const xidx = [];
+  const yidx = [];
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should just have one node
+  t.true(output.includes('o'));
+  const nodes = (output.match(/o/g) || []).length;
+  t.is(nodes, 1);
+});
+
+test('formatMyersGraph: insertion only', (t) => {
+  const x = [];
+  const y = ['a', 'b'];
+  const xidx = [];
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should show vertical path (insertions)
+  t.true(output.includes('|'));
+  // Should not have diagonals
+  const diagonals = (output.match(/\\/g) || []).length;
+  t.is(diagonals, 0);
+});
+
+test('formatMyersGraph: deletion only', (t) => {
+  const x = ['a', 'b'];
+  const y = [];
+  const xidx = x.map((_, i) => i);
+  const yidx = [];
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  const output = formatMyersGraph(m.resultVectorX, m.resultVectorY, x, y);
+
+  // Should show horizontal path (deletions)
+  t.true(output.includes('---'));
+  // Should not have diagonals
+  const diagonals = (output.match(/\\/g) || []).length;
+  t.is(diagonals, 0);
 });

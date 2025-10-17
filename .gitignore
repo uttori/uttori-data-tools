@@ -22,24 +22,8 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directories
 node_modules/
-jspm_packages/
-
-# Typescript v1 declaration files
-typings/
 
 # Optional npm cache directory
 .npm
@@ -58,3 +42,11 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Test files
+upcoming/
+build/Chrono Trigger (USA).patched.sfc
+build/Chrono Trigger (USA).patched.ips
+build/Chrono Trigger (USA).sfc
+build/Chrono Trigger - JP Title Screen (hack).ips
+build/DQ1n2Fix.ips

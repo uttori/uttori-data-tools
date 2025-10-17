@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBuffer } from '../src/index.js';
+import { DataBuffer, Op } from '../src/index.js';
 
 test('create from ArrayBuffer', (t) => {
   const buf = new DataBuffer(new ArrayBuffer(9));
@@ -300,8 +300,7 @@ test('int16', (t) => {
   return (() => {
     const result = [];
     const iterable2 = [0x7916, -32513];
-    for (let i = 0; i < iterable2.length; i++) {
-      const value = iterable2[i];
+    for (const value of iterable2) {
       result.push(t.is(value, copy.readInt16(true)));
     }
     return result;
@@ -1389,4 +1388,172 @@ test('writeString - Unknown Encoding', (t) => {
   const value = 'Woof 🐕';
 
   t.throws(() => stream.writeString(value, stream.offset, 'magic'), { message: 'Unknown Encoding: magic' });
+});
+
+test('isNextBytes: no input provided', (t) => {
+  const stream = new DataBuffer();
+  t.false(stream.isNextBytes(null));
+  t.false(stream.isNextBytes(undefined));
+  t.false(stream.isNextBytes([]));
+  t.false(stream.isNextBytes({}));
+});
+
+test('isNextBytes: can compare against upcoming data', (t) => {
+  const stream = new DataBuffer([10, 160, 20, 29, 119]);
+
+  t.is(stream.isNextBytes(null), false);
+  t.is(stream.isNextBytes(undefined), false);
+  t.is(stream.isNextBytes({}), false);
+  t.is(stream.isNextBytes([]), false);
+  t.is(stream.isNextBytes([11]), false);
+
+  t.is(stream.isNextBytes([10]), true);
+  t.is(stream.isNextBytes([10, 160]), true);
+  t.is(stream.isNextBytes([10, 160, 20]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29]), true);
+  t.is(stream.isNextBytes([]), false);
+  t.is(stream.isNextBytes([11]), false);
+
+  t.is(stream.isNextBytes([10]), true);
+  t.is(stream.isNextBytes([10, 160]), true);
+  t.is(stream.isNextBytes([10, 160, 20]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29]), true);
+  t.is(stream.isNextBytes([10, 160, 20, 29, 119]), true);
+  t.notThrows(() => {
+    stream.isNextBytes([10, 160, 20, 29, 119, 255]);
+  });
+  t.is(stream.isNextBytes([10, 160, 20, 29, 119, 255]), false);
+});
+
+test('diff: identical buffers', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+
+  const edits = buf1.diff(buf2);
+
+  t.is(edits.length, 4);
+  for (const edit of edits) {
+    t.is(edit.op, Op.Match);
+  }
+});
+
+test('diff: empty buffers', (t) => {
+  const buf1 = new DataBuffer([]);
+  const buf2 = new DataBuffer([]);
+
+  const edits = buf1.diff(buf2);
+
+  t.is(edits.length, 0);
+});
+
+test('diff: completely different buffers', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+  const buf2 = new DataBuffer([0xAA, 0xBB, 0xCC]);
+
+  const edits = buf1.diff(buf2);
+
+  // Should have 3 delete + 3 insert operations
+  t.true(edits.length >= 3);
+  const deleteOps = edits.filter(e => e.op === Op.Delete);
+  const insertOps = edits.filter(e => e.op === Op.Insert);
+  t.is(deleteOps.length, 3);
+  t.is(insertOps.length, 3);
+});
+
+test('diff: buffer with single byte change', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0x04]);
+
+  const edits = buf1.diff(buf2);
+
+  // Should have matches, and one delete + insert for the changed byte
+  const matchOps = edits.filter(e => e.op === Op.Match);
+  const deleteOps = edits.filter(e => e.op === Op.Delete);
+  const insertOps = edits.filter(e => e.op === Op.Insert);
+
+  t.is(matchOps.length, 3); // Bytes at positions 0, 2, 3 match
+  t.is(deleteOps.length, 1); // One byte deleted (0x02)
+  t.is(insertOps.length, 1); // One byte inserted (0xFF)
+
+  // Check the changed byte
+  const deleteEdit = deleteOps[0];
+  const insertEdit = insertOps[0];
+  t.is(deleteEdit.x, 0x02);
+  t.is(insertEdit.y, 0xFF);
+});
+
+test('diff: shorter buffer', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03]);
+
+  const edits = buf1.diff(buf2);
+
+  const matchOps = edits.filter(e => e.op === Op.Match);
+  const deleteOps = edits.filter(e => e.op === Op.Delete);
+
+  t.is(matchOps.length, 3); // First 3 bytes match
+  t.is(deleteOps.length, 2); // Last 2 bytes deleted
+});
+
+test('diff: longer buffer', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05]);
+
+  const edits = buf1.diff(buf2);
+
+  const matchOps = edits.filter(e => e.op === Op.Match);
+  const insertOps = edits.filter(e => e.op === Op.Insert);
+
+  t.is(matchOps.length, 3); // First 3 bytes match
+  t.is(insertOps.length, 2); // 2 bytes inserted
+
+  // Check the inserted bytes
+  const inserts = insertOps.map(e => e.y);
+  t.deepEqual(inserts, [0x04, 0x05]);
+});
+
+test('diff: with offset', (t) => {
+  const buf1 = new DataBuffer([0xFF, 0xFF, 0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+
+  // Compare starting from offset 2 in buf1
+  const edits = buf1.diff(buf2, 2);
+
+  // Should match all 4 bytes when comparing from offset 2
+  t.is(edits.length, 4);
+  for (const edit of edits) {
+    t.is(edit.op, Op.Match);
+  }
+});
+
+test('diff: accepts different input types', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+
+  // Test with array
+  const edits1 = buf1.diff([0x01, 0x02, 0x03]);
+  t.is(edits1.filter(e => e.op === Op.Match).length, 3);
+
+  // Test with Uint8Array
+  const edits2 = buf1.diff(new Uint8Array([0x01, 0x02, 0x03]));
+  t.is(edits2.filter(e => e.op === Op.Match).length, 3);
+
+  // Test with Buffer
+  const edits3 = buf1.diff(Buffer.from([0x01, 0x02, 0x03]));
+  t.is(edits3.filter(e => e.op === Op.Match).length, 3);
+});
+
+test('diff: multiple changes', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA, 0x05, 0xBB]);
+
+  const edits = buf1.diff(buf2);
+
+  // Should have 3 matches and 6 changes (3 deletes + 3 inserts)
+  const matchOps = edits.filter(e => e.op === Op.Match);
+  const deleteOps = edits.filter(e => e.op === Op.Delete);
+  const insertOps = edits.filter(e => e.op === Op.Insert);
+
+  t.is(matchOps.length, 3); // Bytes at positions 0, 2, 4
+  t.is(deleteOps.length, 3); // Changed bytes: 0x02, 0x04, 0x06
+  t.is(insertOps.length, 3); // New bytes: 0xFF, 0xAA, 0xBB
 });

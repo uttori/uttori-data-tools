@@ -295,8 +295,7 @@ test('int16', (t) => {
   return (() => {
     const result = [];
     const iterable2 = [0x7916, -32513];
-    for (let i = 0; i < iterable2.length; i++) {
-      const value = iterable2[i];
+    for (const value of iterable2) {
       result.push(t.is(value, copy.readInt16(true)));
     }
     return result;

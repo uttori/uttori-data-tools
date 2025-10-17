@@ -2,7 +2,162 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...master)
+## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...master)
+
+## [3.2.0](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...v3.2.0) - 2025-10-17
+
+- 🧹 Documentation & Types clean up and corrections
+- 🧹 Update ESLint synatx to v9
+- 🎁 Update dev dependencies
+- 🧰 Add `ImageGIF` for parsing GIF images and `GIFLZW` for decompressing GIF data and a general LZW implemenation
+
+```js
+const image_data = await fs.readFile('./test/image/assets/sundisk04.gif');
+const image = ImageGIF.fromFile(image_data);
+image.decodePixels();
+const length = image.pixels.length; // ➜ 65536
+const pixel = image.getPixel(0, 0); // ➜ [255, 254, 254, 255]
+```
+
+- 🧰 Add `ImagePNG` for parsing PNG images
+
+```js
+fetch('PNG_transparency_demonstration_1.png')
+  .then((r) => r.arrayBuffer())
+  .then((buffer) => {
+    const image = ImagePNG.fromFile(buffer);
+    image.decodePixels();
+    console.log('Image', image);
+  });
+```
+
+
+- 🧰 Add `IPS` class for creating and applying IPS patch files with truncate support.
+
+```js
+const data = await fs.readFile('Chrono Trigger - JP Title Screen (hack).ips');
+const patch = new IPS(data, true);
+// patch.parse(); // Or called manutally when created with `new IPS(data, false)`
+const original = await fs.readFile('Chrono Trigger (USA).sfc');
+const patched = patch.apply(new DataBuffer(original));
+patched.commit();
+await fs.writeFile('Chrono Trigger - JP Title Screen (hack).sfc', Buffer.from(patched.data));
+```
+- 🧰 Add `isNextBytes` to DataBuffer to compare an array of bytes as the next few bytes in the upcoming data.
+- 🧰 Add `diff` method to DataBuffer to generate diff operations that can be used to generate various diff formats
+
+```
+const buffer1 = new DataBuffer([0x48, 0x65, 0x6C, 0x6C, 0x6F]); // "Hello"
+const buffer2 = new DataBuffer([0x48, 0x65, 0x79, 0x79, 0x6F]); // "Heyyo"
+const edits = buffer1.diff(buffer2);
+
+=== Example 1: DataBuffer.diff() ===
+Number of edits: 7
+Edits: [
+  { op: 0, x: 72, y: 72 },
+  { op: 0, x: 101, y: 101 },
+  { op: 1, x: 108, y: 108 },
+  { op: 1, x: 108, y: 108 },
+  { op: 2, x: 121, y: 121 },
+  { op: 2, x: 121, y: 121 },
+  { op: 0, x: 111, y: 111 }
+]
+```
+
+- 🧰 Add `formatDiffHex` to format a standard-ish hexadeximal view with option binary and ASCII output that shows the changes as the delta between the two in a row between the old on top and the new on bottom.
+
+```
+=== Example 2: formatDiffHex() ===
+00000000 | 48 65 6C 6C  00 6F       | 01001000 01100101 01101100 01101100  00000000 01101111                   | Hell.o
+                   +0D +79          |                               ^ ^ ^   ^^^^  ^
+00000000 | 48 65 6C 79  79 6F       | 01001000 01100101 01101100 01111001  01111001 01101111                   | Helyyo
+```
+
+```
+=== Example 4: Binary file comparison ===
+00000000 | 00 01 02 03  04 05 06 07  08 09 0A 0B  0C 0D 0E 0F | ................
+00000010 | 10 11 12 13  14 15 16 17  18 19 1A 1B  1C 1D 1E 1F | ................
+00000020 | 20 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F |  !"#$%&'()*+,-./
+          +DF                                                 |
+00000020 | FF 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F | .!"#$%&'()*+,-./
+00000030 | 30 31 32 33  34 35 36 37  38 39 3A 3B  3C 3D 3E 3F | 0123456789: ;<=>?
+```
+
+- 🧰 Add `formatDiffHunks` creates a unified style diff
+
+```
+=== Example 3: formatDiffHunks() ===
+Number of hunks: 1
+@@ -2,11 +2,10 @@
+ 48  H
+ 65  e
+-6C  l
+-6C  l
+-6F  o
++79  y
+ 20
+ 57  W
+ 6F  o
+ 72  r
+ 6C  l
+ 64  d
++21  !
+```
+
+- 🧰 Add `formatMyersGraph` is more for educaitonal purposes but renders the diagnols out of a Myers style diff
+
+```
+=== Example 1: [a,b,c] → [a,x,c] ===
+Path taken:
+   0   1   2   3
+ 0 o
+     \
+ 1     o---o
+           |
+ 2         o
+             \
+ 3             o
+
+Full grid (diagonals at (0,0) and (2,2)):
+   0   1   2   3
+ 0 o---o---o---o
+   | \ |   |   |
+ 1 o---o---o---o
+   |   |   |   |
+ 2 o---o---o---o
+   |   |   | \ |
+ 3 o---o---o---o
+
+
+=== Example 2: Identical sequences [a,b,c] → [a,b,c] ===
+Path (should be all diagonal):
+   0   1   2   3
+ 0 o
+     \
+ 1     o
+         \
+ 2         o
+             \
+ 3             o
+
+
+=== Example 3: Completely different [a,b] → [x,y] ===
+Path (no diagonals):
+   0   1   2
+ 0 o---o---o
+           |
+ 1         o
+           |
+ 2         o
+
+Full grid (no diagonals at all):
+   0   1   2
+ 0 o---o---o
+   |   |   |
+ 1 o---o---o
+   |   |   |
+ 2 o---o---o
+```
 
 ## [3.1.2](https://github.com/uttori/uttori-data-tools/compare/v3.1.1...v3.1.2) - 2025-01-15
 

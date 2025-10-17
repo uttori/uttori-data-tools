@@ -1,5 +1,6 @@
 import UnderflowError from './underflow-error.js';
 import { float48, float80 } from './data-helpers.js';
+import { edits } from './diff/diff.js';
 
 let debug = (..._) => {};
 /* c8 ignore next */
@@ -125,6 +126,54 @@ class DataBuffer {
       }
     }
     debug('compare: data is the same');
+    return true;
+  }
+
+  /**
+   * Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The DataBuffer to compare against.
+   * @param {number} [offset] The offset to start the comparison from, default is 0.
+   * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
+   */
+  diff(input, offset = 0) {
+    // debug('diff:', { inputLength: input?.length, offset });
+    const buffer = new DataBuffer(input);
+
+    // Convert buffers to arrays of bytes
+    const x = Array.from(this.data.slice(offset));
+    const y = Array.from(buffer.data);
+
+    debug('diff: comparing', x.length, 'bytes against', y.length, 'bytes');
+
+    // Use byte-wise comparison
+    return edits(x, y, (a, b) => a === b);
+  }
+
+  /**
+   * Compares input data against the upcoming data, byte by byte.
+   * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+   * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+   */
+  isNextBytes(input) {
+    debug('isNextBytes:', input);
+    if (!input || typeof input.length !== 'number' || input.length === 0) {
+      debug('isNextBytes: no input provided');
+      return false;
+    }
+    if (!this.available(input.length)) {
+      debug(`isNextBytes: Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+      return false;
+    }
+
+    debug('isNextBytes: this.offset =', this.offset);
+    for (let i = 0; i < input.length; i++) {
+      const data = this.peekUInt8(this.offset + i);
+      if (input[i] !== data) {
+        debug('isNextBytes: first failed match at', i, ', where:', input[i], '!==', data);
+        return false;
+      }
+    }
+
     return true;
   }
 

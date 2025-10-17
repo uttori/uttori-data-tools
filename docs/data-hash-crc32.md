@@ -18,7 +18,7 @@ This variant of CRC-32 uses LSB-first order, sets the initial CRC to FFFFFFFF16,
 
 **Example** *(CRC32.of(...))*  
 ```js
-import CRC32 from 'uttori-data-tools/data-hash-crc32';
+import CRC32 from '@uttori/data-tools/data-hash-crc32';
 CRC32.of('The quick brown fox jumps over the lazy dog');
 ➜ '414FA339'
 ```
