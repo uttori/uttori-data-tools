@@ -82,8 +82,8 @@ class Myers {
     this.xidx = xidx;
     this.yidx = yidx;
     this.equal = equal;
-    this.resultVectorX = new Array(x0.length + 1).fill(false);
-    this.resultVectorY = new Array(y0.length + 1).fill(false);
+    this.resultVectorX = Array.from({length: x0.length + 1}, () => false);
+    this.resultVectorY = Array.from({length: y0.length + 1}, () => false);
 
     // Initialize bounds
     let smin = 0;
@@ -114,6 +114,7 @@ class Myers {
     // +1 for the middle point and +2 for the borders
     const vlen = 2 * diagonals + 3;
     // allocate space for vf and vb with a single allocation
+    /** @type {number[]} */
     const buf = new Array(2 * vlen).fill(0);
 
     this.x = x0;

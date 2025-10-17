@@ -1,3 +1,13 @@
+/**
+ * A chunk of IPS data.
+ * @typedef {object} IPSChunk
+ * @property {number} offset 3 bytes. The starting offset of the change.
+ * @property {number} length The length of the change.
+ * @property {number} [rle] The type of change, value is not undefined when Run Length Encoding is being used.
+ * @property {number[]} [data] The data to be used for the change when not RLE.
+ */
+/** @type {number} The maximum size of a file in the IPS format, 16 megabytes. */
+export const IPS_MAX_SIZE: number;
 export default IPS;
 /**
  * A chunk of IPS data.
@@ -44,7 +54,6 @@ export type IPSChunk = {
 declare class IPS extends DataBuffer {
     /**
      * Calculate the difference between two DataBuffers and save it as an IPS patch.
-     *
      * @static
      * @param {DataBuffer} original The original file to compare against.
      * @param {DataBuffer} modified The modified file.
@@ -53,7 +62,6 @@ declare class IPS extends DataBuffer {
     static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
     /**
      * Creates an instance of IPS.
-     *
      * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
      * @param {boolean} [parse] Whether to immediately parse the IPS file. Default is true.
      * @throws {TypeError} Missing input data.
@@ -84,13 +92,11 @@ declare class IPS extends DataBuffer {
     decodeHeader(): void;
     /**
      * Convert the current instance to an IPS file Buffer instance.
-     *
-     * @returns {DataBuffer} - The new IPS file as a Buffer.
+     * @returns {DataBuffer} The new IPS file as a Buffer.
      */
     encode(): DataBuffer;
     /**
      * Apply the IPS patch to an input DataBuffer.
-     *
      * @param {DataBuffer} input The binary to patch.
      * @returns {DataBuffer} The patched binary.
      */

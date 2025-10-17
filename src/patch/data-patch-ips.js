@@ -3,12 +3,10 @@ let debug = (..._) => {};
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('IPS'); } catch {} }
 
 import DataBuffer from '@uttori/data-tools/data-buffer';
-
-// const { hexTable } = require('../uttori-data-tools/src/data-formating');
+import { hexTable } from '../data-formating.js';
 
 /**
  * A chunk of IPS data.
- *
  * @typedef {object} IPSChunk
  * @property {number} offset 3 bytes. The starting offset of the change.
  * @property {number} length The length of the change.
@@ -16,7 +14,8 @@ import DataBuffer from '@uttori/data-tools/data-buffer';
  * @property {number[]} [data] The data to be used for the change when not RLE.
  */
 
-const IPS_MAX_SIZE = 0x1000000; // 16 megabytes
+/** @type {number} The maximum size of a file in the IPS format, 16 megabytes. */
+export const IPS_MAX_SIZE = 0x1000000;
 
 /**
  * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
@@ -42,7 +41,6 @@ const IPS_MAX_SIZE = 0x1000000; // 16 megabytes
 class IPS extends DataBuffer {
   /**
    * Creates an instance of IPS.
-   *
    * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
    * @param {boolean} [parse] Whether to immediately parse the IPS file. Default is true.
    * @throws {TypeError} Missing input data.
@@ -94,12 +92,12 @@ class IPS extends DataBuffer {
       if (length === 0x0000) {
         length = this.readUInt16();
         const rle = this.readUInt8();
-        // debug('RLE:', `0x${rle.toString(16).toUpperCase().padStart(2, '0')}`, 'with length', length, 'at offset', offset);
+        debug('RLE:', `0x${rle.toString(16).toUpperCase().padStart(2, '0')}`, 'with length', length, 'at offset', offset);
         this.hunks.push({ offset, rle, length });
       } else {
         const data = this.read(length);
-        // debug('XXX:', 'with length', length, 'at offset', offset);
-        // debug(hexTable(new DataBuffer(data)));
+        debug('XXX:', 'with length', length, 'at offset', offset);
+        debug(hexTable(new DataBuffer(data)));
         this.hunks.push({ offset, length, data: Array.from(data) });
       }
     }
@@ -123,7 +121,6 @@ class IPS extends DataBuffer {
     debug('decodeHeader:', this.offset);
     const header = this.readString(5);
     debug('Header:', header);
-    /* istanbul ignore else */
     if (header !== 'PATCH') {
       throw new Error('Missing or invalid IPS header.');
     }
@@ -131,8 +128,7 @@ class IPS extends DataBuffer {
 
   /**
    * Convert the current instance to an IPS file Buffer instance.
-   *
-   * @returns {DataBuffer} - The new IPS file as a Buffer.
+   * @returns {DataBuffer} The new IPS file as a Buffer.
    */
   encode() {
     // Calculate the final size of the patch.
@@ -185,7 +181,6 @@ class IPS extends DataBuffer {
 
   /**
    * Apply the IPS patch to an input DataBuffer.
-   *
    * @param {DataBuffer} input The binary to patch.
    * @returns {DataBuffer} The patched binary.
    */
@@ -214,7 +209,6 @@ class IPS extends DataBuffer {
 
   /**
    * Calculate the difference between two DataBuffers and save it as an IPS patch.
-   *
    * @static
    * @param {DataBuffer} original The original file to compare against.
    * @param {DataBuffer} modified The modified file.

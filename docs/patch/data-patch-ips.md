@@ -22,6 +22,14 @@ Not every patching program will implement this extension, however.</p>
 </dd>
 </dl>
 
+## Constants
+
+<dl>
+<dt><a href="#IPS_MAX_SIZE">IPS_MAX_SIZE</a> : <code>number</code></dt>
+<dd><p>The maximum size of a file in the IPS format, 16 megabytes.</p>
+</dd>
+</dl>
+
 ## Typedefs
 
 <dl>
@@ -124,7 +132,7 @@ Signature (ASCII): [P, A, T, C, H]
 Convert the current instance to an IPS file Buffer instance.
 
 **Kind**: instance method of [<code>IPS</code>](#IPS)  
-**Returns**: <code>DataBuffer</code> - - The new IPS file as a Buffer.  
+**Returns**: <code>DataBuffer</code> - The new IPS file as a Buffer.  
 <a name="IPS+apply"></a>
 
 ### ipS.apply(input) ⇒ <code>DataBuffer</code>
@@ -150,6 +158,12 @@ Calculate the difference between two DataBuffers and save it as an IPS patch.
 | original | <code>DataBuffer</code> | The original file to compare against. |
 | modified | <code>DataBuffer</code> | The modified file. |
 
+<a name="IPS_MAX_SIZE"></a>
+
+## IPS\_MAX\_SIZE : <code>number</code>
+The maximum size of a file in the IPS format, 16 megabytes.
+
+**Kind**: global constant  
 <a name="IPSChunk"></a>
 
 ## IPSChunk : <code>object</code>

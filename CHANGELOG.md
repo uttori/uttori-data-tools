@@ -2,22 +2,42 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...master)
+## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...master)
 
-## [3.2.0](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...v3.2.0) - 2025-10-12
+## [3.2.0](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...v3.2.0) - 2025-10-17
 
 - 🧹 Documentation & Types clean up and corrections
 - 🧹 Update ESLint synatx to v9
 - 🎁 Update dev dependencies
 - 🧰 Add `ImageGIF` for parsing GIF images and `GIFLZW` for decompressing GIF data and a general LZW implemenation
+
+```js
+const image_data = await fs.readFile('./test/image/assets/sundisk04.gif');
+const image = ImageGIF.fromFile(image_data);
+image.decodePixels();
+const length = image.pixels.length; // ➜ 65536
+const pixel = image.getPixel(0, 0); // ➜ [255, 254, 254, 255]
+```
+
 - 🧰 Add `ImagePNG` for parsing PNG images
+
+```js
+fetch('PNG_transparency_demonstration_1.png')
+  .then((r) => r.arrayBuffer())
+  .then((buffer) => {
+    const image = ImagePNG.fromFile(buffer);
+    image.decodePixels();
+    console.log('Image', image);
+  });
+```
+
+
 - 🧰 Add `IPS` class for creating and applying IPS patch files with truncate support.
 
 ```js
 const data = await fs.readFile('Chrono Trigger - JP Title Screen (hack).ips');
-const patch = new IPS(data);
-patch.parse();
-
+const patch = new IPS(data, true);
+// patch.parse(); // Or called manutally when created with `new IPS(data, false)`
 const original = await fs.readFile('Chrono Trigger (USA).sfc');
 const patched = patch.apply(new DataBuffer(original));
 patched.commit();
@@ -55,12 +75,12 @@ Edits: [
 
 ```
 === Example 4: Binary file comparison ===
-00000000 | 00 01 02 03  04 05 06 07  08 09 0A 0B  0C 0D 0E 0F | 00000000 00000001 00000010 00000011  00000100 00000101 00000110 00000111  00001000 00001001 00001010 00001011  00001100 00001101 00001110 00001111 | ................
-00000010 | 10 11 12 13  14 15 16 17  18 19 1A 1B  1C 1D 1E 1F | 00010000 00010001 00010010 00010011  00010100 00010101 00010110 00010111  00011000 00011001 00011010 00011011  00011100 00011101 00011110 00011111 | ................
-00000020 | 20 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F | 00100000 00100001 00100010 00100011  00100100 00100101 00100110 00100111  00101000 00101001 00101010 00101011  00101100 00101101 00101110 00101111 |  !"#$%&'()*+,-./
-          +DF                                                 | ^^ ^^^^^
-00000020 | FF 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F | 11111111 00100001 00100010 00100011  00100100 00100101 00100110 00100111  00101000 00101001 00101010 00101011  00101100 00101101 00101110 00101111 | .!"#$%&'()*+,-./
-00000030 | 30 31 32 33  34 35 36 37  38 39 3A 3B  3C 3D 3E 3F | 00110000 00110001 00110010 00110011  00110100 00110101 00110110 00110111  00111000 00111001 00111010 00111011  00111100 00111101 00111110 00111111 | 0123456789:;<=>?
+00000000 | 00 01 02 03  04 05 06 07  08 09 0A 0B  0C 0D 0E 0F | ................
+00000010 | 10 11 12 13  14 15 16 17  18 19 1A 1B  1C 1D 1E 1F | ................
+00000020 | 20 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F |  !"#$%&'()*+,-./
+          +DF                                                 |
+00000020 | FF 21 22 23  24 25 26 27  28 29 2A 2B  2C 2D 2E 2F | .!"#$%&'()*+,-./
+00000030 | 30 31 32 33  34 35 36 37  38 39 3A 3B  3C 3D 3E 3F | 0123456789: ;<=>?
 ```
 
 - 🧰 Add `formatDiffHunks` creates a unified style diff

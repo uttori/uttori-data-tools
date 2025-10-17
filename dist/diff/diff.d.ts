@@ -18,10 +18,10 @@
  * @property {Edit[]} edits The edits to transform x[PosX:EndX] to y[PosY:EndY].
  */
 /**
- * @typedef {function} EqualityFunction
- * @param {string | number | Uint8Array} a The first element to compare
- * @param {string | number | Uint8Array} b The second element to compare
- * @returns {boolean} Whether the two elements are equal
+ * @callback EqualityFunction
+ * @param {string|number|Uint8Array} a First value to compare
+ * @param {string|number|Uint8Array} b Second value to compare
+ * @returns {boolean} True if values are equal
  */
 /**
  * @typedef {object} DiffResult
@@ -113,7 +113,7 @@ export type Hunk = {
      */
     edits: Edit[];
 };
-export type EqualityFunction = Function;
+export type EqualityFunction = (a: string | number | Uint8Array, b: string | number | Uint8Array) => boolean;
 export type DiffResult = {
     /**
      * The first array of booleans

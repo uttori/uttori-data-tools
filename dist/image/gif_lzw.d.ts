@@ -31,7 +31,7 @@ declare class GIFLZW {
     /**
      * Unpack
      * @param {number} codeLength Code Length
-     * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true.
+     * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true, using the input.
      * @returns {number} The unpacked code
      */
     unpack(codeLength: number, useInput?: boolean): number;

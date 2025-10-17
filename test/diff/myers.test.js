@@ -13,10 +13,11 @@ function repeat(pattern, count) {
 
 /**
  * Helper to verify result vectors represent a valid diff
- * @param {boolean[]} rx - Result vector for x
- * @param {boolean[]} ry - Result vector for y
- * @param {any[]} x - Original x array
- * @param {any[]} y - Original y array
+ * @param {import('ava').ExecutionContext<unknown>} t Test function
+ * @param {boolean[]} rx Result vector for x
+ * @param {boolean[]} ry Result vector for y
+ * @param {Array<string|number|Uint8Array>} x Original x array
+ * @param {Array<string|number|Uint8Array>} y Original y array
  */
 function verifyResultVectors(t, rx, ry, x, y) {
   // Result vectors should have correct length
@@ -41,7 +42,6 @@ function verifyResultVectors(t, rx, ry, x, y) {
       yi++;
     } else {
       t.fail(`Invalid result vectors at xi=${xi}, yi=${yi}`);
-      break;
     }
   }
 }

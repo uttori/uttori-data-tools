@@ -162,7 +162,7 @@ Main diff function.
     * [~xidx](#diff..xidx) : <code>Array.&lt;number&gt;</code>
     * [~yidx](#diff..yidx) : <code>Array.&lt;number&gt;</code>
     * [~counts](#diff..counts) : <code>Array.&lt;number&gt;</code>
-    * [~elements](#diff..elements) : <code>Array.&lt;unknown&gt;</code>
+    * [~elements](#diff..elements) : <code>Array.&lt;(string\|number\|Uint8Array)&gt;</code>
     * [~m](#diff..m) : <code>Myers</code>
     * [~findId(e)](#diff..findId) ⇒ <code>number</code>
 
@@ -188,7 +188,7 @@ Main diff function.
 **Kind**: inner constant of [<code>diff</code>](#diff)  
 <a name="diff..elements"></a>
 
-### diff~elements : <code>Array.&lt;unknown&gt;</code>
+### diff~elements : <code>Array.&lt;(string\|number\|Uint8Array)&gt;</code>
 **Kind**: inner constant of [<code>diff</code>](#diff)  
 <a name="diff..m"></a>
 
@@ -240,12 +240,12 @@ Hunk describes a sequence of consecutive edits.
 
 ## EqualityFunction ⇒ <code>boolean</code>
 **Kind**: global typedef  
-**Returns**: <code>boolean</code> - Whether the two elements are equal  
+**Returns**: <code>boolean</code> - True if values are equal  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| a | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The first element to compare |
-| b | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The second element to compare |
+| a | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | First value to compare |
+| b | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | Second value to compare |
 
 <a name="DiffResult"></a>
 

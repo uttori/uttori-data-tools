@@ -76,7 +76,7 @@ class GIFLZW {
   /**
    * Unpack
    * @param {number} codeLength Code Length
-   * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true.
+   * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true, using the input.
    * @returns {number} The unpacked code
    */
   unpack(codeLength, useInput = true) {
@@ -161,7 +161,7 @@ class GIFLZW {
         codeLength = codeSize + 1;
         dictionarySize = (1 << codeSize) + 2;
         dictionary = this.buildDictionary(dictionarySize);
-      } else if (dictionarySize > 1 << codeLength) {
+      } /* c8 ignore next 3 */ else if (dictionarySize > 1 << codeLength) {
         codeLength++;
       }
     }
@@ -185,23 +185,27 @@ class GIFLZW {
 
     // Clear Code (CC) in the image data is our cue to reinitialize the code table.
     const clearCode = 1 << codeSize;
+    debug('clearCode:', clearCode);
     // End Of Information code (EOI) means we have reached the end of the image.
     const endOfInformation = (1 << codeSize) + 1;
-    debug('clearCode:', clearCode);
     debug('endOfInformation:', endOfInformation);
 
     let dict;
+    /** @type {number} */
     let dictionarySize;
+    /** @type {number} */
     let codeLength;
+    /** @type {string|number} */
     let sequence;
+    /** @type {string|number|null} */
     let prevSequence;
 
     const output = [];
 
     // The first value in the code stream should be a clear code.
     let code = this.unpack(codeSize + 1, useInput);
+    /* c8 ignore next 3 */
     if (code !== clearCode) {
-      /* istanbul ignore next */
       throw new Error(`First code should be a clear code (${clearCode}), got: ${code}`);
     }
 
@@ -224,7 +228,15 @@ class GIFLZW {
       }
 
       // Check to see if this value is in our code table.
-      sequence = Object.prototype.hasOwnProperty.call(dict, code) ? prevSequence + dict[code][0] : prevSequence + prevSequence[0];
+      if (dict.hasOwnProperty(code)) {
+        // Code exists in dictionary: use the first character of the dictionary entry
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        sequence = prevSequence + dict[code][0];
+      } else {
+        // Code not in dictionary: use the first character of the previous sequence
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        sequence = prevSequence + prevSequence[0];
+      }
 
       // Output code - 1 + K to the index stream and add this value to our code table.
       if (prevSequence) {

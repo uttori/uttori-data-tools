@@ -33,10 +33,10 @@ export const Op = {
  */
 
 /**
- * @typedef {function} EqualityFunction
- * @param {string | number | Uint8Array} a The first element to compare
- * @param {string | number | Uint8Array} b The second element to compare
- * @returns {boolean} Whether the two elements are equal
+ * @callback EqualityFunction
+ * @param {string|number|Uint8Array} a First value to compare
+ * @param {string|number|Uint8Array} b Second value to compare
+ * @returns {boolean} True if values are equal
  */
 
 /**
@@ -269,7 +269,7 @@ export function diff(x, y, eq = (a, b) => a === b) {
   /** @type {number[]} */
   const counts = [];
 
-  /** @type {unknown[]} */
+  /** @type {Array<string|number|Uint8Array>} */
   const elements = [];
 
   /**

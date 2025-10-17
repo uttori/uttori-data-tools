@@ -140,14 +140,12 @@ class ImageGIF extends DataBuffer {
     this.decodeHeader();
     this.decodeLogicalScreenDescriptor();
 
-    /* istanbul ignore else */
     if (this.globalColorTable === 1) {
       this.decodeGlobalColorTable();
     }
 
     this.imageNext = false;
     while (this.remainingBytes()) {
-      /* istanbul ignore else */
       if (this.isNextBytes([0x21, 0xFF])) {
         this.decodeApplicationExtension();
       } else if (this.isNextBytes([0x21, 0xFE])) {
@@ -174,7 +172,6 @@ class ImageGIF extends DataBuffer {
         this.advance(1);
         return;
       } else {
-        /* istanbul ignore next */
         const unknown = this.readUInt8();
         debug('UNKNOWN:', this.offset, unknown, `0x${unknown.toString(16)}`);
       }

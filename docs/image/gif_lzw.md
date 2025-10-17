@@ -65,7 +65,7 @@ Unpack
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | codeLength | <code>number</code> |  | Code Length |
-| [useInput] | <code>boolean</code> | <code>true</code> | Unpacking the `input` or the `output`. Defaults to true. |
+| [useInput] | <code>boolean</code> | <code>true</code> | Unpacking the `input` or the `output`. Defaults to true, using the input. |
 
 <a name="GIFLZW+compress"></a>
 

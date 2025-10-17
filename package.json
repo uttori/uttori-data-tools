@@ -27,18 +27,17 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.37.0",
     "@rollup/plugin-babel": "^6.1.0",
-    "@rollup/plugin-commonjs": "^28.0.7",
+    "@rollup/plugin-commonjs": "^28.0.8",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.2",
     "@stylistic/eslint-plugin": "^5.4.0",
     "@types/debug": "^4.1.12",
-    "@types/node": "^24.7.2",
+    "@types/node": "^24.8.1",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "ava": "^6.4.1",
     "c8": "^10.1.3",
     "eslint": "^9.37.0",
-    "eslint-plugin-anti-trojan-source": "^1.1.1",
     "eslint-plugin-ava": "^15.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^61.1.4",
@@ -105,6 +104,38 @@
     "./underflow-error": {
       "import": "./src/underflow-error.js",
       "types": "./dist/underflow-error.d.ts"
+    },
+    "./diff/diff": {
+      "import": "./src/diff/diff.js",
+      "types": "./dist/diff/diff.d.ts"
+    },
+    "./diff/myers": {
+      "import": "./src/diff/myers.js",
+      "types": "./dist/diff/myers.d.ts"
+    },
+    "./diff/textdiff": {
+      "import": "./src/diff/textdiff.js",
+      "types": "./dist/diff/textdiff.d.ts"
+    },
+    "./encodings/shift-jis": {
+      "import": "./src/encodings/shift-jis.js",
+      "types": "./dist/encodings/shift-jis.d.ts"
+    },
+    "./image/data-image-png": {
+      "import": "./src/image/data-image-png.js",
+      "types": "./dist/image/data-image-png.d.ts"
+    },
+    "./image/data-image-gif": {
+      "import": "./src/image/data-image-gif.js",
+      "types": "./dist/image/data-image-gif.d.ts"
+    },
+    "./image/gif_lzw": {
+      "import": "./src/image/gif_lzw.js",
+      "types": "./dist/image/gif_lzw.d.ts"
+    },
+    "./patch/data-patch-ips": {
+      "import": "./src/patch/data-patch-ips.js",
+      "types": "./dist/patch/data-patch-ips.d.ts"
     }
   },
   "ava": {
