@@ -1,4 +1,4 @@
-import { ImagePNG } from '../src/index.js';
+import { ImagePNG } from '../../src/index.js';
 
 // From https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png
 fetch('PNG_transparency_demonstration_1.png')

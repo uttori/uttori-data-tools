@@ -5,9 +5,9 @@ import cleanup from 'rollup-plugin-cleanup';
 import replace from '@rollup/plugin-replace';
 
 const config = {
-  input: 'demo/index.js',
+  input: 'demo/png/index.js',
   output: {
-    file: 'demo/png.js',
+    file: 'demo/png/png.js',
     format: 'es',
     name: 'ImagePNG',
     sourcemap: false,

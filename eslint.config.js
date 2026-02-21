@@ -1,4 +1,3 @@
-import importPlugin from 'eslint-plugin-import';
 import { defineConfig, globalIgnores } from "eslint/config";
 import ava from "eslint-plugin-ava";
 import globals from "globals";
@@ -50,7 +49,6 @@ export default defineConfig([
     plugins: {
       "@stylistic": stylistic,
       ava,
-      import: importPlugin,
       js,
       jsdoc,
       n,
@@ -110,15 +108,15 @@ export default defineConfig([
       }],
 
       // Import rules
-      "import/no-commonjs": "error",
-      "import/no-dynamic-require": "warn",
-      "import/no-extraneous-dependencies": ["error", {
-        devDependencies: ["**/*.test.js", "**/test/**/*.js", "eslint.config.js"],
-        optionalDependencies: true,
-        peerDependencies: true,
-      }],
-      "import/extensions": ["warn", "ignorePackages"],
-      "import/no-unresolved": "off",
+      // "import/no-commonjs": "error",
+      // "import/no-dynamic-require": "warn",
+      // "import/no-extraneous-dependencies": ["error", {
+      //   devDependencies: ["**/*.test.js", "**/test/**/*.js", "eslint.config.js"],
+      //   optionalDependencies: true,
+      //   peerDependencies: true,
+      // }],
+      // "import/extensions": ["warn", "ignorePackages"],
+      // "import/no-unresolved": "off",
 
       "jsdoc/no-undefined-types": 1,
 

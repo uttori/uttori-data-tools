@@ -31,8 +31,8 @@ class DataBuffer {
     /** @type {boolean} Is this instance for creating a new file? */
     this.writing = false;
 
-    /** @type {number[]|Buffer|Uint8Array} The bytes avaliable to read. */
-    this.data = [];
+    /** @type {Buffer|Uint8Array} The bytes avaliable to read. */
+    this.data = Buffer.alloc(0);
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
       debug('constructor: from Buffer');
       this.data = Buffer.from(input);
@@ -81,8 +81,24 @@ class DataBuffer {
     /** @type {number} Reading / Writing offset */
     this.offset = 0;
 
-    /** @type {number[]} Buffer for creating new files. */
-    this.buffer = [...this.data];
+    /**
+     * @type {number[]|null}
+     * Backing store for the internal write buffer,
+     * `null` until first write to avoid copying when read-only,
+     * based on `this.writing` flag.
+     */
+    this._buffer = this.writing ? [] : null;
+  }
+
+  /**
+   * Buffer for creating new files. Lazy-inits from a copy of data on first write when instance was created read-only.
+   * @type {number[]}
+   */
+  get buffer() {
+    if (this._buffer === null) {
+      this._buffer = this.data.length ? Array.from(this.data) : [];
+    }
+    return this._buffer;
   }
 
   /**
@@ -117,10 +133,9 @@ class DataBuffer {
       debug('compare: no input provided');
       return false;
     }
-    const local = this.slice(offset, length);
     const { data } = buffer;
     for (let i = 0; i < length; i++) {
-      if (local.data[i] !== data[i]) {
+      if (this.data[offset + i] !== data[i]) {
         debug('compare: first failed match at', i);
         return false;
       }
@@ -166,10 +181,10 @@ class DataBuffer {
     }
 
     debug('isNextBytes: this.offset =', this.offset);
+    const off = this.offset;
     for (let i = 0; i < input.length; i++) {
-      const data = this.peekUInt8(this.offset + i);
-      if (input[i] !== data) {
-        debug('isNextBytes: first failed match at', i, ', where:', input[i], '!==', data);
+      if (input[i] !== this.data[off + i]) {
+        debug('isNextBytes: first failed match at', i, ', where:', input[i], '!==', this.data[off + i]);
         return false;
       }
     }
@@ -309,18 +324,19 @@ class DataBuffer {
    */
   read(bytes, littleEndian = false) {
     // debug('read:', bytes, this.offset, littleEndian);
-    const uint8 = new Uint8Array(bytes);
-    if (littleEndian) {
-      for (let i = bytes - 1; i >= 0; i--) {
-        uint8[i] = this.readUInt8();
-      }
-    } else {
-      for (let i = 0; i < bytes; i++) {
-        uint8[i] = this.readUInt8();
-      }
+    if (!this.available(bytes)) {
+      throw new UnderflowError(`Insufficient Bytes: ${bytes}`);
     }
-    // debug('read =', uint8.toString('hex'));
-    return uint8;
+    const start = this.offset;
+    this.offset += bytes;
+    if (littleEndian && bytes > 1) {
+      const uint8 = new Uint8Array(bytes);
+      for (let i = 0; i < bytes; i++) {
+        uint8[i] = this.data[start + bytes - 1 - i];
+      }
+      return uint8;
+    }
+    return this.data.slice(start, start + bytes);
   }
 
   /**
@@ -332,17 +348,17 @@ class DataBuffer {
    */
   peek(bytes, offset = 0, littleEndian = false) {
     // debug('peek:', bytes, offset, littleEndian);
-    const uint8 = new Uint8Array(bytes);
-    if (littleEndian) {
-      for (let i = 0; i < bytes; i++) {
-        uint8[bytes - i - 1] = this.peekUInt8(offset + i);
-      }
-    } else {
-      for (let i = 0; i < bytes; i++) {
-        uint8[i] = this.peekUInt8(offset + i);
-      }
+    if (!this.availableAt(bytes, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + ${bytes}`);
     }
-    return uint8;
+    if (littleEndian && bytes > 1) {
+      const uint8 = new Uint8Array(bytes);
+      for (let i = 0; i < bytes; i++) {
+        uint8[i] = this.data[offset + bytes - 1 - i];
+      }
+      return uint8;
+    }
+    return this.data.slice(offset, offset + bytes);
   }
 
   /**
@@ -371,9 +387,13 @@ class DataBuffer {
    * @returns {number} The Int8 value at the current offset.
    */
   readInt8() {
-    const uint8 = this.read(1);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt8(0);
+    if (!this.available(1)) {
+      throw new UnderflowError('Insufficient Bytes: 1');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 1);
+    const v = view.getInt8(0);
+    this.offset += 1;
+    return v;
   }
 
   /**
@@ -382,9 +402,10 @@ class DataBuffer {
    * @returns {number} The Int8 value at the current offset.
    */
   peekInt8(offset = 0) {
-    const uint8 = this.peek(1, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt8(0);
+    if (!this.availableAt(1, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 1`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 1).getInt8(0);
   }
 
   /**
@@ -393,9 +414,13 @@ class DataBuffer {
    * @returns {number} The UInt16 value at the current offset.
    */
   readUInt16(littleEndian) {
-    const uint8 = this.read(2);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getUint16(0, littleEndian);
+    if (!this.available(2)) {
+      throw new UnderflowError('Insufficient Bytes: 2');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 2);
+    const v = view.getUint16(0, littleEndian);
+    this.offset += 2;
+    return v;
   }
 
   /**
@@ -405,9 +430,10 @@ class DataBuffer {
    * @returns {number} The Int8 value at the current offset.
    */
   peekUInt16(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(2, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getUint16(0, littleEndian);
+    if (!this.availableAt(2, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 2`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getUint16(0, littleEndian);
   }
 
   /**
@@ -416,9 +442,13 @@ class DataBuffer {
    * @returns {number} The Int16 value at the current offset.
    */
   readInt16(littleEndian = false) {
-    const uint8 = this.read(2);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt16(0, littleEndian);
+    if (!this.available(2)) {
+      throw new UnderflowError('Insufficient Bytes: 2');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 2);
+    const v = view.getInt16(0, littleEndian);
+    this.offset += 2;
+    return v;
   }
 
   /**
@@ -428,9 +458,10 @@ class DataBuffer {
    * @returns {number} The Int16 value at the current offset.
    */
   peekInt16(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(2, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt16(0, littleEndian);
+    if (!this.availableAt(2, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 2`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getInt16(0, littleEndian);
   }
 
   /**
@@ -489,9 +520,13 @@ class DataBuffer {
    * @returns {number} The UInt32 value at the current offset.
    */
   readUInt32(littleEndian = false) {
-    const uint8 = this.read(4);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getUint32(0, littleEndian);
+    if (!this.available(4)) {
+      throw new UnderflowError('Insufficient Bytes: 4');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
+    const v = view.getUint32(0, littleEndian);
+    this.offset += 4;
+    return v;
   }
 
   /**
@@ -501,9 +536,10 @@ class DataBuffer {
    * @returns {number} The UInt32 value at the current offset.
    */
   peekUInt32(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(4, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getUint32(0, littleEndian);
+    if (!this.availableAt(4, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getUint32(0, littleEndian);
   }
 
   /**
@@ -512,9 +548,13 @@ class DataBuffer {
    * @returns {number} The Int32 value at the current offset.
    */
   readInt32(littleEndian = false) {
-    const uint8 = this.read(4);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt32(0, littleEndian);
+    if (!this.available(4)) {
+      throw new UnderflowError('Insufficient Bytes: 4');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
+    const v = view.getInt32(0, littleEndian);
+    this.offset += 4;
+    return v;
   }
 
   /**
@@ -524,9 +564,10 @@ class DataBuffer {
    * @returns {number} The Int32 value at the current offset.
    */
   peekInt32(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(4, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getInt32(0, littleEndian);
+    if (!this.availableAt(4, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getInt32(0, littleEndian);
   }
 
   /**
@@ -535,9 +576,13 @@ class DataBuffer {
    * @returns {number} The Float32 value at the current offset.
    */
   readFloat32(littleEndian = false) {
-    const uint8 = this.read(4);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getFloat32(0, littleEndian);
+    if (!this.available(4)) {
+      throw new UnderflowError('Insufficient Bytes: 4');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
+    const v = view.getFloat32(0, littleEndian);
+    this.offset += 4;
+    return v;
   }
 
   /**
@@ -547,9 +592,10 @@ class DataBuffer {
    * @returns {number} The Float32 value at the current offset.
    */
   peekFloat32(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(4, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getFloat32(0, littleEndian);
+    if (!this.availableAt(4, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getFloat32(0, littleEndian);
   }
 
   /**
@@ -581,9 +627,13 @@ class DataBuffer {
    * @returns {number} The Float64 value at the current offset.
    */
   readFloat64(littleEndian = false) {
-    const uint8 = this.read(8);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getFloat64(0, littleEndian);
+    if (!this.available(8)) {
+      throw new UnderflowError('Insufficient Bytes: 8');
+    }
+    const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 8);
+    const v = view.getFloat64(0, littleEndian);
+    this.offset += 8;
+    return v;
   }
 
   /**
@@ -593,9 +643,10 @@ class DataBuffer {
    * @returns {number} The Float64 value at the current offset.
    */
   peekFloat64(offset = 0, littleEndian = false) {
-    const uint8 = this.peek(8, offset);
-    const view = new DataView(uint8.buffer, 0);
-    return view.getFloat64(0, littleEndian);
+    if (!this.availableAt(8, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + 8`);
+    }
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 8).getFloat64(0, littleEndian);
   }
 
   /**
@@ -625,11 +676,12 @@ class DataBuffer {
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
    */
   readBuffer(length) {
-    const to = new Uint8Array(length);
-    for (let i = 0; i < length; i++) {
-      to[i] = this.readUInt8();
+    if (!this.available(length)) {
+      throw new UnderflowError(`Insufficient Bytes: ${length}`);
     }
-    return new DataBuffer(to);
+    const chunk = this.data.slice(this.offset, this.offset + length);
+    this.offset += length;
+    return new DataBuffer(chunk);
   }
 
   /**
@@ -639,11 +691,10 @@ class DataBuffer {
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
    */
   peekBuffer(offset, length) {
-    const to = new Uint8Array(length);
-    for (let i = 0; i < length; i++) {
-      to[i] = this.peekUInt8(offset + i);
+    if (!this.availableAt(length, offset)) {
+      throw new UnderflowError(`Insufficient Bytes: ${offset} + ${length}`);
     }
-    return new DataBuffer(to);
+    return new DataBuffer(this.data.slice(offset, offset + length));
   }
 
   /**
@@ -689,7 +740,8 @@ class DataBuffer {
     }
 
     const end = offset + length;
-    let result = '';
+    /** @type {number[]} */
+    const codes = [];
 
     switch (encoding) {
       case 'ascii':
@@ -699,7 +751,7 @@ class DataBuffer {
           if (character === nullEnd) {
             break;
           }
-          result += String.fromCharCode(character);
+          codes.push(character);
         }
         break;
       }
@@ -713,16 +765,16 @@ class DataBuffer {
           let b2;
           let b3;
           if ((b1 & 0x80) === 0) {
-            result += String.fromCharCode(b1);
+            codes.push(b1);
           } else if ((b1 & 0xE0) === 0xC0) {
             // one continuation (128 to 2047)
             b2 = this.peekUInt8(offset++) & 0x3F;
-            result += String.fromCharCode(((b1 & 0x1F) << 6) | b2);
+            codes.push(((b1 & 0x1F) << 6) | b2);
           } else if ((b1 & 0xF0) === 0xE0) {
             // two continuation (2048 to 55295 and 57344 to 65535)
             b2 = this.peekUInt8(offset++) & 0x3F;
             b3 = this.peekUInt8(offset++) & 0x3F;
-            result += String.fromCharCode(((b1 & 0x0F) << 12) | (b2 << 6) | b3);
+            codes.push(((b1 & 0x0F) << 12) | (b2 << 6) | b3);
           } else if ((b1 & 0xF8) === 0xF0) {
             // three continuation (65536 to 1114111)
             b2 = this.peekUInt8(offset++) & 0x3F;
@@ -731,7 +783,7 @@ class DataBuffer {
 
             // Split into a Surrogate Pair
             const pt = (((b1 & 0x0F) << 18) | (b2 << 12) | (b3 << 6) | b4) - 0x10000;
-            result += String.fromCharCode(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+            codes.push(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
           }
         }
         break;
@@ -764,7 +816,7 @@ class DataBuffer {
               if (advance) {
                 this.advance(offset += 2);
               }
-              return result;
+              return String.fromCharCode(...codes);
             }
 
             littleEndian = bom === 0xFFFE;
@@ -778,14 +830,14 @@ class DataBuffer {
           offset += 2;
 
           if ((w1 < 0xD800) || (w1 > 0xDFFF)) {
-            result += String.fromCharCode(w1);
+            codes.push(w1);
           } else {
             const w2 = this.peekUInt16(offset, littleEndian);
             if ((w2 < 0xDC00) || (w2 > 0xDFFF)) {
               throw new Error('Invalid utf16 sequence.');
             }
 
-            result += String.fromCharCode(w1, w2);
+            codes.push(w1, w2);
             offset += 2;
           }
         }
@@ -799,9 +851,154 @@ class DataBuffer {
       }
     }
 
+    const result = String.fromCharCode(...codes);
+
     if (advance) {
       this.advance(length);
     }
+    return result;
+  }
+
+  /**
+   * Read a null-terminated string from the current offset and advance the offset.
+   * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+   * @param {string} [encoding] The encoding of the string, default is `ascii`.
+   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @returns {string} The read value as a string (without the null terminator).
+   */
+  readNullTerminatedString(encoding = 'ascii', nullValue = 0x00) {
+    debug('readNullTerminatedString:', { encoding, nullValue });
+    const result = this.decodeNullTerminatedString(this.offset, encoding, true, nullValue);
+    return result;
+  }
+
+  /**
+   * Read a null-terminated string from the specified offset without advancing the offset.
+   * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+   * @param {number} offset The offset to read from.
+   * @param {string} [encoding] The encoding of the string, default is `ascii`.
+   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @returns {string} The read value as a string (without the null terminator).
+   */
+  peekNullTerminatedString(offset, encoding = 'ascii', nullValue = 0x00) {
+    debug('peekNullTerminatedString:', { offset, encoding, nullValue });
+    const result = this.decodeNullTerminatedString(offset, encoding, false, nullValue);
+    return result;
+  }
+
+  /**
+   * Decode a null-terminated string from the specified offset.
+   * Reads bytes until a null byte (0x00) is encountered.
+   * @private
+   * @param {number} offset The offset to read from.
+   * @param {string} encoding The encoding of the string.
+   * @param {boolean} advance Flag to optionally advance the offsets.
+   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @returns {string} The read value as a string (without the null terminator).
+   */
+  decodeNullTerminatedString(offset, encoding, advance, nullValue = 0x00) {
+    debug('decodeNullTerminatedString:', { offset, encoding, advance, nullValue });
+    encoding = encoding.toLowerCase();
+    const codes = [];
+
+    switch (encoding) {
+      case 'utf8':
+      case 'utf-8': {
+        while (offset < this.length) {
+          const b1 = this.peekUInt8(offset++);
+          if (b1 === nullValue) {
+            break;
+          }
+          let b2;
+          let b3;
+          if ((b1 & 0x80) === 0) {
+            codes.push(b1);
+          } else if ((b1 & 0xE0) === 0xC0) {
+            // one continuation (128 to 2047)
+            if (offset >= this.length) break;
+            b2 = this.peekUInt8(offset++);
+            if (b2 === nullValue) break;
+            codes.push(((b1 & 0x1F) << 6) | (b2 & 0x3F));
+          } else if ((b1 & 0xF0) === 0xE0) {
+            // two continuation (2048 to 55295 and 57344 to 65535)
+            if (offset >= this.length) break;
+            b2 = this.peekUInt8(offset++);
+            if (b2 === nullValue) break;
+            if (offset >= this.length) break;
+            b3 = this.peekUInt8(offset++);
+            if (b3 === nullValue) break;
+            codes.push(((b1 & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
+          } else if ((b1 & 0xF8) === 0xF0) {
+            // three continuation (65536 to 1114111)
+            if (offset >= this.length) break;
+            b2 = this.peekUInt8(offset++);
+            if (b2 === nullValue) break;
+            if (offset >= this.length) break;
+            b3 = this.peekUInt8(offset++);
+            if (b3 === nullValue) break;
+            if (offset >= this.length) break;
+            const b4 = this.peekUInt8(offset++);
+            if (b4 === nullValue) break;
+
+            // Split into a Surrogate Pair
+            const pt = (((b1 & 0x0F) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F)) - 0x10000;
+            codes.push(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+          }
+        }
+        break;
+      }
+      case 'utf16-be':
+      case 'utf16be': {
+        while (offset < this.length - 1) {
+          const b1 = this.peekUInt8(offset);
+          const b2 = this.peekUInt8(offset + 1);
+          if (b1 === nullValue && b2 === nullValue) {
+            offset += 2;
+            break;
+          }
+          codes.push((b1 << 8) | b2);
+          offset += 2;
+        }
+        break;
+      }
+      case 'utf16-le':
+      case 'utf16le': {
+        while (offset < this.length - 1) {
+          const b1 = this.peekUInt8(offset);
+          const b2 = this.peekUInt8(offset + 1);
+          if (b1 === nullValue && b2 === nullValue) {
+            offset += 2;
+            break;
+          }
+          codes.push((b2 << 8) | b1);
+          offset += 2;
+        }
+        break;
+      }
+      case 'ascii':
+      case 'latin1':
+      default: {
+        // For other encodings, fall back to ASCII behavior
+        while (offset < this.length) {
+          const byte = this.peekUInt8(offset++);
+          if (byte === nullValue) {
+            break;
+          }
+          codes.push(byte);
+        }
+        break;
+      }
+    }
+
+    const result = String.fromCharCode(...codes);
+
+    // Advance offset if requested
+    // Note: offset already points to the byte AFTER the null terminator
+    // because we use post-increment (offset++) when reading bytes
+    if (advance) {
+      this.offset = offset;
+    }
+
     return result;
   }
 
@@ -1000,6 +1197,7 @@ class DataBuffer {
   commit() {
     debug('commit: converting to read mode file');
     this.data = new Uint8Array(this.buffer);
+    this._buffer = null;
     this.writing = false;
   }
 }

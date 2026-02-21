@@ -294,6 +294,81 @@ test('formatDiffHex: handles partial rows correctly', (t) => {
   t.true(output.includes('01 02 03'));
 });
 
+test('formatDiffHex: standalone delete operation (not followed by insert)', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
+  const buf2 = new DataBuffer([0x01, 0x03]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false });
+
+  // Should show the deleted byte (0x02)
+  t.true(output.includes('02'));
+  // Standalone delete should be shown as match (x → x)
+  t.true(output.includes('01') && output.includes('03'));
+});
+
+test('formatDiffHex: non-printable ASCII characters (< 0x20 or > 0x7E)', (t) => {
+  // Test with non-printable characters: 0x1F (< 0x20) and 0xFF (> 0x7E)
+  const buf1 = new DataBuffer([0x1F, 0x20, 0x7E, 0xFF]);
+  const buf2 = new DataBuffer([0x1F, 0x20, 0x7E, 0xFF]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showAscii: true, showBits: false });
+
+  // Non-printable characters should show as '.' in ASCII column
+  // 0x1F and 0xFF should be '.', 0x20 should be ' ', 0x7E should be '~'
+  t.true(output.includes('.'));
+});
+
+test('formatDiffHex: showOffset false in three-row format (hasChanges)', (t) => {
+  const buf1 = new DataBuffer([0x01, 0x02]);
+  const buf2 = new DataBuffer([0xFF, 0x02]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showOffset: false, showBits: false });
+
+  // Should not include offset prefix in three-row format
+  t.false(output.includes('00000000'));
+  // Should still show the changes
+  t.true(output.includes('01') || output.includes('FF'));
+});
+
+test('formatDiffHex: showBits false in match case (three-row format)', (t) => {
+  // Create a diff with both matches and changes to ensure we hit the match case (op === 0)
+  // in the three-row format with showBits: false
+  // The match case with showBits: false should skip adding bits to row2Bits (line 548 false branch)
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: false, bytesPerRow: 4 });
+
+  // Should not include binary bits
+  t.false(output.includes('00000001'));
+  t.false(output.includes('00000010'));
+  // Should show hex values
+  t.true(output.includes('01') || output.includes('FF'));
+  // Should have matches (op === 0) which won't add bits when showBits is false
+  t.true(output.includes('03')); // This should be a match
+});
+
+test('formatDiffHex: showBits true in match case (three-row format)', (t) => {
+  // Create a diff with matches to ensure we hit the match case (op === 0)
+  // in the three-row format with showBits: true
+  // The match case with showBits: true should add bits to row2Bits (line 548 true branch)
+  const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA]);
+  const edits = buf1.diff(buf2);
+
+  const output = formatDiffHex(edits, { showBits: true, bytesPerRow: 4 });
+
+  // Should include binary bits for matches
+  // The match at position 2 (0x03) should have bits added to row2Bits
+  t.true(output.includes('00000011')); // Binary for 0x03
+  // Should show hex values
+  t.true(output.includes('01') || output.includes('FF'));
+});
+
 test('formatDiffHunks: basic hunk formatting', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0x04]);
@@ -388,6 +463,65 @@ test('formatDiffHunks: multiple hunks', (t) => {
   // Should have multiple @@ hunk headers if changes are far apart
   const hunkCount = (output.match(/@@/g) || []).length;
   t.true(hunkCount >= 1);
+});
+
+test('formatDiffHunks: hunk with all matches (no changes)', (t) => {
+  // Create a hunk with only matches
+  const diffHunks = [{
+    posX: 0,
+    posY: 0,
+    edits: [
+      { op: 0, x: 0x01, y: 0x01 },
+      { op: 0, x: 0x02, y: 0x02 },
+      { op: 0, x: 0x03, y: 0x03 },
+    ],
+  }];
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Hunk with all matches should be skipped (empty output)
+  t.is(output, '');
+});
+
+test('formatDiffHunks: printable ASCII characters (0x20-0x7E)', (t) => {
+  const buf1 = new DataBuffer([0x20, 0x41, 0x7E, 0x1F]); // Space, 'A', '~', non-printable
+  const buf2 = new DataBuffer([0x20, 0x42, 0x7E, 0x1F]); // Space, 'B', '~', non-printable
+  const x = Array.from(buf1.data);
+  const y = Array.from(buf2.data);
+  const diffHunks = hunks(x, y, (a, b) => a === b);
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Should show printable characters (0x20 = space, 0x41 = 'A', 0x42 = 'B', 0x7E = '~')
+  // Non-printable 0x1F should show as '.'
+  t.true(output.includes(' ') || output.includes('A') || output.includes('B') || output.includes('~'));
+});
+
+test('formatDiffHunks: non-number x and y values', (t) => {
+  // Create a hunk with edits where one of x or y is a number (to pass the typeof check)
+  // but the value used (op === 2 ? y : x) is not a number, triggering the '??' branch
+  const diffHunks = [{
+    posX: 0,
+    posY: 0,
+    edits: [
+      // Case 1: op === 0 (match), x is not a number, y is a number -> value = x -> '??'
+      { op: 0, x: null, y: 0x41 },
+      // Case 2: op === 1 (delete), x is not a number, y is a number -> value = x -> '??'
+      { op: 1, x: undefined, y: 0x42 },
+      // Case 3: op === 2 (insert), x is a number, y is not a number -> value = y -> '??'
+      { op: 2, x: 0x43, y: 'string' },
+      // Case 4: op === 2 (insert), x is a number, y is null -> value = y -> '??'
+      { op: 2, x: 0x44, y: null },
+    ],
+  }];
+
+  const output = formatDiffHunks(diffHunks);
+
+  // Should handle non-number values gracefully (show '??' for hex)
+  // Output should not crash and should be a string
+  t.true(typeof output === 'string');
+  // Should contain '??' for non-number values
+  t.true(output.includes('??'));
 });
 
 test('formatMyersGraph: simple path only', (t) => {
@@ -533,4 +667,33 @@ test('formatMyersGraph: deletion only', (t) => {
   // Should not have diagonals
   const diagonals = (output.match(/\\/g) || []).length;
   t.is(diagonals, 0);
+});
+
+test('formatMyersGraph: path building break condition', (t) => {
+  // Create a scenario where path building reaches a break condition
+  // This happens when none of the move conditions are met:
+  // - Can't move diagonally (no match or at boundary)
+  // - Can't move right (no delete or at boundary)
+  // - Can't move down (no insert or at boundary)
+  // This occurs when we've exhausted one dimension but can't move in the other
+  // Example: xi >= width but yi < height and !ry[yi] (can't move down)
+  const x = [0x01, 0x02];
+  const y = [0x03, 0x04, 0x05];
+  const xidx = x.map((_, i) => i);
+  const yidx = y.map((_, i) => i);
+
+  const m = new Myers(xidx, yidx, x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+
+  // Manually create rx/ry arrays that will cause break condition
+  // where we exhaust x but can't move down in y
+  const rx = [true, true]; // Both are deletes (move right)
+  const ry = [false, false, false]; // None are inserts (can't move down after exhausting x)
+
+  const output = formatMyersGraph(rx, ry, x, y);
+
+  // Should complete successfully (break condition handled)
+  t.true(output.includes('o'));
+  // Should show path
+  t.true(output.length > 0);
 });

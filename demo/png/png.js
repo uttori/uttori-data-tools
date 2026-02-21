@@ -70,8 +70,12 @@ class Myers {
     this.xidx = xidx;
     this.yidx = yidx;
     this.equal = equal;
-    this.resultVectorX = new Array(x0.length + 1).fill(false);
-    this.resultVectorY = new Array(y0.length + 1).fill(false);
+    this.resultVectorX = Array.from({
+      length: x0.length + 1
+    }, () => false);
+    this.resultVectorY = Array.from({
+      length: y0.length + 1
+    }, () => false);
     let smin = 0;
     let tmin = 0;
     let smax = x0.length;
@@ -374,6 +378,24 @@ class DataBuffer {
     const y = Array.from(buffer.data);
     debug$1('diff: comparing', x.length, 'bytes against', y.length, 'bytes');
     return edits(x, y, (a, b) => a === b);
+  }
+  isNextBytes(input) {
+    if (!input || typeof input.length !== 'number' || input.length === 0) {
+      return false;
+    }
+    if (!this.available(input.length)) {
+      debug$1(`isNextBytes: Insufficient Bytes: ${input.length} <= ${this.remainingBytes()}`);
+      return false;
+    }
+    debug$1('isNextBytes: this.offset =', this.offset);
+    for (let i = 0; i < input.length; i++) {
+      const data = this.peekUInt8(this.offset + i);
+      if (input[i] !== data) {
+        debug$1('isNextBytes: first failed match at', i, ', where:', input[i], '!==', data);
+        return false;
+      }
+    }
+    return true;
   }
   copy() {
     return new DataBuffer(new Uint8Array(this.data.slice(0)));
@@ -710,6 +732,124 @@ class DataBuffer {
     }
     if (advance) {
       this.advance(length);
+    }
+    return result;
+  }
+  readNullTerminatedString(encoding = 'ascii') {
+    const result = this.decodeNullTerminatedString(this.offset, encoding, true);
+    return result;
+  }
+  peekNullTerminatedString(offset, encoding = 'ascii') {
+    const result = this.decodeNullTerminatedString(offset, encoding, false);
+    return result;
+  }
+  decodeNullTerminatedString(offset, encoding, advance) {
+    encoding = encoding.toLowerCase();
+    let result = '';
+    switch (encoding) {
+      case 'ascii':
+      case 'latin1':
+        {
+          while (offset < this.buffer.length) {
+            const byte = this.peekUInt8(offset++);
+            if (byte === 0x00) {
+              break;
+            }
+            result += String.fromCharCode(byte);
+          }
+          break;
+        }
+      case 'utf8':
+      case 'utf-8':
+        {
+          while (offset < this.buffer.length) {
+            const b1 = this.peekUInt8(offset++);
+            if (b1 === 0x00) {
+              break;
+            }
+            let b2;
+            let b3;
+            if ((b1 & 0x80) === 0) {
+              result += String.fromCharCode(b1);
+            } else if ((b1 & 0xE0) === 0xC0) {
+              if (offset >= this.buffer.length) break;
+              b2 = this.peekUInt8(offset++);
+              if (b2 === 0x00) break;
+              result += String.fromCharCode((b1 & 0x1F) << 6 | b2 & 0x3F);
+            } else if ((b1 & 0xF0) === 0xE0) {
+              if (offset >= this.buffer.length) break;
+              b2 = this.peekUInt8(offset++);
+              if (b2 === 0x00) break;
+              if (offset >= this.buffer.length) break;
+              b3 = this.peekUInt8(offset++);
+              if (b3 === 0x00) break;
+              result += String.fromCharCode((b1 & 0x0F) << 12 | (b2 & 0x3F) << 6 | b3 & 0x3F);
+            } else if ((b1 & 0xF8) === 0xF0) {
+              if (offset >= this.buffer.length) break;
+              b2 = this.peekUInt8(offset++);
+              if (b2 === 0x00) break;
+              if (offset >= this.buffer.length) break;
+              b3 = this.peekUInt8(offset++);
+              if (b3 === 0x00) break;
+              if (offset >= this.buffer.length) break;
+              const b4 = this.peekUInt8(offset++);
+              if (b4 === 0x00) break;
+              const pt = ((b1 & 0x0F) << 18 | (b2 & 0x3F) << 12 | (b3 & 0x3F) << 6 | b4 & 0x3F) - 0x10000;
+              result += String.fromCharCode(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+            }
+          }
+          break;
+        }
+      case 'utf16-be':
+      case 'utf16be':
+        {
+          while (offset < this.buffer.length - 1) {
+            const b1 = this.peekUInt8(offset);
+            const b2 = this.peekUInt8(offset + 1);
+            if (b1 === 0x00 && b2 === 0x00) {
+              break;
+            }
+            const codePoint = b1 << 8 | b2;
+            if (codePoint === 0x0000) {
+              break;
+            }
+            result += String.fromCharCode(codePoint);
+            offset += 2;
+          }
+          break;
+        }
+      case 'utf16-le':
+      case 'utf16le':
+        {
+          while (offset < this.buffer.length - 1) {
+            const b1 = this.peekUInt8(offset);
+            const b2 = this.peekUInt8(offset + 1);
+            if (b1 === 0x00 && b2 === 0x00) {
+              break;
+            }
+            const codePoint = b2 << 8 | b1;
+            if (codePoint === 0x0000) {
+              break;
+            }
+            result += String.fromCharCode(codePoint);
+            offset += 2;
+          }
+          break;
+        }
+      default:
+        {
+          while (offset < this.buffer.length) {
+            const byte = this.peekUInt8(offset++);
+            if (byte === 0x00) {
+              break;
+            }
+            result += String.fromCharCode(byte);
+          }
+          break;
+        }
+    }
+    if (advance) {
+      this.offset = offset;
     }
     return result;
   }
@@ -3236,10 +3376,10 @@ class ImagePNG extends DataBuffer {
     }
     const length = this.dataChunks.reduce((accumulator, chunk) => accumulator + chunk.length, 0);
     const data = new Uint8Array(length);
-    for (let i = 0, k = 0, l = this.dataChunks.length; i < l; i++) {
-      const chunk = this.dataChunks[i];
-      for (let j = 0; j < chunk.length; j++) {
-        data[k++] = chunk[j];
+    let k = 0;
+    for (const chunk of this.dataChunks) {
+      for (const j of chunk) {
+        data[k++] = j;
       }
     }
     let out;

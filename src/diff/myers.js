@@ -35,7 +35,7 @@ class Myers {
   /** @type {string[] | number[] | Uint8Array[]} */
   y = [];
 
-  // arrays for forwards and backwards iteration respectively.
+  // Arrays for forwards and backwards iteration respectively.
   // An array stores the furthest reaching endpoint of a d-path in diagonal k in v[v0+k] where v0 is the offset that translates k in [-d, d] to k0 = v0+k in [0, 2*d].
   // The endpoints only store the s-coordinate since t = s - k.
   /** @type {number[]} */

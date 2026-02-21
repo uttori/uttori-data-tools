@@ -209,6 +209,20 @@ test('uint8', (t) => {
 
   t.throws(() => stream.readUInt8(), { message: 'Insufficient Bytes: 1' });
 
+  // read(bytes) UnderflowError and littleEndian branch
+  stream = new DataBuffer(new Uint8Array([0x12, 0x34]));
+  t.throws(() => stream.read(3), { message: 'Insufficient Bytes: 3' });
+  stream.seek(0);
+  const le = stream.read(2, true);
+  t.is(le[0], 0x34);
+  t.is(le[1], 0x12);
+  // peek(bytes) UnderflowError and littleEndian branch
+  stream = new DataBuffer(new Uint8Array([0xAB, 0xCD]));
+  t.throws(() => stream.peek(3, 0), { message: 'Insufficient Bytes: 0 + 3' });
+  const peekLe = stream.peek(2, 0, true);
+  t.is(peekLe[0], 0xCD);
+  t.is(peekLe[1], 0xAB);
+
   // if it were a signed int, would be -1
   stream = new DataBuffer(new Uint8Array([255, 23]));
   t.is(stream.readUInt8(), 255);
@@ -234,6 +248,14 @@ test('int8', (t) => {
     }
     return result;
   })();
+});
+
+test('int8: UnderflowError', (t) => {
+  const stream = new DataBuffer(new Uint8Array([0x23]));
+  stream.readUInt8();
+  t.throws(() => stream.readInt8(), { message: 'Insufficient Bytes: 1' });
+  const s2 = new DataBuffer(new Uint8Array([0xFF]));
+  t.throws(() => s2.peekInt8(1), { message: 'Insufficient Bytes: 1 + 1' });
 });
 
 test('uint16', (t) => {
@@ -270,6 +292,10 @@ test('uint16', (t) => {
   stream = new DataBuffer(new Uint8Array([0xFE, 0xFE]));
   t.is(stream.peekUInt16(0), 0xFEFE);
   t.is(stream.peekUInt16(0, true), 0xFEFE);
+
+  // UnderflowError
+  const shortU16 = new DataBuffer(new Uint8Array([0x01]));
+  t.throws(() => shortU16.peekUInt16(), { message: 'Insufficient Bytes: 0 + 2' });
 });
 
 test('int16', (t) => {
@@ -297,14 +323,14 @@ test('int16', (t) => {
   }
 
   // reading little endian
-  return (() => {
-    const result = [];
-    const iterable2 = [0x7916, -32513];
-    for (const value of iterable2) {
-      result.push(t.is(value, copy.readInt16(true)));
-    }
-    return result;
-  })();
+  for (const value of [0x7916, -32513]) {
+    t.is(value, copy.readInt16(true));
+  }
+
+  // UnderflowError
+  const shortI16 = new DataBuffer(new Uint8Array([0x01]));
+  t.throws(() => shortI16.readInt16(), { message: 'Insufficient Bytes: 2' });
+  t.throws(() => shortI16.peekInt16(), { message: 'Insufficient Bytes: 0 + 2' });
 });
 
 test('uint24', (t) => {
@@ -410,6 +436,12 @@ test('uint32', (t) => {
   })();
 });
 
+test('uint32: UnderflowError', (t) => {
+  const stream = new DataBuffer(new Uint8Array([0x32, 0x65, 0x42]));
+  t.throws(() => stream.peekUInt32(0), { message: 'Insufficient Bytes: 0 + 4' });
+  t.throws(() => stream.peekUInt32(1), { message: 'Insufficient Bytes: 1 + 4' });
+});
+
 test('int32', (t) => {
   let stream = new DataBuffer(new Uint8Array([0x43, 0x53, 0x16, 0x79, 0xFF, 0xFE, 0xEF, 0xFA]));
   const copy = stream.copy();
@@ -457,6 +489,14 @@ test('int32', (t) => {
   t.is(stream.peekInt32(0, true), -1);
 });
 
+test('int32: UnderflowError', (t) => {
+  const stream = new DataBuffer(new Uint8Array([0x43, 0x53, 0x16]));
+  t.throws(() => stream.readInt32(), { message: 'Insufficient Bytes: 4' });
+  const s2 = new DataBuffer(new Uint8Array([0x43, 0x53, 0x16, 0x79]));
+  s2.readInt32();
+  t.throws(() => s2.peekInt32(1), { message: 'Insufficient Bytes: 1 + 4' });
+});
+
 test('float32', (t) => {
   const stream = new DataBuffer(new Uint8Array([
     0, 0, 0x80,
@@ -499,6 +539,12 @@ test('float32', (t) => {
   t.true(Number.isNaN(stream2.peekFloat32()));
   t.true(Number.isNaN(stream2.peekFloat32(0)));
   t.is(stream2.peekFloat32(0, true), 3.4028234663852886e+38);
+});
+
+test('float32: UnderflowError', (t) => {
+  const stream = new DataBuffer(new Uint8Array([0, 0, 0]));
+  t.throws(() => stream.readFloat32(), { message: 'Insufficient Bytes: 4' });
+  t.throws(() => stream.peekFloat32(1), { message: 'Insufficient Bytes: 1 + 4' });
 });
 
 test('float48', (t) => {
@@ -613,6 +659,11 @@ test('float64', (t) => {
   t.is(Number.POSITIVE_INFINITY, stream.peekFloat64(0, true));
   t.is(stream.readFloat64(), 3.0418e-319);
   t.is(Number.POSITIVE_INFINITY, copy.readFloat64(true));
+
+  // UnderflowError
+  stream = new DataBuffer(new Uint8Array([0, 0, 0, 0]));
+  t.throws(() => stream.readFloat64(), { message: 'Insufficient Bytes: 8' });
+  t.throws(() => stream.peekFloat64(2), { message: 'Insufficient Bytes: 2 + 8' });
 
   stream = new DataBuffer(new Uint8Array([0, 0, 0, 0, 0, 0, 0xF0, 0xFF]));
   copy = stream.copy();
@@ -737,6 +788,11 @@ test('buffer', (t) => {
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.peekBuffer(0, 4));
   t.deepEqual(new DataBuffer(new Uint8Array([160, 20, 29, 119])), stream.peekBuffer(1, 4));
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160, 20, 29])), stream.readBuffer(4));
+  t.throws(() => stream.readBuffer(10), { message: 'Insufficient Bytes: 10' });
+  stream.seek(0);
+  t.throws(() => stream.peekBuffer(0, 10), { message: 'Insufficient Bytes: 0 + 10' });
+  stream.readBuffer(1);
+  t.throws(() => stream.peekBuffer(1, 10), { message: 'Insufficient Bytes: 1 + 10' });
 });
 
 test('decodeString: ascii/latin1', (t) => {
@@ -1010,6 +1066,273 @@ test('decodeString: invalid utf8-sequence', (t) => {
   t.is(error.message, 'Invalid utf16 sequence.');
 });
 
+test('readNullTerminatedString: ascii/latin1 default nullValue', (t) => {
+  const stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0]));
+  t.is(stream.peekNullTerminatedString(0), 'hello');
+  t.is(stream.peekNullTerminatedString(0, 'ascii'), 'hello');
+  t.is(stream.peekNullTerminatedString(0, 'latin1'), 'hello');
+  t.is(stream.readNullTerminatedString('ascii'), 'hello');
+  t.is(stream.offset, 6);
+});
+
+test('readNullTerminatedString: ascii/latin1 custom nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'ascii', 0xFF), 'hello');
+  t.is(stream.readNullTerminatedString('ascii', 0xFF), 'hello');
+  t.is(stream.offset, 6);
+
+  stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x00]));
+  t.is(stream.peekNullTerminatedString(0, 'latin1', 0x20), 'hello');
+  t.is(stream.readNullTerminatedString('latin1', 0x20), 'hello');
+  t.is(stream.offset, 6);
+
+  stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x0A]));
+  t.is(stream.peekNullTerminatedString(0, 'ascii', 0x0A), 'hello');
+  t.is(stream.readNullTerminatedString('ascii', 0x0A), 'hello');
+  t.is(stream.offset, 6);
+});
+
+test('readNullTerminatedString: utf8 default nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([195, 188, 98, 101, 114, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), 'über');
+  t.is(stream.readNullTerminatedString('utf8'), 'über');
+  t.is(stream.offset, 6);
+
+  stream = new DataBuffer(new Uint8Array([0xC3, 0xB6, 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf-8'), 'ö日本語');
+  t.is(stream.readNullTerminatedString('utf-8'), 'ö日本語');
+  t.is(stream.offset, 12);
+
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0x8D, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '👍');
+  t.is(stream.readNullTerminatedString('utf8'), '👍');
+  t.is(stream.offset, 5);
+});
+
+test('readNullTerminatedString: utf8 custom nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([195, 188, 98, 101, 114, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), 'über');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), 'über');
+  t.is(stream.offset, 6);
+
+  stream = new DataBuffer(new Uint8Array([0xC3, 0xB6, 0xE6, 0x97, 0xA5, 0x20, 0x00]));
+  t.is(stream.peekNullTerminatedString(0, 'utf-8', 0x20), 'ö日');
+  t.is(stream.readNullTerminatedString('utf-8', 0x20), 'ö日');
+  t.is(stream.offset, 6);
+
+  // Test that nullValue in continuation bytes also terminates
+  stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 3);
+});
+
+test('readNullTerminatedString: utf8 edge cases - buffer length and nullValue in continuation bytes', (t) => {
+  // 2-byte UTF-8 sequence: buffer ends before b2
+  let stream = new DataBuffer(new Uint8Array([0xC3]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 1);
+
+  // 2-byte UTF-8 sequence: b2 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xC3, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 2);
+
+  // 2-byte UTF-8 sequence: b2 equals nullValue (with default 0x00)
+  stream = new DataBuffer(new Uint8Array([0xC3, 0x00]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 2);
+
+  // 3-byte UTF-8 sequence: buffer ends before b2
+  stream = new DataBuffer(new Uint8Array([0xE6]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 1);
+
+  // 3-byte UTF-8 sequence: b2 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xE6, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 2);
+
+  // 3-byte UTF-8 sequence: buffer ends before b3
+  stream = new DataBuffer(new Uint8Array([0xE6, 0x97]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 2);
+
+  // 3-byte UTF-8 sequence: b3 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 3);
+
+  // 3-byte UTF-8 sequence: b3 equals nullValue (with default 0x00)
+  stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0x00]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 3);
+
+  // 4-byte UTF-8 sequence: buffer ends before b2
+  stream = new DataBuffer(new Uint8Array([0xF0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 1);
+
+  // 4-byte UTF-8 sequence: b2 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xF0, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 2);
+
+  // 4-byte UTF-8 sequence: buffer ends before b3
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 2);
+
+  // 4-byte UTF-8 sequence: b3 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 3);
+
+  // 4-byte UTF-8 sequence: buffer ends before b4
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 3);
+
+  // 4-byte UTF-8 sequence: b4 equals nullValue
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.offset, 4);
+
+  // 4-byte UTF-8 sequence: b4 equals nullValue (with default 0x00)
+  stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0x00]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
+  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.offset, 4);
+
+  // Mixed: valid 2-byte sequence followed by incomplete 3-byte sequence
+  stream = new DataBuffer(new Uint8Array([0xC3, 0xB6, 0xE6, 0x97]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), 'ö');
+  t.is(stream.readNullTerminatedString('utf8'), 'ö');
+  t.is(stream.offset, 4);
+
+  // Mixed: valid 3-byte sequence followed by incomplete 4-byte sequence
+  stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xA5, 0xF0, 0x9F]));
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '日');
+  t.is(stream.readNullTerminatedString('utf8'), '日');
+  t.is(stream.offset, 5);
+});
+
+test('readNullTerminatedString: utf16be default nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([0, 252, 0, 98, 0, 101, 0, 114, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16be'), 'über');
+  t.is(stream.readNullTerminatedString('utf16be'), 'über');
+  t.is(stream.offset, 10);
+
+  stream = new DataBuffer(new Uint8Array([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16-be'), 'привет');
+  t.is(stream.readNullTerminatedString('utf16-be'), 'привет');
+  t.is(stream.offset, 14);
+
+  stream = new DataBuffer(new Uint8Array([0xD8, 0x3D, 0xDC, 0x4D, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16be'), '👍');
+  t.is(stream.readNullTerminatedString('utf16be'), '👍');
+  t.is(stream.offset, 6);
+});
+
+test('readNullTerminatedString: utf16be custom nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([0, 252, 0, 98, 0, 101, 0, 114, 0xFF, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16be', 0xFF), 'über');
+  t.is(stream.readNullTerminatedString('utf16be', 0xFF), 'über');
+  t.is(stream.offset, 10);
+
+  stream = new DataBuffer(new Uint8Array([4, 63, 4, 64, 4, 56, 0x20, 0x20]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16-be', 0x20), 'при');
+  t.is(stream.readNullTerminatedString('utf16-be', 0x20), 'при');
+  t.is(stream.offset, 8);
+
+  stream = new DataBuffer(new Uint8Array([0, 252, 0, 98, 0, 101, 0, 114, 0x00, 0x00]));
+  // Should still work with 0x00 when explicitly specified
+  t.is(stream.peekNullTerminatedString(0, 'utf16be', 0x00), 'über');
+  t.is(stream.readNullTerminatedString('utf16be', 0x00), 'über');
+  t.is(stream.offset, 10);
+});
+
+test('readNullTerminatedString: utf16le default nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([252, 0, 98, 0, 101, 0, 114, 0, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16le'), 'über');
+  t.is(stream.readNullTerminatedString('utf16le'), 'über');
+  t.is(stream.offset, 10);
+
+  stream = new DataBuffer(new Uint8Array([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16-le'), 'привет');
+  t.is(stream.readNullTerminatedString('utf16-le'), 'привет');
+  t.is(stream.offset, 14);
+
+  stream = new DataBuffer(new Uint8Array([0x3D, 0xD8, 0x4D, 0xDC, 0, 0]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16le'), '👍');
+  t.is(stream.readNullTerminatedString('utf16le'), '👍');
+  t.is(stream.offset, 6);
+});
+
+test('readNullTerminatedString: utf16le custom nullValue', (t) => {
+  let stream = new DataBuffer(new Uint8Array([252, 0, 98, 0, 101, 0, 114, 0, 0xFF, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16le', 0xFF), 'über');
+  t.is(stream.readNullTerminatedString('utf16le', 0xFF), 'über');
+  t.is(stream.offset, 10);
+
+  stream = new DataBuffer(new Uint8Array([63, 4, 64, 4, 56, 4, 0x20, 0x20]));
+  t.is(stream.peekNullTerminatedString(0, 'utf16-le', 0x20), 'при');
+  t.is(stream.readNullTerminatedString('utf16-le', 0x20), 'при');
+  t.is(stream.offset, 8);
+
+  stream = new DataBuffer(new Uint8Array([252, 0, 98, 0, 101, 0, 114, 0, 0x00, 0x00]));
+  // Should still work with 0x00 when explicitly specified
+  t.is(stream.peekNullTerminatedString(0, 'utf16le', 0x00), 'über');
+  t.is(stream.readNullTerminatedString('utf16le', 0x00), 'über');
+  t.is(stream.offset, 10);
+});
+
+test('readNullTerminatedString: edge cases', (t) => {
+  // Empty string (null terminator at start)
+  let stream = new DataBuffer(new Uint8Array([0]));
+  t.is(stream.peekNullTerminatedString(0), '');
+  t.is(stream.readNullTerminatedString(), '');
+  t.is(stream.offset, 1);
+
+  // Empty string with custom nullValue
+  stream = new DataBuffer(new Uint8Array([0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'ascii', 0xFF), '');
+  t.is(stream.readNullTerminatedString('ascii', 0xFF), '');
+  t.is(stream.offset, 1);
+
+  // String with nullValue in the middle (should stop there)
+  stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x00, 0x6C, 0x6C, 0x6F, 0]));
+  t.is(stream.peekNullTerminatedString(0), 'he');
+  t.is(stream.readNullTerminatedString(), 'he');
+  t.is(stream.offset, 3);
+
+  // String with custom nullValue in the middle
+  stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0xFF, 0x6C, 0x6C, 0x6F, 0xFF]));
+  t.is(stream.peekNullTerminatedString(0, 'ascii', 0xFF), 'he');
+  t.is(stream.readNullTerminatedString('ascii', 0xFF), 'he');
+  t.is(stream.offset, 3);
+
+  // No null terminator (reads to end of buffer)
+  stream = new DataBuffer(new Uint8Array([0x68, 0x65, 0x6C, 0x6C, 0x6F]));
+  t.is(stream.peekNullTerminatedString(0), 'hello');
+  t.is(stream.readNullTerminatedString(), 'hello');
+  t.is(stream.offset, 5);
+});
+
 test('peekBit: can peek the bits at a given offset', (t) => {
   let stream = new DataBuffer(new Uint8Array([255])); // 11111111
 
@@ -1106,6 +1429,13 @@ test('writeUInt8', (t) => {
 
   stream.advance(1);
   t.throws(() => stream.readUInt8(), { message: 'Insufficient Bytes: 1' });
+
+  // buffer getter lazy-init with empty data (branch: this.data.length ? Array.from : [])
+  const emptyReadOnly = new DataBuffer(new Uint8Array([]));
+  emptyReadOnly.writeUInt8(0x42);
+  emptyReadOnly.commit();
+  emptyReadOnly.seek(0);
+  t.is(emptyReadOnly.readUInt8(), 0x42);
 });
 
 test('writeUInt16', (t) => {
@@ -1129,7 +1459,7 @@ test('writeUInt16', (t) => {
   }
   stream.advance(2);
 
-  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 2' });
 });
 
 test('writeUInt16 - littleEndian', (t) => {
@@ -1155,7 +1485,7 @@ test('writeUInt16 - littleEndian', (t) => {
     t.is(byte.toString(16), stream.readUInt16().toString(16));
   }
 
-  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt16(), { message: 'Insufficient Bytes: 2' });
 });
 
 test('writeUint24', (t) => {
@@ -1173,7 +1503,7 @@ test('writeUint24', (t) => {
     t.is(byte, stream.readUInt24());
   }
 
-  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 2' });
 });
 
 test('writeUint24 - littleEndian, no advance', (t) => {
@@ -1202,7 +1532,7 @@ test('writeUint24 - littleEndian, no advance', (t) => {
     t.is(byte.toString(16), stream.readUInt24().toString(16));
   }
 
-  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 2' });
 });
 
 test('writeUint32', (t) => {
@@ -1220,7 +1550,7 @@ test('writeUint32', (t) => {
     t.is(byte, stream.readUInt32());
   }
 
-  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 4' });
 });
 
 test('writeUint32 - littleEndian, no advance', (t) => {
@@ -1249,7 +1579,7 @@ test('writeUint32 - littleEndian, no advance', (t) => {
     t.is(byte.toString(16), stream.readUInt32().toString(16));
   }
 
-  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 4' });
 });
 
 test('writeBytes', (t) => {
@@ -1279,7 +1609,7 @@ test('writeBytes', (t) => {
   }
 
   stream.advance(8);
-  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 1' });
+  t.throws(() => stream.readUInt32(), { message: 'Insufficient Bytes: 4' });
 });
 
 test('writeString - ASCII', (t) => {

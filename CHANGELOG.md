@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## WIP
+
+- 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
+
 ## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...master)
+
+- 🎁 Update dev dependencies
+- 🧰 Add `readNullTerminatedString`, `peekNullTerminatedString`, and `decodeNullTerminatedString` for handling null terminated strings, configurable null bytes supported
+- 🛠 Reading methodsrefactored for better `UnderflowError` protection
+- 🛠 Overall less allocations when reading & writing
 
 ## [3.2.0](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...v3.2.0) - 2025-10-17
 

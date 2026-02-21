@@ -1,4 +1,5 @@
-import { DataBitstream, DataBuffer } from '../index.js';
+import DataBitstream from '../data-bitstream.js';
+import DataBuffer from '../data-buffer.js';
 import GIFLZW from './gif_lzw.js';
 
 let debug = (..._) => {};
