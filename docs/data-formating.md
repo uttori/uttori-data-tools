@@ -169,12 +169,16 @@ Create an ASCII table from provided data and configuration.
 | Param | Type | Description |
 | --- | --- | --- |
 | data | <code>Array.&lt;Array.&lt;string&gt;&gt;</code> | The data to add to the table. |
-| options | <code>object</code> | Configuration. |
+| [options] | <code>object</code> | Configuration. |
 | options.align | <code>Array.&lt;string&gt;</code> | The alignment of each column, left or right. |
 | options.padding | <code>number</code> | Amount of padding to add to each cell. |
 | options.theme | [<code>TableFormatStyle</code>](#TableFormatStyle) | The theme to use for formatting. |
 | options.title | <code>string</code> | The title to display at the top of the table. |
 
+<a name="formatTable..columnLengths"></a>
+
+### formatTable~columnLengths : <code>Array.&lt;number&gt;</code>
+**Kind**: inner constant of [<code>formatTable</code>](#formatTable)  
 <a name="formatDiffHex"></a>
 
 ## formatDiffHex ⇒ <code>string</code>

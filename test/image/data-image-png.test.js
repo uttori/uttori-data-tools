@@ -212,11 +212,11 @@ test('decodeTRNS(): can read a valid PNG tRNS chunk', async (t) => {
 
   image_data = await fs.readFile('./test/image/assets/512x478x24-compressed.png');
   image = ImagePNG.fromFile(image_data);
-  t.is(image.transparency, undefined);
+  t.deepEqual(image.transparency, new Uint8Array());
 
   image_data = await fs.readFile('./test/image/assets/png-transparent.png');
   image = ImagePNG.fromFile(image_data);
-  t.is(image.transparency, undefined);
+  t.deepEqual(image.transparency, new Uint8Array());
 });
 
 test('decodePHYS(): can read a valid PNG pHYs chunk', async (t) => {
@@ -371,8 +371,9 @@ test('decodePixels(): can decode pixel data', async (t) => {
 test('getPixel(x, y): throws errors for missing pixel data', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/4x4x8-RGB-MAGENTA.png');
   const image = ImagePNG.fromFile(image_data);
+  image.pixels = null;
   t.throws(() => {
-    image.getPixel(true, true);
+    image.getPixel(999, 999);
   }, { message: 'Pixel data has not been decoded.' });
 });
 

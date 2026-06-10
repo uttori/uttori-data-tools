@@ -8,10 +8,16 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...master)
 
-- 🎁 Update dev dependencies
+## [3.3.0](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...3.3.0)
+
 - 🧰 Add `readNullTerminatedString`, `peekNullTerminatedString`, and `decodeNullTerminatedString` for handling null terminated strings, configurable null bytes supported
-- 🛠 Reading methodsrefactored for better `UnderflowError` protection
+- 🧰 Add `convertFromIeeeExtended` for reading IEEE 754 extended precision floats, exposed as `readFloatIEEE754` on `DataBuffer` and `DataStream`
+
+- 🛠 Reading methods refactored for better `UnderflowError` protection
 - 🛠 Overall less allocations when reading & writing
+- 🧹 Documentation & Types clean up
+- 🎁 Update dev dependencies
+- 🎁 Update tests and fix warnings
 
 ## [3.2.0](https://github.com/uttori/uttori-data-tools/compare/v3.1.2...v3.2.0) - 2025-10-17
 

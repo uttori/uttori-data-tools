@@ -195,13 +195,13 @@ declare class ImageGIF extends DataBuffer {
      * It is exactly seven bytes long.
      */
     decodeLogicalScreenDescriptor(): void;
-    packed: number;
-    globalColorTable: number;
-    colorResolution: number;
-    sortFlag: number;
-    sizeOfGlobalColorTable: number;
-    backgroundColorIndex: number;
-    pixelAspectRatio: number;
+    packed: number | undefined;
+    globalColorTable: number | undefined;
+    colorResolution: number | undefined;
+    sortFlag: number | undefined;
+    sizeOfGlobalColorTable: number | undefined;
+    backgroundColorIndex: number | undefined;
+    pixelAspectRatio: number | undefined;
     /**
      * Decodes the Global Color Table.
      *
@@ -231,5 +231,5 @@ declare class ImageGIF extends DataBuffer {
      */
     getPixel(x: number, y: number): Array<number>;
 }
-import { DataBuffer } from '../index.js';
+import DataBuffer from '../data-buffer.js';
 //# sourceMappingURL=data-image-gif.d.ts.map

@@ -71,24 +71,24 @@ export const formatTableThemeUnicode: TableFormatStyle;
  * @type {TableFormatStyle}
  */
 export const formatTableThemeMarkdown: TableFormatStyle;
-export function formatTable(data: string[][], options: {
+export function formatTable(data: string[][], options?: {
     align: string[];
     padding: number;
     theme: TableFormatStyle;
     title: string;
 }): string;
 export function formatDiffHex(edits: import("./diff/diff.js").Edit[], options?: {
-    bytesPerRow?: number;
-    showOffset?: boolean;
-    showAscii?: boolean;
-    showBits?: boolean;
+    bytesPerRow?: number | undefined;
+    showOffset?: boolean | undefined;
+    showAscii?: boolean | undefined;
+    showBits?: boolean | undefined;
 }): string;
 export function formatDiffHunks(hunks: import("./diff/diff.js").Hunk[], options?: {
-    context?: number;
+    context?: number | undefined;
 }): string;
 export function formatMyersGraph(rx: boolean[], ry: boolean[], x: any[], y: any[], options?: {
-    showFull?: boolean;
-    showLabels?: boolean;
+    showFull?: boolean | undefined;
+    showLabels?: boolean | undefined;
 }): string;
 declare namespace _default {
     export { formatBytes };

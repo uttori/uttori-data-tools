@@ -2,7 +2,7 @@
 
 <dl>
 <dt><a href="#float48">float48</a> ⇒ <code>number</code></dt>
-<dd><p>Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
+<dd><p>Converts the provided <code>Uint8Array</code> into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.</p>
 <p>While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
 Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.</p>
@@ -20,12 +20,16 @@ S[1]: Sign</p>
 <dt><a href="#float80">float80</a> ⇒ <code>number</code></dt>
 <dd><p>Convert the current buffer into an IEEE 80 bit extended float value.</p>
 </dd>
+<dt><a href="#convertFromIeeeExtended">convertFromIeeeExtended</a> ⇒ <code>number</code></dt>
+<dd><p>Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
+Uses <code>&gt;&gt;&gt; 0</code> to force unsigned 32-bit mantissas.</p>
+</dd>
 </dl>
 
 <a name="float48"></a>
 
 ## float48 ⇒ <code>number</code>
-Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
+Converts the provided `Uint8Array` into a Turbo Pascal 48 bit float value.
 May be faulty with large numbers due to float percision.
 
 While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
@@ -66,4 +70,18 @@ Convert the current buffer into an IEEE 80 bit extended float value.
 | Param | Type | Description |
 | --- | --- | --- |
 | uint8 | <code>Uint8Array</code> | The raw data to convert to a float80. |
+
+<a name="convertFromIeeeExtended"></a>
+
+## convertFromIeeeExtended ⇒ <code>number</code>
+Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
+Uses `>>> 0` to force unsigned 32-bit mantissas.
+
+**Kind**: global constant  
+**Returns**: <code>number</code> - The converted value.  
+**See**: [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| uint8 | <code>Uint8Array</code> \| <code>Array.&lt;number&gt;</code> | 10-byte extended float. |
 

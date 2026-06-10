@@ -190,19 +190,21 @@ class GIFLZW {
     const endOfInformation = (1 << codeSize) + 1;
     debug('endOfInformation:', endOfInformation);
 
-    let dict;
+    /** @type {Record<number|string, number|string>} */
+    let dict = {};
     /** @type {number} */
-    let dictionarySize;
+    let dictionarySize = 0;
     /** @type {number} */
-    let codeLength;
+    let codeLength = 0;
     /** @type {string|number} */
     let sequence;
     /** @type {string|number|null} */
-    let prevSequence;
+    let prevSequence = null;
 
     const output = [];
 
     // The first value in the code stream should be a clear code.
+    /** @type {number} */
     let code = this.unpack(codeSize + 1, useInput);
     /* c8 ignore next 3 */
     if (code !== clearCode) {
@@ -235,7 +237,7 @@ class GIFLZW {
       } else {
         // Code not in dictionary: use the first character of the previous sequence
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        sequence = prevSequence + prevSequence[0];
+        sequence = prevSequence + (prevSequence?.[0] ?? '');
       }
 
       // Output code - 1 + K to the index stream and add this value to our code table.

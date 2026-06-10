@@ -503,7 +503,7 @@ Deinterlace with no interlacing.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Buffer</code> | Data to deinterlace. |
+| data | <code>Buffer</code> \| <code>Uint8Array</code> | Data to deinterlace. |
 
 <a name="ImagePNG+interlaceAdam7"></a>
 
@@ -524,7 +524,7 @@ Adam7 divides the image into 7 passes with different starting positions and step
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Buffer</code> | Data to deinterlace. |
+| data | <code>Buffer</code> \| <code>Uint8Array</code> | Data to deinterlace. |
 
 <a name="ImagePNG.fromFile"></a>
 

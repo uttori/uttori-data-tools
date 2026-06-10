@@ -147,7 +147,8 @@ class DataBitstream {
       return 0;
     }
 
-    let output;
+    /** @type {number} */
+    let output = 0;
     const mBits = bits + this.bitPosition;
     debug('read mBits:', mBits);
     if (mBits <= 8) {

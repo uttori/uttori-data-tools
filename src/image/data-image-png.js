@@ -75,9 +75,9 @@ class ImagePNG extends DataBuffer {
     /** @type {number[] | Uint8Array} Raw Color data */
     this.palette = [];
     /** @type {number[]|Uint8Array} Raw Image Pixel data */
-    this.pixels = undefined;
+    this.pixels = new Uint8Array();
     /** @type {Uint8Array} Raw Transparency data */
-    this.transparency = undefined;
+    this.transparency = new Uint8Array();
 
     /** @type {object} physical - Object containing physical dimension information */
     this.physical = {
@@ -525,6 +525,7 @@ class ImagePNG extends DataBuffer {
       }
     }
 
+    /** @type {Uint8Array} */
     let out;
     try {
       out = zlib.inflateSync(data);
@@ -549,7 +550,7 @@ class ImagePNG extends DataBuffer {
 
   /**
    * Deinterlace with no interlacing.
-   * @param {Buffer} data - Data to deinterlace.
+   * @param {Buffer|Uint8Array} data Data to deinterlace.
    * @see {@link https://www.w3.org/TR/PNG-Filters.html|PNG Filters}
    */
   interlaceNone(data) {
@@ -598,7 +599,7 @@ class ImagePNG extends DataBuffer {
   /**
    * Deinterlace with Adam7 interlacing.
    * Adam7 divides the image into 7 passes with different starting positions and step sizes.
-   * @param {Buffer} data - Data to deinterlace.
+   * @param {Buffer|Uint8Array} data Data to deinterlace.
    * @see {@link https://www.w3.org/TR/PNG/#8Interlace|PNG Adam7 Interlacing}
    * @see {@link https://github.com/em2046/lens/blob/master/assets/js/interlace.js}
    * @see {@link https://github.com/em2046/aperture/tree/master/lib/png/chunks}
@@ -834,14 +835,14 @@ class ImagePNG extends DataBuffer {
     debug('unFilterPaeth:', 'bpp:', bpp, 'offset:', offset, 'length:', length);
     let i = 0;
     let raw;
-    let a;
-    let b;
-    let c;
+    let a = 0;
+    let b = 0;
+    let c = 0;
     let p;
-    let pa;
-    let pb;
-    let pc;
-    let pr;
+    let pa = 0;
+    let pb = 0;
+    let pc = 0;
+    let pr = 0;
     if ((offset - length) < 0) {
       // Prior(x) == 0 && Raw(x - bpp) == 0
       for (; i < bpp; i++) {

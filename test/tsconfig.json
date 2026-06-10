@@ -9,7 +9,6 @@
     "allowSyntheticDefaultImports": true,
     "checkJs": true,
     "declaration": true,
-    "downlevelIteration": true,
     "emitDeclarationOnly": false,
     "extendedDiagnostics": true,
     "forceConsistentCasingInFileNames": true,

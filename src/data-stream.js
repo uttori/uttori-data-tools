@@ -1,7 +1,7 @@
 import DataBuffer from './data-buffer.js';
 import DataBufferList from './data-buffer-list.js';
 import UnderflowError from './underflow-error.js';
-import { float48, float80 } from './data-helpers.js';
+import { convertFromIeeeExtended, float48, float80 } from './data-helpers.js';
 
 let debug = (..._) => {};
 /* c8 ignore next */
@@ -78,7 +78,7 @@ class DataStream {
 
   /**
    * Creates a new DataStream from file data.
-   * @param {string | number | ArrayBuffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | Buffer | DataBuffer} data The data to process.
+   * @param {string|number|ArrayBuffer|Buffer|Uint8Array|Int8Array|Uint16Array|Int16Array|Uint32Array|Int32Array|number[]|DataBuffer} data The data to process.
    * @returns {DataStream} The new DataStream instance for the provided file data.
    * @static
    */
@@ -135,7 +135,7 @@ class DataStream {
 
   /**
    * Compares input data against the upcoming data, byte by byte.
-   * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+   * @param {number[]|Buffer|Uint8Array} input The data to check for in upcoming bytes.
    * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
    */
   next(input) {
@@ -234,6 +234,9 @@ class DataStream {
     if (bytes > this.offset) {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} > ${this.offset}`);
     }
+    if (!this.list.first) {
+      throw new Error('No buffer to read from');
+    }
 
     // If we're at the end of the bufferlist, seek from the end
     // if (!this.list.first) {
@@ -275,6 +278,9 @@ class DataStream {
   readUInt8() {
     if (!this.available(1)) {
       throw new UnderflowError('Insufficient Bytes: 1');
+    }
+    if (!this.list.first) {
+      throw new Error('No buffer to read from');
     }
 
     const output = this.list.first.data[this.localOffset];
@@ -618,6 +624,27 @@ class DataStream {
   }
 
   /**
+   * Read from the current offset and return the IEEE 754 extended float value.
+   * May be faulty with large numbers due to float percision.
+   * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+   * @returns {number} The IEEE 754 extended float value at the current offset.
+   */
+  readFloatIEEE754(littleEndian = false) {
+    return convertFromIeeeExtended(this.read(10, littleEndian !== this.nativeEndian));
+  }
+
+  /**
+   * Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+   * May be faulty with large numbers due to float percision.
+   * @param {number} [offset] The offset to read from, default is 0.
+   * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+   * @returns {number} The IEEE 754 extended float value at the specified offset.
+   */
+  peekFloatIEEE754(offset = 0, littleEndian = false) {
+    return convertFromIeeeExtended(this.peek(10, offset, littleEndian !== this.nativeEndian));
+  }
+
+  /**
    * Read from the current offset and return the value as a DataBuffer.
    * @param {number} length The number of bytes to read.
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
@@ -651,6 +678,9 @@ class DataStream {
    */
   readSingleBuffer(length) {
     debug('readSingleBuffer:', length);
+    if (!this.list.first) {
+      throw new Error('No buffer to read from');
+    }
     const result = this.list.first.slice(this.localOffset, length);
     this.advance(result.length);
     return result;
@@ -664,6 +694,9 @@ class DataStream {
    */
   peekSingleBuffer(offset, length) {
     debug('peekSingleBuffer:', offset, length);
+    if (!this.list.first) {
+      throw new Error('No buffer to read from');
+    }
     return this.list.first.slice(this.localOffset + offset, length);
   }
 
@@ -760,7 +793,8 @@ class DataStream {
       case 'utf16-le':
       case 'utf16bom':
       case 'utf16-bom': {
-        let littleEndian;
+        /** @type {boolean} */
+        let littleEndian = false;
 
         // find endianness
         switch (encoding) {
@@ -791,7 +825,8 @@ class DataStream {
           }
         }
 
-        let w1;
+        /** @type {number} */
+        let w1 = 0;
         while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
           offset += 2;
 

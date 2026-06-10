@@ -56,7 +56,7 @@ export const Op = {
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
  * @param {number} context Number of matching elements to include around changes (default: 3)
- * @returns {Hunk[]}
+ * @returns {Hunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export function hunks(x, y, eq = (a, b) => a === b, context = DEFAULT_CONTEXT) {
   const { rx, ry } = diff(x, y, eq);
@@ -69,7 +69,7 @@ export function hunks(x, y, eq = (a, b) => a === b, context = DEFAULT_CONTEXT) {
  * @param {boolean[]} rx The first array of booleans
  * @param {boolean[]} ry The second array of booleans
  * @param {number} _context The context
- * @returns {Hunk[]}
+ * @returns {Hunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 function createHunks(x, y, rx, ry, _context) {
   /** @type {Hunk[]} */
@@ -193,7 +193,7 @@ function createHunks(x, y, rx, ry, _context) {
  * @param {string[] | number[] | Uint8Array[]} x The first array to compare
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
- * @returns {Edit[]}
+ * @returns {Edit[]} The edits for the diff.
  */
 export function edits(x, y, eq = (a, b) => a === b) {
   const { rx, ry } = diff(x, y, eq);
@@ -205,7 +205,7 @@ export function edits(x, y, eq = (a, b) => a === b) {
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {boolean[]} rx The first array of booleans
  * @param {boolean[]} ry The second array of booleans
- * @returns {Edit[]}
+ * @returns {Edit[]} The edits for the diff.
  */
 function createEdits(x, y, rx, ry) {
   /** @type {Edit[]} */
@@ -255,7 +255,7 @@ function createEdits(x, y, rx, ry) {
  * @param {string[] | number[] | Uint8Array[]} x The first array to compare
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
- * @returns {DiffResult}
+ * @returns {DiffResult} The result of the diff.
  */
 export function diff(x, y, eq = (a, b) => a === b) {
   /** @type {number[]} */
@@ -273,8 +273,8 @@ export function diff(x, y, eq = (a, b) => a === b) {
   const elements = [];
 
   /**
-   * @param {string | number | Uint8Array} e
-   * @returns {number}
+   * @param {string | number | Uint8Array} e The element to find the id of.
+   * @returns {number} The id of the element.
    */
   const findId = (e) => {
     for (let i = 0; i < elements.length; i++) {

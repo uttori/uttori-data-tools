@@ -330,7 +330,7 @@ export const formatTableThemeMarkdown = {
 /**
  * Create an ASCII table from provided data and configuration.
  * @param {string[][]} data The data to add to the table.
- * @param {object} options Configuration.
+ * @param {object} [options] Configuration.
  * @param {string[]} options.align The alignment of each column, left or right.
  * @param {number} options.padding Amount of padding to add to each cell.
  * @param {TableFormatStyle} options.theme The theme to use for formatting.
@@ -341,10 +341,11 @@ export const formatTable = (data, options) => {
   // Use JSON parse & stringify to get a deep copy of the parameter array
   data = structuredClone(data);
   options = {
+    align: ['left'],
     padding: 1,
     theme: formatTableThemeMySQL,
     title: '',
-    ...options,
+    ...(options ?? {}),
   };
 
   // Ensure all the rows have the same number of columns.
@@ -355,6 +356,7 @@ export const formatTable = (data, options) => {
   }
 
   // Make an array with the length of each column
+  /** @type {number[]} */
   const columnLengths = [];
   for (const row of data) {
     for (const [i, column] of row.entries()) {
@@ -808,7 +810,6 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
 
   // Initialize grid with spaces
   /** @type {string[][]} */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const grid = Array.from({ length: charHeight }, () => Array(charWidth).fill(' '));
 
   if (config.showFull) {

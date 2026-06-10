@@ -96,11 +96,7 @@ class ImageGIF extends DataBuffer {
 
     /** @type {ImageGIFOptions} */
     this.options = {
-      rules: {
-        strict_block_size: false,
-        strict_lzw_minimum_code_size: false,
-      },
-      ...options,
+      ...(options ?? {}),
     };
     debug('this.options', this.options);
 
@@ -451,6 +447,7 @@ class ImageGIF extends DataBuffer {
     debug('decodeDataSubBlocks:', this.offset);
     let blockSize = this.readUInt8();
     // debug('blockSize:', blockSize);
+    /** @type {number[]} */
     const data = [];
     while (blockSize > 0) {
       // this.advance(blockSize);
@@ -582,7 +579,7 @@ class ImageGIF extends DataBuffer {
    */
   decodeGlobalColorTable() {
     debug('decodeGlobalColorTable:', this.offset);
-    this.colors = 2 ** (this.sizeOfGlobalColorTable + 1);
+    this.colors = 2 ** ((this?.sizeOfGlobalColorTable ?? 0) + 1);
     this.palette = this.read(this.colors * 3, true);
     debug('colors =', this.colors);
     debug('palette size =', this.colors * 3);

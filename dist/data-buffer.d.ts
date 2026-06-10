@@ -22,15 +22,15 @@ declare class DataBuffer {
     static allocate(size: number): DataBuffer;
     /**
      * Creates an instance of DataBuffer.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} [input] The data to process.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
      * @throws {TypeError} Missing input data.
      * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
      */
-    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined);
+    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array);
     /** @type {boolean} Is this instance for creating a new file? */
     writing: boolean;
-    /** @type {number[]|Buffer|Uint8Array} The bytes avaliable to read. */
-    data: number[] | Buffer | Uint8Array;
+    /** @type {Buffer|Uint8Array} The bytes avaliable to read. */
+    data: Buffer | Uint8Array;
     /** @type {number} The number of bytes avaliable to read. */
     lengthInBytes: number;
     /** @type {DataBuffer|null} When the buffer is part of a bufferlist, the next DataBuffer in the list. */
@@ -41,8 +41,18 @@ declare class DataBuffer {
     nativeEndian: boolean;
     /** @type {number} Reading / Writing offset */
     offset: number;
-    /** @type {number[]} Buffer for creating new files. */
-    buffer: number[];
+    /**
+     * @type {number[]|null}
+     * Backing store for the internal write buffer,
+     * `null` until first write to avoid copying when read-only,
+     * based on `this.writing` flag.
+     */
+    _buffer: number[] | null;
+    /**
+     * Buffer for creating new files. Lazy-inits from a copy of data on first write when instance was created read-only.
+     * @type {number[]}
+     */
+    get buffer(): number[];
     /**
      * Helper to match arrays by returning the data length.
      * @returns {number} The data length of the DataBuffer.
@@ -64,10 +74,10 @@ declare class DataBuffer {
     diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): import("./diff/diff.js").Edit[];
     /**
      * Compares input data against the upcoming data, byte by byte.
-     * @param {number[] | Buffer} input The data to check for in upcoming bytes.
-     * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+     * @param {number[] | Buffer | Uint8Array} input The data to check for in upcoming bytes.
+     * @returns {boolean} `true` if the data is the upcoming data, `false` if it is not or there is not enough buffer remaining.
      */
-    isNextBytes(input: number[] | Buffer): boolean;
+    isNextBytes(input: number[] | Buffer | Uint8Array): boolean;
     /**
      * Creates a copy of the current DataBuffer.
      * @returns {DataBuffer} A new copy of the current DataBuffer.
@@ -299,6 +309,21 @@ declare class DataBuffer {
      */
     peekFloat80(offset?: number, littleEndian?: boolean): number;
     /**
+     * Read from the current offset and return the IEEE 754 extended float value.
+     * May be faulty with large numbers due to float percision.
+     * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+     * @returns {number} The IEEE 754 extended float value at the current offset.
+     */
+    readFloatIEEE754(littleEndian?: boolean): number;
+    /**
+     * Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+     * May be faulty with large numbers due to float percision.
+     * @param {number} [offset] The offset to read from, default is 0.
+     * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+     * @returns {number} The IEEE 754 extended float value at the specified offset.
+     */
+    peekFloatIEEE754(offset?: number, littleEndian?: boolean): number;
+    /**
      * Read from the current offset and return the value as a DataBuffer.
      * @param {number} length The number of bytes to read.
      * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
@@ -337,6 +362,34 @@ declare class DataBuffer {
      * @returns {string} The read value as a string.
      */
     private decodeString;
+    /**
+     * Read a null-terminated string from the current offset and advance the offset.
+     * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+     * @param {string} [encoding] The encoding of the string, default is `ascii`.
+     * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
+     * @returns {string} The read value as a string (without the null terminator).
+     */
+    readNullTerminatedString(encoding?: string, nullValue?: number): string;
+    /**
+     * Read a null-terminated string from the specified offset without advancing the offset.
+     * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+     * @param {number} offset The offset to read from.
+     * @param {string} [encoding] The encoding of the string, default is `ascii`.
+     * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
+     * @returns {string} The read value as a string (without the null terminator).
+     */
+    peekNullTerminatedString(offset: number, encoding?: string, nullValue?: number): string;
+    /**
+     * Decode a null-terminated string from the specified offset.
+     * Reads bytes until a null byte (0x00) is encountered.
+     * @private
+     * @param {number} offset The offset to read from.
+     * @param {string} encoding The encoding of the string.
+     * @param {boolean} advance Flag to optionally advance the offsets.
+     * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
+     * @returns {string} The read value as a string (without the null terminator).
+     */
+    private decodeNullTerminatedString;
     /**
      * Resets the instance offsets to 0.
      */

@@ -23,11 +23,11 @@ export default DataStream;
 declare class DataStream {
     /**
      * Creates a new DataStream from file data.
-     * @param {string | number | ArrayBuffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | Buffer | DataBuffer} data The data to process.
+     * @param {string|number|ArrayBuffer|Buffer|Uint8Array|Int8Array|Uint16Array|Int16Array|Uint32Array|Int32Array|number[]|DataBuffer} data The data to process.
      * @returns {DataStream} The new DataStream instance for the provided file data.
      * @static
      */
-    static fromData(data: string | number | ArrayBuffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | Buffer | DataBuffer): DataStream;
+    static fromData(data: string | number | ArrayBuffer | Buffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | DataBuffer): DataStream;
     /**
      * Creates a new DataStream from a DataBuffer.
      * @param {DataBuffer} buffer The DataBuffer containing the data to process.
@@ -42,7 +42,7 @@ declare class DataStream {
      * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing, default is 16.
      */
     constructor(list: DataBufferList, options?: {
-        size?: number;
+        size?: number | undefined;
     });
     /** @type {number} ArrayBuffer byteLength */
     size: number;
@@ -85,10 +85,10 @@ declare class DataStream {
     compare(input: DataStream, offset?: number): boolean;
     /**
      * Compares input data against the upcoming data, byte by byte.
-     * @param {number[] | Buffer} input The data to check for in upcoming bytes.
+     * @param {number[]|Buffer|Uint8Array} input The data to check for in upcoming bytes.
      * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
      */
-    next(input: number[] | Buffer): boolean;
+    next(input: number[] | Buffer | Uint8Array): boolean;
     /**
      * Create a copy of the current DataStream and offset.
      * @returns {DataStream} A new copy of the DataStream.
@@ -313,6 +313,21 @@ declare class DataStream {
      * @returns {number} The Float80 value at the current offset.
      */
     peekFloat80(offset?: number, littleEndian?: boolean): number;
+    /**
+     * Read from the current offset and return the IEEE 754 extended float value.
+     * May be faulty with large numbers due to float percision.
+     * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+     * @returns {number} The IEEE 754 extended float value at the current offset.
+     */
+    readFloatIEEE754(littleEndian?: boolean): number;
+    /**
+     * Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+     * May be faulty with large numbers due to float percision.
+     * @param {number} [offset] The offset to read from, default is 0.
+     * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+     * @returns {number} The IEEE 754 extended float value at the specified offset.
+     */
+    peekFloatIEEE754(offset?: number, littleEndian?: boolean): number;
     /**
      * Read from the current offset and return the value as a DataBuffer.
      * @param {number} length The number of bytes to read.

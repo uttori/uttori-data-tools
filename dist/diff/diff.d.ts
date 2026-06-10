@@ -39,7 +39,7 @@
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
  * @param {number} context Number of matching elements to include around changes (default: 3)
- * @returns {Hunk[]}
+ * @returns {Hunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export function hunks(x: string[] | number[] | Uint8Array[], y: string[] | number[] | Uint8Array[], eq?: EqualityFunction, context?: number): Hunk[];
 /**
@@ -51,7 +51,7 @@ export function hunks(x: string[] | number[] | Uint8Array[], y: string[] | numbe
  * @param {string[] | number[] | Uint8Array[]} x The first array to compare
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
- * @returns {Edit[]}
+ * @returns {Edit[]} The edits for the diff.
  */
 export function edits(x: string[] | number[] | Uint8Array[], y: string[] | number[] | Uint8Array[], eq?: EqualityFunction): Edit[];
 /**
@@ -59,7 +59,7 @@ export function edits(x: string[] | number[] | Uint8Array[], y: string[] | numbe
  * @param {string[] | number[] | Uint8Array[]} x The first array to compare
  * @param {string[] | number[] | Uint8Array[]} y The second array to compare
  * @param {EqualityFunction} eq Equality function to compare elements
- * @returns {DiffResult}
+ * @returns {DiffResult} The result of the diff.
  */
 export function diff(x: string[] | number[] | Uint8Array[], y: string[] | number[] | Uint8Array[], eq?: EqualityFunction): DiffResult;
 export const DEFAULT_CONTEXT: 3;

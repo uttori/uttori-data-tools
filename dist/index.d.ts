@@ -22,6 +22,9 @@ declare namespace _default {
     export { ImagePNG };
     export { GIFLZW };
     export { ImageGIF };
+    export { float80 };
+    export { float48 };
+    export { convertFromIeeeExtended };
 }
 export default _default;
 export { default as CRC32 } from "./data-hash-crc32.js";
@@ -57,6 +60,10 @@ import ShiftJIS from './encodings/shift-jis.js';
 import ImagePNG from './image/data-image-png.js';
 import GIFLZW from './image/gif_lzw.js';
 import ImageGIF from './image/data-image-gif.js';
+import { float80 } from './data-helpers.js';
+import { float48 } from './data-helpers.js';
+import { convertFromIeeeExtended } from './data-helpers.js';
 export { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph } from "./data-formating.js";
 export { diff, edits, hunks, Op } from "./diff/diff.js";
+export { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
 //# sourceMappingURL=index.d.ts.map

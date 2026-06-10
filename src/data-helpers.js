@@ -1,5 +1,5 @@
 /**
- * Convert the provided Uint8Array into a Turbo Pascal 48 bit float value.
+ * Converts the provided `Uint8Array` into a Turbo Pascal 48 bit float value.
  * May be faulty with large numbers due to float percision.
  *
  * While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
@@ -89,7 +89,51 @@ export const float80 = (uint8) => {
   return sign * out;
 };
 
+/**
+ * Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
+ * Uses `>>> 0` to force unsigned 32-bit mantissas.
+ * @param {Uint8Array | number[]} uint8 10-byte extended float.
+ * @returns {number} The converted value.
+ * @see {@link https://en.wikipedia.org/wiki/IEEE_754|IEEE 754}
+ */
+export const convertFromIeeeExtended = (uint8) => {
+  const sign = uint8[0] & 0x80 ? -1 : 1;
+  const exponent = ((uint8[0] & 0x7f) << 8) | uint8[1];
+
+  const hiMant = (
+    (uint8[2] << 24) |
+    (uint8[3] << 16) |
+    (uint8[4] << 8) |
+    uint8[5]
+  ) >>> 0;
+
+  const loMant = (
+    (uint8[6] << 24) |
+    (uint8[7] << 16) |
+    (uint8[8] << 8) |
+    uint8[9]
+  ) >>> 0;
+
+  if (exponent === 0 && hiMant === 0 && loMant === 0) {
+    return sign * 0;
+  }
+
+  if (exponent === 0x7fff) {
+    // const isInfinity = hiMant === 0x80000000 && loMant === 0;
+    // return sign * (isInfinity ? Infinity : NaN);
+    return sign * Infinity;
+  }
+
+  const adjustedExponent = exponent - 16383;
+
+  return sign * (
+    hiMant * 2 ** (adjustedExponent - 31) +
+    loMant * 2 ** (adjustedExponent - 63)
+  );
+};
+
 export default {
   float48,
   float80,
+  convertFromIeeeExtended,
 };

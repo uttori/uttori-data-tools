@@ -88,7 +88,7 @@ Creates an instance of IPS.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| input | <code>Array</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> | <code>0</code> | The data to process. |
+| input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> | <code>0</code> | The data to process. |
 | [parse] | <code>boolean</code> | <code>true</code> | Whether to immediately parse the IPS file. Default is true. |
 
 <a name="IPS+hunks"></a>

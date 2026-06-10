@@ -5,6 +5,7 @@ import DataBufferList from './data-buffer-list.js';
 import DataStream from './data-stream.js';
 import { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph } from './data-formating.js';
 import { diff, edits, hunks, Op } from './diff/diff.js';
+import { float80, float48, convertFromIeeeExtended } from './data-helpers.js';
 import Myers from './diff/myers.js';
 import ShiftJIS from './encodings/shift-jis.js';
 import ImagePNG from './image/data-image-png.js';
@@ -36,6 +37,9 @@ export default {
   ImagePNG,
   GIFLZW,
   ImageGIF,
+  float80,
+  float48,
+  convertFromIeeeExtended,
   // ImageHEIC,
 };
 
@@ -51,4 +55,5 @@ export { default as ShiftJIS } from './encodings/shift-jis.js';
 export { default as ImagePNG } from './image/data-image-png.js';
 export { default as GIFLZW } from './image/gif_lzw.js';
 export { default as ImageGIF } from './image/data-image-gif.js';
+export { float80, float48, convertFromIeeeExtended } from './data-helpers.js';
 // export { default as ImageHEIC } from './image/data-image-heic.js';

@@ -13,6 +13,6 @@ declare class UnderflowError extends Error {
      * @class
      */
     constructor(message: string);
-    stack: string;
+    stack: string | undefined;
 }
 //# sourceMappingURL=underflow-error.d.ts.map

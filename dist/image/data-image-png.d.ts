@@ -312,14 +312,14 @@ declare class ImagePNG extends DataBuffer {
     decodePixels(): void;
     /**
      * Deinterlace with no interlacing.
-     * @param {Buffer} data - Data to deinterlace.
+     * @param {Buffer|Uint8Array} data Data to deinterlace.
      * @see {@link https://www.w3.org/TR/PNG-Filters.html|PNG Filters}
      */
-    interlaceNone(data: Buffer): void;
+    interlaceNone(data: Buffer | Uint8Array): void;
     /**
      * Deinterlace with Adam7 interlacing.
      * Adam7 divides the image into 7 passes with different starting positions and step sizes.
-     * @param {Buffer} data - Data to deinterlace.
+     * @param {Buffer|Uint8Array} data Data to deinterlace.
      * @see {@link https://www.w3.org/TR/PNG/#8Interlace|PNG Adam7 Interlacing}
      * @see {@link https://github.com/em2046/lens/blob/master/assets/js/interlace.js}
      * @see {@link https://github.com/em2046/aperture/tree/master/lib/png/chunks}
@@ -327,7 +327,7 @@ declare class ImagePNG extends DataBuffer {
      * @see {@link http://diyhpl.us/~yenatch/pokecrystal/src/pypng/code/png.py}
      * @see {@link https://github.com/SixLabors/ImageSharp/blob/master/src/ImageSharp/Formats/Png/Adam7.cs}
      */
-    interlaceAdam7(data: Buffer): void;
+    interlaceAdam7(data: Buffer | Uint8Array): void;
 }
 import DataBuffer from '../data-buffer.js';
 //# sourceMappingURL=data-image-png.d.ts.map
