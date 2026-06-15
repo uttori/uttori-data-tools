@@ -125,6 +125,23 @@ test('formatTable: can create a table like MySQL', (t) => {
 +-------+-----+-------+`);
 });
 
+test('formatTable: falls back to default options when none are provided', (t) => {
+  const data = [
+    ['Name', 'Age', 'color'],
+    ['John', 23, 'green'],
+  ];
+  // Calling without options exercises the `options ?? {}` fallback and must match an explicit empty-options call.
+  t.is(formatTable(data), formatTable(data, {}));
+});
+
+test('formatTable: tolerates rows with an uneven number of columns', (t) => {
+  const data = [
+    ['Name', 'Age'],
+    ['John'],
+  ];
+  t.notThrows(() => formatTable(data));
+});
+
 test('formatTable: can create a table as Markdown', (t) => {
   const data = [
     ['Name', 'Age', 'color'],

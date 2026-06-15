@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Uttori AudioMIDI - MIDI Chunk Explorer shows the chunks contained in a provided MIDI file.">
+<meta property="og:description" content="Uttori AudioMIDI - MIDI Chunk Explorer shows the chunks contained in a provided MIDI file.">
+<meta property="twitter:description" content="Uttori AudioMIDI - MIDI Chunk Explorer shows the chunks contained in a provided MIDI file.">
+<meta property="og:title" content="Uttori AudioMIDI - MIDI Chunk Explorer">
+<meta property="twitter:title" content="Uttori AudioMIDI - MIDI Chunk Explorer">
+<meta property="og:site_name" content="Uttori AudioMIDI">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:site" content="@superfamicom">
+<meta name="twitter:creator" content="@superfamicom">
+<meta property="og:url" content="https://wiki.superfamicom.org/">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+<link href="demo/styles.css" rel="stylesheet">
+<title>Uttori AudioMIDI - MIDI Chunk Explorer</title>
+</head>
+<body>
+  <header class="header">
+    <h1 class="title"><a href="https://github.com/uttori/uttori-audio-midi">Uttori AudioMIDI</a> MIDI Chunk Explorer</h1>
+    <div class="file">
+      <label for="midi-file">
+        Choose a MIDI File:
+        <input type="file" id="midi-file" name="midi-file" />
+      </label>
+    </div>
+  </header>
+  <div class="chunk-list">
+    <div class="chunk">
+      <p>Choose a MIDI file to see the contained chunks.</p>
+    </div>
+  </div>
+  <script src="demo/midi.js" type="module"></script>
+</body>
+</html>

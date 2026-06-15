@@ -23,6 +23,13 @@ test('fromBuffer(buffer): can read a valid file buffer', async (t) => {
   });
 });
 
+test('decodeHeader: throws on a missing or invalid GIF header', (t) => {
+  // Six bytes so readString(6) succeeds, but not a 'GIF87a'/'GIF89a' signature.
+  t.throws(() => {
+    ImageGIF.fromFile(Buffer.from('NOTGIF'));
+  }, { message: 'Missing or invalid GIF header.' });
+});
+
 test('can parse static GIF - sundisk04', async (t) => {
   const data = await fs.readFile('./test/image/assets/sundisk04.gif');
   let image = {};
@@ -109,6 +116,15 @@ test('GIFTestSuite: 5f09a896c191db3fa7ea6bdd5ebe9485 - Invalid LZW Minimum Code 
     image = ImageGIF.fromFile(data);
   });
   t.is(image.colors, 256);
+});
+
+test('GIFTestSuite: 5f09a896 - strict_lzw_minimum_code_size raises (and is caught by parse)', async (t) => {
+  const data = await fs.readFile('./test/image/assets/gif/5f09a896c191db3fa7ea6bdd5ebe9485.gif');
+  // With the strict rule on, decodeImageDescriptor() throws on the invalid code size; parse() catches it,
+  // so fromFile() still resolves. This exercises the strict branch.
+  t.notThrows(() => {
+    ImageGIF.fromFile(data, { rules: { strict_lzw_minimum_code_size: true } });
+  });
 });
 
 // At offset 0x418F we have an Image Data block (preceded by other Image Data blocks):

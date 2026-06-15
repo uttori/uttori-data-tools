@@ -1,5 +1,9 @@
 export default DataBitstream;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * Read a DataStream as a stream of bits.
  * @property {DataStream} stream The DataStream to process.
  * @property {number} bitPosition The number of buffers in the list.

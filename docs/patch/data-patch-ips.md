@@ -30,9 +30,19 @@ Not every patching program will implement this extension, however.</p>
 </dd>
 </dl>
 
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
 ## Typedefs
 
 <dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
 <dt><a href="#IPSChunk">IPSChunk</a> : <code>object</code></dt>
 <dd><p>A chunk of IPS data.</p>
 </dd>
@@ -164,6 +174,21 @@ Calculate the difference between two DataBuffers and save it as an IPS patch.
 The maximum size of a file in the IPS format, 16 megabytes.
 
 **Kind**: global constant  
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
+
 <a name="IPSChunk"></a>
 
 ## IPSChunk : <code>object</code>

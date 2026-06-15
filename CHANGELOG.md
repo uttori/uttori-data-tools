@@ -2,20 +2,21 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## WIP
+## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v4.0.0...master)
 
 - 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
 
-## [Upcoming](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...master)
-
-## [3.3.0](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...3.3.0)
+## [4.0.0](https://github.com/uttori/uttori-data-tools/compare/v3.2.0...v4.0.0)
 
 - 🧰 Add `readNullTerminatedString`, `peekNullTerminatedString`, and `decodeNullTerminatedString` for handling null terminated strings, configurable null bytes supported
 - 🧰 Add `convertFromIeeeExtended` for reading IEEE 754 extended precision floats, exposed as `readFloatIEEE754` on `DataBuffer` and `DataStream`
-
+- 🧰 Add `AudioWAV` for parsing WAVE & AIFF audio files and various chunks, migrated from `@uttori/audio-wav`
+- 🧰 Add `AudioMIDI` for parsing MIDI audio files, migrated from `@uttori/audio-midi`
 - 🛠 Reading methods refactored for better `UnderflowError` protection
 - 🛠 Overall less allocations when reading & writing
 - 🧹 Documentation & Types clean up
+- 🧹 Bump Node to v26.3.0
+- 🧹 Migrate to [Oxlint](https://oxc.rs/docs/guide/usage/linter.html)
 - 🎁 Update dev dependencies
 - 🎁 Update tests and fix warnings
 
@@ -307,3 +308,31 @@ Full grid (no diagonals at all):
 - 🎁 Update dev dependencies
 - 🧰 Add `fromBytes` and `fromData` to DataBitstream
 - 🗒 Clean up documentation defaults
+
+---
+
+## Previous AudioWAV Changelog
+
+## [3.0.0](https://github.com/uttori/uttori-audio-wave/compare/v2.1.0...v3.0.0) - 2023-01-10
+
+- 🧰 Add Support for `AIFF` files and variants like `AIFC`
+- 🎁 Update dev dependencies
+
+## [2.1.0](https://github.com/uttori/uttori-audio-wave/compare/v2.0.0...v2.1.0) - 2021-04-04
+
+- 🧰 Add Support for `PEAK`, `PAD`, and `STRC` (ACID Related) chunks (incomplete)
+- 🧰 Add identification for `AFAn`, `AFmd`, seems to be the result of a `NSKeyedArchiver`
+- 🧰 Add identification for `minf`, `elm1`, `regn`, `ovwf`, `umid`, ProTools Special chunks
+- 🛠 Fix issue with infinite loop on some _rare_ broken tags
+- 🛠 Fix `FACT` output with actual `numberOfSamples` output
+- 🧹 Documentation & Types clean up
+- 🎁 Update dev dependencies
+
+## [2.0.0](https://github.com/uttori/uttori-audio-wave/compare/v1.6.1...v2.0.0) - 2021-01-18
+
+- 🧰 Add ESM Support
+- 🛠 Add `"sideEffects": false` to the package.json
+- 🛠 Tree Shaking, added [Subpath Exports](https://nodejs.org/api/packages.html#packages_subpath_exports)
+- 🛠 Fixes for browser compatibility
+- 🧹 Documentation & Types clean up
+- 🎁 Update dev dependencies

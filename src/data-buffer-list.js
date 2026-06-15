@@ -1,6 +1,11 @@
-import DataBuffer from './data-buffer.js';
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
 
-let debug = (..._) => {};
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBufferList'); } catch {} }
 
@@ -19,13 +24,13 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
 class DataBufferList {
   /**
    * Creates an instance of DataBufferList.
-   * @param {DataBuffer[]} [buffers] DataBuffers to initialize with.
+   * @param {import('./data-buffer.js').default[]} [buffers] DataBuffers to initialize with.
    */
   constructor(buffers) {
     debug('constructor');
-    /** @type {DataBuffer|null} The first DataBuffer in the list. */
+    /** @type {import('./data-buffer.js').default|null} The first DataBuffer in the list. */
     this.first = null;
-    /** @type {DataBuffer|null} The last DataBuffer in the list. */
+    /** @type {import('./data-buffer.js').default|null} The last DataBuffer in the list. */
     this.last = null;
     /** @type {number} The number of buffers in the list. */
     this.totalBuffers = 0;
@@ -60,7 +65,7 @@ class DataBufferList {
 
   /**
    * Appends a DataBuffer to the DataBufferList.
-   * @param {DataBuffer} buffer The DataBuffer to add to the list.
+   * @param {import('./data-buffer.js').default} buffer The DataBuffer to add to the list.
    * @returns {number} The new number of buffers in the DataBufferList.
    */
   append(buffer) {

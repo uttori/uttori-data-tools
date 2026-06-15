@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { ImageGIF } from './src/index.js';
+import { ImageGIF } from '../src/index.js';
 
 const data = await fs.readFile('./test/image/assets/sundisk04.gif');
 const image = ImageGIF.fromFile(data);

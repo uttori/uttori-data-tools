@@ -2,7 +2,14 @@ import DataStream from './data-stream.js';
 import DataBuffer from './data-buffer.js';
 import DataBufferList from './data-buffer-list.js';
 
-let debug = (..._) => {};
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
+
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBitstream'); } catch {} }
 

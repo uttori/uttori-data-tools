@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBufferList">DataBufferList</a></dt>
+<dd><p>A linked list of DataBuffers.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataBufferList"></a>
 
 ## DataBufferList
@@ -17,8 +40,8 @@ A linked list of DataBuffers.
 
 * [DataBufferList](#DataBufferList)
     * [new DataBufferList([buffers])](#new_DataBufferList_new)
-    * [.first](#DataBufferList+first) : <code>DataBuffer</code> \| <code>null</code>
-    * [.last](#DataBufferList+last) : <code>DataBuffer</code> \| <code>null</code>
+    * [.first](#DataBufferList+first) : <code>default</code> \| <code>null</code>
+    * [.last](#DataBufferList+last) : <code>default</code> \| <code>null</code>
     * [.totalBuffers](#DataBufferList+totalBuffers) : <code>number</code>
     * [.availableBytes](#DataBufferList+availableBytes) : <code>number</code>
     * [.availableBuffers](#DataBufferList+availableBuffers) : <code>number</code>
@@ -37,7 +60,7 @@ Creates an instance of DataBufferList.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [buffers] | <code>Array.&lt;DataBuffer&gt;</code> | DataBuffers to initialize with. |
+| [buffers] | <code>Array.&lt;default&gt;</code> | DataBuffers to initialize with. |
 
 **Example** *(new DataBufferList(buffers))*  
 ```js
@@ -46,13 +69,13 @@ const list = new DataBufferList([buffer]);
 ```
 <a name="DataBufferList+first"></a>
 
-### dataBufferList.first : <code>DataBuffer</code> \| <code>null</code>
+### dataBufferList.first : <code>default</code> \| <code>null</code>
 The first DataBuffer in the list.
 
 **Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
 <a name="DataBufferList+last"></a>
 
-### dataBufferList.last : <code>DataBuffer</code> \| <code>null</code>
+### dataBufferList.last : <code>default</code> \| <code>null</code>
 The last DataBuffer in the list.
 
 **Kind**: instance property of [<code>DataBufferList</code>](#DataBufferList)  
@@ -91,7 +114,7 @@ Appends a DataBuffer to the DataBufferList.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| buffer | <code>DataBuffer</code> | The DataBuffer to add to the list. |
+| buffer | <code>default</code> | The DataBuffer to add to the list. |
 
 <a name="DataBufferList+moreAvailable"></a>
 
@@ -122,3 +145,18 @@ Rewind the buffer list to the previous buffer.
 Reset the list to the beginning.
 
 **Kind**: instance method of [<code>DataBufferList</code>](#DataBufferList)  
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
+

@@ -1,5 +1,9 @@
 export default DataBuffer;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * Helper class for manipulating binary data.
  * @property {Buffer|Uint8Array} data The data to process.
  * @property {number} length The size of the data in bytes.

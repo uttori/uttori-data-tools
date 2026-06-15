@@ -6,13 +6,32 @@
 </dd>
 </dl>
 
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
 ## Typedefs
 
 <dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
 <dt><a href="#ImageGIFOptions">ImageGIFOptions</a> : <code>Object</code></dt>
 <dd></dd>
 <dt><a href="#ImageGIFImageDescriptor">ImageGIFImageDescriptor</a> : <code>Object</code></dt>
 <dd></dd>
+<dt><a href="#ImageGIFFrame">ImageGIFFrame</a> : <code>object</code></dt>
+<dd><p>A decoded animation frame reference.</p>
+</dd>
+<dt><a href="#ImageGIFComment">ImageGIFComment</a> : <code>object</code></dt>
+<dd><p>A decoded Comment Extension.</p>
+</dd>
+<dt><a href="#ImageGIFPlainTextExtension">ImageGIFPlainTextExtension</a> : <code>object</code></dt>
+<dd><p>A decoded Plain Text Extension.</p>
+</dd>
 </dl>
 
 <a name="ImageGIF"></a>
@@ -45,10 +64,15 @@ GIF Decoder
 * [ImageGIF](#ImageGIF)
     * [new ImageGIF(input, [options])](#new_ImageGIF_new)
     * _instance_
+        * [.sizeOfGlobalColorTable](#ImageGIF+sizeOfGlobalColorTable) : <code>number</code>
         * [.palette](#ImageGIF+palette) : <code>Uint8Array</code>
         * [.pixels](#ImageGIF+pixels) : <code>Array.&lt;number&gt;</code> \| <code>Uint8Array</code>
         * [.transparency](#ImageGIF+transparency) : <code>Uint8Array</code>
+        * [.frames](#ImageGIF+frames) : [<code>Array.&lt;ImageGIFFrame&gt;</code>](#ImageGIFFrame)
+        * [.comments](#ImageGIF+comments) : [<code>Array.&lt;ImageGIFComment&gt;</code>](#ImageGIFComment)
+        * [.applicationExtensions](#ImageGIF+applicationExtensions) : <code>Array.&lt;object&gt;</code>
         * [.imageDescriptors](#ImageGIF+imageDescriptors) : [<code>Array.&lt;ImageGIFImageDescriptor&gt;</code>](#ImageGIFImageDescriptor)
+        * [.plainTextExtensions](#ImageGIF+plainTextExtensions) : [<code>Array.&lt;ImageGIFPlainTextExtension&gt;</code>](#ImageGIFPlainTextExtension)
         * [.options](#ImageGIF+options) : [<code>ImageGIFOptions</code>](#ImageGIFOptions)
         * [.parse()](#ImageGIF+parse)
         * [.decodeDataSubBlocks()](#ImageGIF+decodeDataSubBlocks) ⇒ <code>Array.&lt;number&gt;</code>
@@ -82,6 +106,12 @@ const length = image.pixels.length;
 const pixel = image.getPixel(0, 0);
  ➜ [255, 254, 254, 255]
 ```
+<a name="ImageGIF+sizeOfGlobalColorTable"></a>
+
+### imageGIF.sizeOfGlobalColorTable : <code>number</code>
+The size of the global color table, set while decoding the logical screen descriptor.
+
+**Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
 <a name="ImageGIF+palette"></a>
 
 ### imageGIF.palette : <code>Uint8Array</code>
@@ -94,9 +124,25 @@ const pixel = image.getPixel(0, 0);
 
 ### imageGIF.transparency : <code>Uint8Array</code>
 **Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
+<a name="ImageGIF+frames"></a>
+
+### imageGIF.frames : [<code>Array.&lt;ImageGIFFrame&gt;</code>](#ImageGIFFrame)
+**Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
+<a name="ImageGIF+comments"></a>
+
+### imageGIF.comments : [<code>Array.&lt;ImageGIFComment&gt;</code>](#ImageGIFComment)
+**Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
+<a name="ImageGIF+applicationExtensions"></a>
+
+### imageGIF.applicationExtensions : <code>Array.&lt;object&gt;</code>
+**Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
 <a name="ImageGIF+imageDescriptors"></a>
 
 ### imageGIF.imageDescriptors : [<code>Array.&lt;ImageGIFImageDescriptor&gt;</code>](#ImageGIFImageDescriptor)
+**Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
+<a name="ImageGIF+plainTextExtensions"></a>
+
+### imageGIF.plainTextExtensions : [<code>Array.&lt;ImageGIFPlainTextExtension&gt;</code>](#ImageGIFPlainTextExtension)
 **Kind**: instance property of [<code>ImageGIF</code>](#ImageGIF)  
 <a name="ImageGIF+options"></a>
 
@@ -212,6 +258,21 @@ Creates a new ImageGIF from a DataBuffer.
 | buffer | <code>DataBuffer</code> | The DataBuffer of the image to process. |
 | opts | [<code>ImageGIFOptions</code>](#ImageGIFOptions) | Options for this ImageGIF instance. |
 
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
+
 <a name="ImageGIFOptions"></a>
 
 ## ImageGIFOptions : <code>Object</code>
@@ -245,4 +306,52 @@ Creates a new ImageGIF from a DataBuffer.
 | localColorTable | <code>Uint8Array</code> | The local color table |
 | lzwMinimumCodeSize | <code>number</code> | The LZW minimum code size |
 | lzwData | <code>Array.&lt;number&gt;</code> | The LZW data |
+
+<a name="ImageGIFFrame"></a>
+
+## ImageGIFFrame : <code>object</code>
+A decoded animation frame reference.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| index | <code>number</code> | The frame index in the order it was decoded. |
+| delay | <code>number</code> | The frame delay in 1/100ths of a second. |
+| [disposal] | <code>number</code> | The disposal method from the Graphic Control Extension, when present. |
+
+<a name="ImageGIFComment"></a>
+
+## ImageGIFComment : <code>object</code>
+A decoded Comment Extension.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| offset | <code>number</code> | The offset of the comment extension in the data. |
+| [comment] | <code>string</code> | The decoded comment text. |
+
+<a name="ImageGIFPlainTextExtension"></a>
+
+## ImageGIFPlainTextExtension : <code>object</code>
+A decoded Plain Text Extension.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| offset | <code>number</code> | The offset of the plain text extension in the data. |
+| [textGridLeftPosition] | <code>number</code> | Column number, in pixels, of the left edge of the text grid. |
+| [textGridTopPosition] | <code>number</code> | Row number, in pixels, of the top edge of the text grid. |
+| [imageGridWidth] | <code>number</code> | Width of the text grid in pixels. |
+| [imageGridHeight] | <code>number</code> | Height of the text grid in pixels. |
+| [characterCellWidth] | <code>number</code> | Width, in pixels, of each cell in the grid. |
+| [characterCellHeight] | <code>number</code> | Height, in pixels, of each cell in the grid. |
+| [textForegroundColorIndex] | <code>number</code> | Index into the Global Color Table for the text foreground. |
+| [textBackgroundColorIndex] | <code>number</code> | Index into the Global Color Table for the text background. |
+| [plainText] | <code>string</code> | The decoded plain text data. |
 

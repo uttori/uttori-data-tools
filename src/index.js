@@ -12,6 +12,8 @@ import ImagePNG from './image/data-image-png.js';
 import GIFLZW from './image/gif_lzw.js';
 import ImageGIF from './image/data-image-gif.js';
 // import ImageHEIC from './image/data-image-heic.js';
+import AudioWAV from './audio/audio-wav.js';
+import AudioMIDI from './audio/audio-midi.js';
 
 export default {
   CRC32,
@@ -41,6 +43,8 @@ export default {
   float48,
   convertFromIeeeExtended,
   // ImageHEIC,
+  AudioWAV,
+  AudioMIDI,
 };
 
 export { default as CRC32 } from './data-hash-crc32.js';
@@ -57,3 +61,5 @@ export { default as GIFLZW } from './image/gif_lzw.js';
 export { default as ImageGIF } from './image/data-image-gif.js';
 export { float80, float48, convertFromIeeeExtended } from './data-helpers.js';
 // export { default as ImageHEIC } from './image/data-image-heic.js';
+export { default as AudioWAV } from './audio/audio-wav.js';
+export { default as AudioMIDI } from './audio/audio-midi.js';

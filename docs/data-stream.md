@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataStream">DataStream</a></dt>
+<dd><p>Helper class to ease working with binary files.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataStream"></a>
 
 ## DataStream
@@ -808,4 +831,19 @@ Creates a new DataStream from a DataBuffer.
 | Param | Type | Description |
 | --- | --- | --- |
 | buffer | <code>DataBuffer</code> | The DataBuffer containing the data to process. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

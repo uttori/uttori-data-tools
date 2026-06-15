@@ -1,3 +1,27 @@
+## Classes
+
+<dl>
+<dt><a href="#GIFLZW">GIFLZW</a></dt>
+<dd><p>GIF LZW Compression
+The compression method GIF uses is a variant of LZW (Lempel-Ziv-Welch) compression.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="GIFLZW"></a>
 
 ## GIFLZW
@@ -91,4 +115,19 @@ Decompress data.
 | --- | --- | --- | --- |
 | codeSize | <code>number</code> |  | Code Size |
 | [useInput] | <code>boolean</code> | <code>true</code> | Unpacking the `input` or the `output`. Defaults to true. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

@@ -4,7 +4,7 @@
 <dt><a href="#formatBytes">formatBytes</a> ⇒ <code>string</code></dt>
 <dd><p>Format an amount of bytes to a human friendly string.</p>
 </dd>
-<dt><a href="#formatASCII">formatASCII</a> ⇒ <code>FormatASCIIOutput</code></dt>
+<dt><a href="#formatASCII">formatASCII</a> ⇒ <code><a href="#FormatASCIIOutput">FormatASCIIOutput</a></code></dt>
 <dd><p>ASCII text formatting function.</p>
 </dd>
 <dt><a href="#hexTableFormaters">hexTableFormaters</a> : <code><a href="#HexTableFormater">HexTableFormater</a></code></dt>
@@ -44,9 +44,28 @@ Shows the edit graph with the path taken through it.</p>
 </dd>
 </dl>
 
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
 ## Typedefs
 
 <dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+<dt><a href="#FormatNumber">FormatNumber</a> ⇒ <code>string</code></dt>
+<dd><p>Format a numeric value for display.</p>
+</dd>
+<dt><a href="#FormatASCIIOutput">FormatASCIIOutput</a> : <code>Array.&lt;(string|Record.&lt;string, (boolean|number|string)&gt;)&gt;</code></dt>
+<dd><p>ASCII formatting result: a two-element array of <code>[character, flags]</code>.</p>
+</dd>
+<dt><a href="#FormatNumberToASCII">FormatNumberToASCII</a> ⇒ <code><a href="#FormatASCIIOutput">FormatASCIIOutput</a></code></dt>
+<dd><p>Format a byte value for ASCII display in a hex table.</p>
+</dd>
 <dt><a href="#HexTableFormater">HexTableFormater</a> : <code>object</code></dt>
 <dd><p>Formatting functions for all value types.</p>
 </dd>
@@ -59,6 +78,9 @@ GNU poke hexTableHeader.value = [&#39;00&#39;, &#39;11&#39;, &#39;22&#39;, &#39;
 </dd>
 <dt><a href="#TableFormatStyle">TableFormatStyle</a> : <code>object</code></dt>
 <dd><p>Table Format Style definitions.</p>
+</dd>
+<dt><a href="#MyersPathNode">MyersPathNode</a> : <code>object</code></dt>
+<dd><p>A single node along the traced path through the Myers edit graph.</p>
 </dd>
 </dl>
 
@@ -80,17 +102,17 @@ Format an amount of bytes to a human friendly string.
 
 <a name="formatASCII"></a>
 
-## formatASCII ⇒ <code>FormatASCIIOutput</code>
+## formatASCII ⇒ [<code>FormatASCIIOutput</code>](#FormatASCIIOutput)
 ASCII text formatting function.
 
 **Kind**: global constant  
-**Returns**: <code>FormatASCIIOutput</code> - Returns an array with the Character to represent this value and any flags for the function.  
+**Returns**: [<code>FormatASCIIOutput</code>](#FormatASCIIOutput) - Returns an array with the Character to represent this value and any flags for the function.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | value | <code>number</code> | Input data to print out as a hex table. |
 | asciiFlags | <code>Record.&lt;string, (boolean\|number\|string)&gt;</code> | Any flags needed by the formatter. |
-| _data | <code>DataBuffer</code> \| <code>DataStream</code> | The data being processed. |
+| _data | <code>default</code> \| <code>default</code> | The data being processed. |
 
 <a name="hexTableFormaters"></a>
 
@@ -114,7 +136,7 @@ Generate a nicely formatted hex editor style table.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| input | <code>DataBuffer</code> \| <code>DataStream</code> | Input data to print out as a hex table. |
+| input | <code>default</code> \| <code>default</code> | Input data to print out as a hex table. |
 | offset | <code>number</code> | Offset in the DataStream to start from. |
 | dimensions | [<code>HexTableDimensions</code>](#HexTableDimensions) | Table size parameters for columns, rows and byte grouping. |
 | header | [<code>HexTableHeader</code>](#HexTableHeader) | The values for building the table header with offset, bytes and ASCII values. |
@@ -234,10 +256,66 @@ Shows the edit graph with the path taken through it.
 | [options.showFull] | <code>boolean</code> | Show full grid or just the path, default is false (path only). |
 | [options.showLabels] | <code>boolean</code> | Show axis labels, default is true. |
 
+
+* [formatMyersGraph](#formatMyersGraph) ⇒ <code>string</code>
+    * [~path](#formatMyersGraph..path) : [<code>Array.&lt;MyersPathNode&gt;</code>](#MyersPathNode)
+    * [~grid](#formatMyersGraph..grid) : <code>Array.&lt;Array.&lt;string&gt;&gt;</code>
+
+<a name="formatMyersGraph..path"></a>
+
+### formatMyersGraph~path : [<code>Array.&lt;MyersPathNode&gt;</code>](#MyersPathNode)
+**Kind**: inner constant of [<code>formatMyersGraph</code>](#formatMyersGraph)  
 <a name="formatMyersGraph..grid"></a>
 
 ### formatMyersGraph~grid : <code>Array.&lt;Array.&lt;string&gt;&gt;</code>
 **Kind**: inner constant of [<code>formatMyersGraph</code>](#formatMyersGraph)  
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
+
+<a name="FormatNumber"></a>
+
+## FormatNumber ⇒ <code>string</code>
+Format a numeric value for display.
+
+**Kind**: global typedef  
+**Returns**: <code>string</code> - The formatted number as a string.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>number</code> | The number to format. |
+
+<a name="FormatASCIIOutput"></a>
+
+## FormatASCIIOutput : <code>Array.&lt;(string\|Record.&lt;string, (boolean\|number\|string)&gt;)&gt;</code>
+ASCII formatting result: a two-element array of `[character, flags]`.
+
+**Kind**: global typedef  
+<a name="FormatNumberToASCII"></a>
+
+## FormatNumberToASCII ⇒ [<code>FormatASCIIOutput</code>](#FormatASCIIOutput)
+Format a byte value for ASCII display in a hex table.
+
+**Kind**: global typedef  
+**Returns**: [<code>FormatASCIIOutput</code>](#FormatASCIIOutput) - Character to represent this value and any flags for the function.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>number</code> | Input data to print out as a hex table. |
+| asciiFlags | <code>Record.&lt;string, (boolean\|number\|string)&gt;</code> | Any flags needed by the formatter. |
+| data | <code>default</code> \| <code>default</code> | The data being processed. |
+
 <a name="HexTableFormater"></a>
 
 ## HexTableFormater : <code>object</code>
@@ -248,9 +326,9 @@ Formatting functions for all value types.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| offset | <code>FormatNumber</code> | Offset formatting fuction. |
-| value | <code>FormatNumber</code> | Byte value formating function. |
-| ascii | <code>FormatNumberToASCII</code> | ASCII text formatting function. |
+| offset | [<code>FormatNumber</code>](#FormatNumber) | Offset formatting fuction. |
+| value | [<code>FormatNumber</code>](#FormatNumber) | Byte value formating function. |
+| ascii | [<code>FormatNumberToASCII</code>](#FormatNumberToASCII) | ASCII text formatting function. |
 
 <a name="HexTableHeader"></a>
 
@@ -304,4 +382,20 @@ Table Format Style definitions.
 | intersectionBottom | <code>string</code> | 2 Way Intersection from the top Character |
 | intersectionLeft | <code>string</code> | 2 Way Intersection from the right Character |
 | intersectionRight | <code>string</code> | 2 Way Intersection from the left Character |
+
+<a name="MyersPathNode"></a>
+
+## MyersPathNode : <code>object</code>
+A single node along the traced path through the Myers edit graph.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| x | <code>number</code> | The column (x sequence) index. |
+| y | <code>number</code> | The row (y sequence) index. |
+| [diagonal] | <code>boolean</code> | True when the edge into this node is a diagonal (match) move. |
+| [horizontal] | <code>boolean</code> | True when the edge into this node is a horizontal (delete) move. |
+| [vertical] | <code>boolean</code> | True when the edge into this node is a vertical (insert) move. |
 

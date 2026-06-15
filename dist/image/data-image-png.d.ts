@@ -1,5 +1,9 @@
 export default ImagePNG;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * PNG Decoder
  * @property {number} width Pixel Width
  * @property {number} height Pixel Height

@@ -25,6 +25,8 @@ declare namespace _default {
     export { float80 };
     export { float48 };
     export { convertFromIeeeExtended };
+    export { AudioWAV };
+    export { AudioMIDI };
 }
 export default _default;
 export { default as CRC32 } from "./data-hash-crc32.js";
@@ -37,6 +39,8 @@ export { default as ShiftJIS } from "./encodings/shift-jis.js";
 export { default as ImagePNG } from "./image/data-image-png.js";
 export { default as GIFLZW } from "./image/gif_lzw.js";
 export { default as ImageGIF } from "./image/data-image-gif.js";
+export { default as AudioWAV } from "./audio/audio-wav.js";
+export { default as AudioMIDI } from "./audio/audio-midi.js";
 import CRC32 from './data-hash-crc32.js';
 import DataBitstream from './data-bitstream.js';
 import DataBuffer from './data-buffer.js';
@@ -63,6 +67,8 @@ import ImageGIF from './image/data-image-gif.js';
 import { float80 } from './data-helpers.js';
 import { float48 } from './data-helpers.js';
 import { convertFromIeeeExtended } from './data-helpers.js';
+import AudioWAV from './audio/audio-wav.js';
+import AudioMIDI from './audio/audio-midi.js';
 export { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph } from "./data-formating.js";
 export { diff, edits, hunks, Op } from "./diff/diff.js";
 export { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";

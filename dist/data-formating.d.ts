@@ -1,16 +1,16 @@
 export function formatBytes(input: number, decimals?: number, bytes?: number, sizes?: string[]): string;
-export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream): import("../dist/custom.js").FormatASCIIOutput;
+export function formatASCII(value: number, asciiFlags: Record<string, boolean | number | string>, _data: import("./data-buffer.js").default | import("./data-stream.js").default): FormatASCIIOutput;
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
- * @property {import('../dist/custom.js').FormatNumber} offset Offset formatting fuction.
- * @property {import('../dist/custom.js').FormatNumber} value Byte value formating function.
- * @property {import('../dist/custom.js').FormatNumberToASCII} ascii ASCII text formatting function.
+ * @property {FormatNumber} offset Offset formatting fuction.
+ * @property {FormatNumber} value Byte value formating function.
+ * @property {FormatNumberToASCII} ascii ASCII text formatting function.
  */
 /**
- * @type {import('../dist/custom.js').HexTableFormater}
+ * @type {HexTableFormater}
  */
-export const hexTableFormaters: import("../dist/custom.js").HexTableFormater;
+export const hexTableFormaters: HexTableFormater;
 /**
  * Header layout definitions.
  * GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
@@ -34,7 +34,7 @@ export const hexTableHeader: HexTableHeader;
  * @type {HexTableDimensions}
  */
 export const hexTableDimensions: HexTableDimensions;
-export function hexTable(input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
+export function hexTable(input: import("./data-buffer.js").default | import("./data-stream.js").default, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater): string;
 export function formatTableLine(columnLengths: number[], type: string, options: {
     theme: TableFormatStyle;
     padding: number;
@@ -107,21 +107,37 @@ declare namespace _default {
 }
 export default _default;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
+ * Format a numeric value for display.
+ */
+export type FormatNumber = (value: number) => string;
+/**
+ * ASCII formatting result: a two-element array of `[character, flags]`.
+ */
+export type FormatASCIIOutput = Array<string | Record<string, boolean | number | string>>;
+/**
+ * Format a byte value for ASCII display in a hex table.
+ */
+export type FormatNumberToASCII = (value: number, asciiFlags: Record<string, boolean | number | string>, data: import("./data-buffer.js").default | import("./data-stream.js").default) => FormatASCIIOutput;
+/**
  * Formatting functions for all value types.
  */
 export type HexTableFormater = {
     /**
      * Offset formatting fuction.
      */
-    offset: import("../dist/custom.js").FormatNumber;
+    offset: FormatNumber;
     /**
      * Byte value formating function.
      */
-    value: import("../dist/custom.js").FormatNumber;
+    value: FormatNumber;
     /**
      * ASCII text formatting function.
      */
-    ascii: import("../dist/custom.js").FormatNumberToASCII;
+    ascii: FormatNumberToASCII;
 };
 /**
  * Header layout definitions.
@@ -215,6 +231,29 @@ export type TableFormatStyle = {
      */
     intersectionRight: string;
 };
-import DataBuffer from './data-buffer.js';
-import DataStream from './data-stream.js';
+/**
+ * A single node along the traced path through the Myers edit graph.
+ */
+export type MyersPathNode = {
+    /**
+     * The column (x sequence) index.
+     */
+    x: number;
+    /**
+     * The row (y sequence) index.
+     */
+    y: number;
+    /**
+     * True when the edge into this node is a diagonal (match) move.
+     */
+    diagonal?: boolean | undefined;
+    /**
+     * True when the edge into this node is a horizontal (delete) move.
+     */
+    horizontal?: boolean | undefined;
+    /**
+     * True when the edge into this node is a vertical (insert) move.
+     */
+    vertical?: boolean | undefined;
+};
 //# sourceMappingURL=data-formating.d.ts.map

@@ -1,4 +1,8 @@
 export default ImageGIF;
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
 export type ImageGIFOptions = {
     /**
      * Options for the ImageGIF instance.
@@ -63,6 +67,81 @@ export type ImageGIFImageDescriptor = {
     lzwData: number[];
 };
 /**
+ * A decoded animation frame reference.
+ */
+export type ImageGIFFrame = {
+    /**
+     * The frame index in the order it was decoded.
+     */
+    index: number;
+    /**
+     * The frame delay in 1/100ths of a second.
+     */
+    delay: number;
+    /**
+     * The disposal method from the Graphic Control Extension, when present.
+     */
+    disposal?: number | undefined;
+};
+/**
+ * A decoded Comment Extension.
+ */
+export type ImageGIFComment = {
+    /**
+     * The offset of the comment extension in the data.
+     */
+    offset: number;
+    /**
+     * The decoded comment text.
+     */
+    comment?: string | undefined;
+};
+/**
+ * A decoded Plain Text Extension.
+ */
+export type ImageGIFPlainTextExtension = {
+    /**
+     * The offset of the plain text extension in the data.
+     */
+    offset: number;
+    /**
+     * Column number, in pixels, of the left edge of the text grid.
+     */
+    textGridLeftPosition?: number | undefined;
+    /**
+     * Row number, in pixels, of the top edge of the text grid.
+     */
+    textGridTopPosition?: number | undefined;
+    /**
+     * Width of the text grid in pixels.
+     */
+    imageGridWidth?: number | undefined;
+    /**
+     * Height of the text grid in pixels.
+     */
+    imageGridHeight?: number | undefined;
+    /**
+     * Width, in pixels, of each cell in the grid.
+     */
+    characterCellWidth?: number | undefined;
+    /**
+     * Height, in pixels, of each cell in the grid.
+     */
+    characterCellHeight?: number | undefined;
+    /**
+     * Index into the Global Color Table for the text foreground.
+     */
+    textForegroundColorIndex?: number | undefined;
+    /**
+     * Index into the Global Color Table for the text background.
+     */
+    textBackgroundColorIndex?: number | undefined;
+    /**
+     * The decoded plain text data.
+     */
+    plainText?: string | undefined;
+};
+/**
  * @typedef {Object} ImageGIFOptions
  * @property {object} rules Options for the ImageGIF instance.
  * @property {boolean} rules.strict_block_size Strictly enforce the block size.
@@ -83,6 +162,33 @@ export type ImageGIFImageDescriptor = {
  * @property {Uint8Array} localColorTable The local color table
  * @property {number} lzwMinimumCodeSize The LZW minimum code size
  * @property {number[]} lzwData The LZW data
+ */
+/**
+ * A decoded animation frame reference.
+ * @typedef {object} ImageGIFFrame
+ * @property {number} index The frame index in the order it was decoded.
+ * @property {number} delay The frame delay in 1/100ths of a second.
+ * @property {number} [disposal] The disposal method from the Graphic Control Extension, when present.
+ */
+/**
+ * A decoded Comment Extension.
+ * @typedef {object} ImageGIFComment
+ * @property {number} offset The offset of the comment extension in the data.
+ * @property {string} [comment] The decoded comment text.
+ */
+/**
+ * A decoded Plain Text Extension.
+ * @typedef {object} ImageGIFPlainTextExtension
+ * @property {number} offset The offset of the plain text extension in the data.
+ * @property {number} [textGridLeftPosition] Column number, in pixels, of the left edge of the text grid.
+ * @property {number} [textGridTopPosition] Row number, in pixels, of the top edge of the text grid.
+ * @property {number} [imageGridWidth] Width of the text grid in pixels.
+ * @property {number} [imageGridHeight] Height of the text grid in pixels.
+ * @property {number} [characterCellWidth] Width, in pixels, of each cell in the grid.
+ * @property {number} [characterCellHeight] Height, in pixels, of each cell in the grid.
+ * @property {number} [textForegroundColorIndex] Index into the Global Color Table for the text foreground.
+ * @property {number} [textBackgroundColorIndex] Index into the Global Color Table for the text background.
+ * @property {string} [plainText] The decoded plain text data.
  */
 /**
  * GIF Decoder
@@ -144,18 +250,24 @@ declare class ImageGIF extends DataBuffer {
     colorType: number;
     colors: number;
     alpha: boolean;
+    /** @type {number} The size of the global color table, set while decoding the logical screen descriptor. */
+    sizeOfGlobalColorTable: number;
     /** @type {Uint8Array} */
     palette: Uint8Array;
     /** @type {number[]|Uint8Array} */
     pixels: number[] | Uint8Array;
     /** @type {Uint8Array} */
     transparency: Uint8Array;
-    frames: any[];
-    comments: any[];
-    applicationExtensions: any[];
+    /** @type {ImageGIFFrame[]} */
+    frames: ImageGIFFrame[];
+    /** @type {ImageGIFComment[]} */
+    comments: ImageGIFComment[];
+    /** @type {object[]} */
+    applicationExtensions: object[];
     /** @type {ImageGIFImageDescriptor[]} */
     imageDescriptors: ImageGIFImageDescriptor[];
-    plainTextExtensions: any[];
+    /** @type {ImageGIFPlainTextExtension[]} */
+    plainTextExtensions: ImageGIFPlainTextExtension[];
     imageNext: boolean;
     /** @type {ImageGIFOptions} */
     options: ImageGIFOptions;
@@ -199,7 +311,6 @@ declare class ImageGIF extends DataBuffer {
     globalColorTable: number | undefined;
     colorResolution: number | undefined;
     sortFlag: number | undefined;
-    sizeOfGlobalColorTable: number | undefined;
     backgroundColorIndex: number | undefined;
     pixelAspectRatio: number | undefined;
     /**

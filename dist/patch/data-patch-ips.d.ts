@@ -10,6 +10,10 @@
 export const IPS_MAX_SIZE: number;
 export default IPS;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * A chunk of IPS data.
  */
 export type IPSChunk = {

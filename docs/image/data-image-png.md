@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#ImagePNG">ImagePNG</a> ⇐ <code>DataBuffer</code></dt>
+<dd><p>PNG Decoder</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="ImagePNG"></a>
 
 ## ImagePNG ⇐ <code>DataBuffer</code>
@@ -647,4 +670,19 @@ end
 | bpp | <code>number</code> | Bytes Per Pixel |
 | offset | <code>number</code> | Offset |
 | length | <code>number</code> | Length |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

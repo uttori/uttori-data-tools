@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBuffer">DataBuffer</a></dt>
+<dd><p>Helper class for manipulating binary data.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataBuffer"></a>
 
 ## DataBuffer
@@ -904,4 +927,19 @@ Creates an instance of DataBuffer with given size.
 | Param | Type | Description |
 | --- | --- | --- |
 | size | <code>number</code> | The size of the requested DataBuffer. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

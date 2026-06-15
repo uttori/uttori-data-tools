@@ -1,5 +1,9 @@
 export default DataStream;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * Helper class to ease working with binary files.
  * @property {number} size ArrayBuffer byteLength
  * @property {ArrayBuffer} buf Instance of ArrayBuffer used for the various typed arrays

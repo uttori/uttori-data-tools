@@ -2,7 +2,14 @@ import DataBitstream from '../data-bitstream.js';
 import DataBuffer from '../data-buffer.js';
 import GIFLZW from './gif_lzw.js';
 
-let debug = (..._) => {};
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
+
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.ImageGIF'); } catch {} }
 
@@ -28,6 +35,36 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
  * @property {Uint8Array} localColorTable The local color table
  * @property {number} lzwMinimumCodeSize The LZW minimum code size
  * @property {number[]} lzwData The LZW data
+ */
+
+/**
+ * A decoded animation frame reference.
+ * @typedef {object} ImageGIFFrame
+ * @property {number} index The frame index in the order it was decoded.
+ * @property {number} delay The frame delay in 1/100ths of a second.
+ * @property {number} [disposal] The disposal method from the Graphic Control Extension, when present.
+ */
+
+/**
+ * A decoded Comment Extension.
+ * @typedef {object} ImageGIFComment
+ * @property {number} offset The offset of the comment extension in the data.
+ * @property {string} [comment] The decoded comment text.
+ */
+
+/**
+ * A decoded Plain Text Extension.
+ * @typedef {object} ImageGIFPlainTextExtension
+ * @property {number} offset The offset of the plain text extension in the data.
+ * @property {number} [textGridLeftPosition] Column number, in pixels, of the left edge of the text grid.
+ * @property {number} [textGridTopPosition] Row number, in pixels, of the top edge of the text grid.
+ * @property {number} [imageGridWidth] Width of the text grid in pixels.
+ * @property {number} [imageGridHeight] Height of the text grid in pixels.
+ * @property {number} [characterCellWidth] Width, in pixels, of each cell in the grid.
+ * @property {number} [characterCellHeight] Height, in pixels, of each cell in the grid.
+ * @property {number} [textForegroundColorIndex] Index into the Global Color Table for the text foreground.
+ * @property {number} [textBackgroundColorIndex] Index into the Global Color Table for the text background.
+ * @property {string} [plainText] The decoded plain text data.
  */
 
 /**
@@ -77,6 +114,8 @@ class ImageGIF extends DataBuffer {
 
     this.colors = 0;
     this.alpha = false;
+    /** @type {number} The size of the global color table, set while decoding the logical screen descriptor. */
+    this.sizeOfGlobalColorTable = 0;
 
     /** @type {Uint8Array} */
     this.palette = new Uint8Array();
@@ -85,18 +124,22 @@ class ImageGIF extends DataBuffer {
     /** @type {Uint8Array} */
     this.transparency = new Uint8Array();
 
+    /** @type {ImageGIFFrame[]} */
     this.frames = [];
+    /** @type {ImageGIFComment[]} */
     this.comments = [];
+    /** @type {object[]} */
     this.applicationExtensions = [];
     /** @type {ImageGIFImageDescriptor[]} */
     this.imageDescriptors = [];
+    /** @type {ImageGIFPlainTextExtension[]} */
     this.plainTextExtensions = [];
 
     this.imageNext = false;
 
     /** @type {ImageGIFOptions} */
     this.options = {
-      ...(options ?? {}),
+      ...options,
     };
     debug('this.options', this.options);
 
@@ -251,7 +294,6 @@ class ImageGIF extends DataBuffer {
     if ((lzwMinimumCodeSize < 2) || (lzwMinimumCodeSize > 8)) {
       const error = `Invalid LZW Minimum Code Size: ${lzwMinimumCodeSize} < 2 or ${lzwMinimumCodeSize} > 8`;
       debug(this.options.rules);
-      /* c8 ignore next 3 */
       if (this.options.rules.strict_lzw_minimum_code_size) {
         throw new Error(error);
       }
@@ -343,7 +385,7 @@ class ImageGIF extends DataBuffer {
         debug('blockTerminator:', blockTerminator);
         break;
       }
-      /* c8 ignore next 9 */
+      /* c8 ignore next 9 -- no test asset contains a GIF Construction Set ('GIFCONnb') application extension */
       case 'GIFCONnb': {
         debug('GIF Construction Set Extension: Unsupported');
         this.advance(blockSize - (8 + 3));
@@ -367,6 +409,7 @@ class ImageGIF extends DataBuffer {
 
   decodeCommentExtension() {
     debug('decodeCommentExtension:', this.offset);
+    /** @type {ImageGIFComment} */
     const comment = { offset: this.offset };
     this.advance(2);
 
@@ -384,6 +427,7 @@ class ImageGIF extends DataBuffer {
 
   decodePlainTextExtension() {
     debug('decodePlainTextExtension:', this.offset);
+    /** @type {ImageGIFPlainTextExtension} */
     const plainText = { offset: this.offset };
     // Extension Introducer - Identifies the beginning of an extension block. This field contains the fixed value 0x21.
     // Plain Text Label - Identifies the current block as a Plain Text Extension. This field contains the fixed value 0x01.
@@ -487,7 +531,7 @@ class ImageGIF extends DataBuffer {
       this.version = 89;
     } else if (header === 'GIF87a') {
       this.version = 87;
-    } /* c8 ignore next 3 */ else {
+    } else {
       throw new Error('Missing or invalid GIF header.');
     }
 
@@ -579,7 +623,8 @@ class ImageGIF extends DataBuffer {
    */
   decodeGlobalColorTable() {
     debug('decodeGlobalColorTable:', this.offset);
-    this.colors = 2 ** ((this?.sizeOfGlobalColorTable ?? 0) + 1);
+    // `sizeOfGlobalColorTable` is always set by decodeLogicalScreenDescriptor() before this runs.
+    this.colors = 2 ** (this.sizeOfGlobalColorTable + 1);
     this.palette = this.read(this.colors * 3, true);
     debug('colors =', this.colors);
     debug('palette size =', this.colors * 3);

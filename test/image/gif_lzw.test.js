@@ -324,3 +324,33 @@ test('decompress(compress(data)) is equal to datat (codeSize: 8)', (t) => {
   const lzw_o = new GIFLZW(compressed);
   t.deepEqual(lzw_o.decompress(codeSize), input);
 });
+
+test('decompress: throws when the stream does not begin with a clear code', (t) => {
+  // For codeSize 8 the clear code is 256; a leading 0 code must be rejected.
+  const lzw = new GIFLZW([0, 0]);
+  t.throws(() => lzw.decompress(8), { message: 'First code should be a clear code (256), got: 0' });
+});
+
+test('decompress: can read back from the output buffer (useInput = false)', (t) => {
+  const codeSize = 8;
+  const input = 'TOBEORNOTTOBEORTOBEORNOT';
+  const bytes = [...Buffer.from(input, 'ascii')];
+  const lzw = new GIFLZW(bytes);
+  // compress() writes the packed stream to `this.output`; rewind so decompress reads it from the start.
+  lzw.compress(codeSize);
+  lzw.offset = 0;
+  lzw.bitOffset = 0;
+  t.is(lzw.decompress(codeSize, false), input);
+});
+
+test('decompress(compress(data)) round-trips repetitive input (KwKwK case)', (t) => {
+  // A run of identical bytes forces the decoder to reference a code in the same step it is defined,
+  // exercising the "code not yet in the dictionary" branch.
+  const codeSize = 8;
+  const input = 'AAAAAAAAAA';
+  const bytes = [...Buffer.from(input, 'ascii')];
+  const lzw_i = new GIFLZW(bytes);
+  const compressed = lzw_i.compress(codeSize);
+  const lzw_o = new GIFLZW(compressed);
+  t.is(lzw_o.decompress(codeSize), input);
+});
