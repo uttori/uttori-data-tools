@@ -40,7 +40,7 @@ Does not check for out of bounds characters and will use the `String.fromCharCod
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>DataBuffer</code> | The data to convert to text. |
+| data | <code>default</code> | The data to convert to text. |
 
 <a name="UttoriCharacterEncoding"></a>
 

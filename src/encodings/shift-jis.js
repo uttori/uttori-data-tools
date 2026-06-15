@@ -1,5 +1,3 @@
-import DataBuffer from '../data-buffer.js';
-
 /**
  * @typedef UttoriCharacterEncoding
  * @type {object}
@@ -49283,7 +49281,7 @@ export const characterEncoding = {
  * Convert Shift-JIS data to Unicode text.
  *
  * Does not check for out of bounds characters and will use the `String.fromCharCode` value.
- * @param {DataBuffer} data The data to convert to text.
+ * @param {import('../data-buffer.js').default} data The data to convert to text.
  * @returns {string} The Shift-JIS data converted to Unicode text.
  */
 export const parse = (data) => {

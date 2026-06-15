@@ -1,4 +1,11 @@
-let debug = (..._) => {};
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
+
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.GIFLZW'); } catch {} }
 
@@ -190,21 +197,25 @@ class GIFLZW {
     const endOfInformation = (1 << codeSize) + 1;
     debug('endOfInformation:', endOfInformation);
 
-    let dict;
+    // In decompress mode the dictionary maps codes to their decoded string sequences.
+    /** @type {Record<number|string, string>} */
+    let dict = {};
     /** @type {number} */
-    let dictionarySize;
+    let dictionarySize = 0;
     /** @type {number} */
-    let codeLength;
-    /** @type {string|number} */
-    let sequence;
-    /** @type {string|number|null} */
-    let prevSequence;
+    let codeLength = 0;
+    /** @type {string} */
+    let sequence = '';
+    // An empty string represents "no previous sequence" (e.g. immediately after a clear code).
+    /** @type {string} */
+    let prevSequence = '';
 
+    /** @type {string[]} */
     const output = [];
 
     // The first value in the code stream should be a clear code.
+    /** @type {number} */
     let code = this.unpack(codeSize + 1, useInput);
-    /* c8 ignore next 3 */
     if (code !== clearCode) {
       throw new Error(`First code should be a clear code (${clearCode}), got: ${code}`);
     }
@@ -218,23 +229,22 @@ class GIFLZW {
         // To do this we must know how many colors are in our color table.
         dictionarySize = (1 << codeSize) + 2;
         debug('dictionarySize:', dictionarySize);
-        dict = this.buildDictionary(dictionarySize, false);
+        dict = /** @type {Record<number|string, string>} */ (this.buildDictionary(dictionarySize, false));
         debug('dict:', Object.keys(dict).length);
         // Read the first color code.
         code = this.unpack(codeLength, useInput);
         debug('code:', code);
-        prevSequence = null;
+        prevSequence = '';
         continue;
       }
 
       // Check to see if this value is in our code table.
       if (dict.hasOwnProperty(code)) {
         // Code exists in dictionary: use the first character of the dictionary entry
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         sequence = prevSequence + dict[code][0];
       } else {
-        // Code not in dictionary: use the first character of the previous sequence
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // Code not in dictionary (the KwKwK case): the entry is the previous sequence plus its own first character.
+        // This branch is only reached after a real code, so `prevSequence` is always non-empty.
         sequence = prevSequence + prevSequence[0];
       }
 

@@ -115,7 +115,7 @@ class Myers {
     const vlen = 2 * diagonals + 3;
     // allocate space for vf and vb with a single allocation
     /** @type {number[]} */
-    const buf = new Array(2 * vlen).fill(0);
+    const buf = Array.from({ length: 2 * vlen }, () => 0);
 
     this.x = x0;
     this.y = y0;

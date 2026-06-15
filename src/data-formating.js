@@ -1,9 +1,34 @@
-import DataBuffer from './data-buffer.js';
-import DataStream from './data-stream.js';
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
 
-let debug = (..._) => {};
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataFormatting'); } catch {} }
+
+/**
+ * Format a numeric value for display.
+ * @callback FormatNumber
+ * @param {number} value The number to format.
+ * @returns {string} The formatted number as a string.
+ */
+
+/**
+ * ASCII formatting result: a two-element array of `[character, flags]`.
+ * @typedef {Array.<string|Record<string, boolean|number|string>>} FormatASCIIOutput
+ */
+
+/**
+ * Format a byte value for ASCII display in a hex table.
+ * @callback FormatNumberToASCII
+ * @param {number} value Input data to print out as a hex table.
+ * @param {Record<string, boolean|number|string>} asciiFlags Any flags needed by the formatter.
+ * @param {import('./data-buffer.js').default|import('./data-stream.js').default} data The data being processed.
+ * @returns {FormatASCIIOutput} Character to represent this value and any flags for the function.
+ */
 
 /**
  * Format an amount of bytes to a human friendly string.
@@ -26,30 +51,30 @@ export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes',
  * ASCII text formatting function.
  * @param {number} value Input data to print out as a hex table.
  * @param {Record<string, boolean|number|string>} asciiFlags Any flags needed by the formatter.
- * @param {DataBuffer|DataStream} _data The data being processed.
- * @returns {import('../dist/custom.js').FormatASCIIOutput} Returns an array with the Character to represent this value and any flags for the function.
+ * @param {import('./data-buffer.js').default|import('./data-stream.js').default} _data The data being processed.
+ * @returns {FormatASCIIOutput} Returns an array with the Character to represent this value and any flags for the function.
  */
 export const formatASCII = (value, asciiFlags, _data) => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
   if (value < 0x20) {
-    return [' ', asciiFlags];
+    return /** @type {FormatASCIIOutput} */ ([' ', asciiFlags]);
   }
   if (value > 0x7E) {
-    return ['.', asciiFlags];
+    return /** @type {FormatASCIIOutput} */ (['.', asciiFlags]);
   }
   // Alternatively: value.replace(/[^\x20-\x7E]+/g, '_')
-  return [String.fromCharCode(value), asciiFlags];
+  return /** @type {FormatASCIIOutput} */ ([String.fromCharCode(value), asciiFlags]);
 };
 
 /**
  * Formatting functions for all value types.
  * @typedef {object} HexTableFormater
- * @property {import('../dist/custom.js').FormatNumber} offset Offset formatting fuction.
- * @property {import('../dist/custom.js').FormatNumber} value Byte value formating function.
- * @property {import('../dist/custom.js').FormatNumberToASCII} ascii ASCII text formatting function.
+ * @property {FormatNumber} offset Offset formatting fuction.
+ * @property {FormatNumber} value Byte value formating function.
+ * @property {FormatNumberToASCII} ascii ASCII text formatting function.
  */
 /**
- * @type {import('../dist/custom.js').HexTableFormater}
+ * @type {HexTableFormater}
  */
 export const hexTableFormaters = {
   offset: (value) => value.toString(16).padStart(8, '0'),
@@ -92,7 +117,7 @@ export const hexTableDimensions = {
 
 /**
  * Generate a nicely formatted hex editor style table.
- * @param {DataBuffer|DataStream} input Input data to print out as a hex table.
+ * @param {import('./data-buffer.js').default|import('./data-stream.js').default} input Input data to print out as a hex table.
  * @param {number} offset Offset in the DataStream to start from.
  * @param {HexTableDimensions} dimensions Table size parameters for columns, rows and byte grouping.
  * @param {HexTableHeader} header The values for building the table header with offset, bytes and ASCII values.
@@ -131,7 +156,9 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
     // Read the actual value from the data and format it for the output
     const value = data.readUInt8();
     output += format.value(value);
-    [asciiValue, asciiFlags] = format.ascii(value, asciiFlags, data);
+    const asciiFormatted = format.ascii(value, asciiFlags, data);
+    asciiValue = /** @type {string} */ (asciiFormatted[0]);
+    asciiFlags = /** @type {Record<string, boolean|number|string>} */ (asciiFormatted[1]);
     ascii += asciiValue;
 
     // Add spacing every gap space, but not the last column.
@@ -330,7 +357,7 @@ export const formatTableThemeMarkdown = {
 /**
  * Create an ASCII table from provided data and configuration.
  * @param {string[][]} data The data to add to the table.
- * @param {object} options Configuration.
+ * @param {object} [options] Configuration.
  * @param {string[]} options.align The alignment of each column, left or right.
  * @param {number} options.padding Amount of padding to add to each cell.
  * @param {TableFormatStyle} options.theme The theme to use for formatting.
@@ -341,20 +368,21 @@ export const formatTable = (data, options) => {
   // Use JSON parse & stringify to get a deep copy of the parameter array
   data = structuredClone(data);
   options = {
+    align: ['left'],
     padding: 1,
     theme: formatTableThemeMySQL,
     title: '',
-    ...options,
+    ...(options ?? {}),
   };
 
   // Ensure all the rows have the same number of columns.
   const allSameLength = data.every(({ length }) => length === data[0].length);
-  /* c8 ignore next 3 */
   if (!allSameLength) {
     debug('Uneven number of columns');
   }
 
   // Make an array with the length of each column
+  /** @type {number[]} */
   const columnLengths = [];
   for (const row of data) {
     for (const [i, column] of row.entries()) {
@@ -751,6 +779,15 @@ export const formatDiffHunks = (hunks, options = {}) => {
 };
 
 /**
+ * A single node along the traced path through the Myers edit graph.
+ * @typedef {object} MyersPathNode
+ * @property {number} x The column (x sequence) index.
+ * @property {number} y The row (y sequence) index.
+ * @property {boolean} [diagonal] True when the edge into this node is a diagonal (match) move.
+ * @property {boolean} [horizontal] True when the edge into this node is a horizontal (delete) move.
+ * @property {boolean} [vertical] True when the edge into this node is a vertical (insert) move.
+ */
+/**
  * Format Myers diff result vectors as an ASCII grid visualization.
  * Shows the edit graph with the path taken through it.
  * @param {boolean[]} rx Result vector for x (deletions).
@@ -773,6 +810,7 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
   const height = y.length;
 
   // Trace the path through the grid
+  /** @type {MyersPathNode[]} */
   const path = [];
   let xi = 0;
   let yi = 0;
@@ -808,8 +846,7 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
 
   // Initialize grid with spaces
   /** @type {string[][]} */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  const grid = Array.from({ length: charHeight }, () => Array(charWidth).fill(' '));
+  const grid = Array.from({ length: charHeight }, () => Array.from({ length: charWidth }, () => ' '));
 
   if (config.showFull) {
     // Draw full grid

@@ -1,8 +1,15 @@
 import UnderflowError from './underflow-error.js';
-import { float48, float80 } from './data-helpers.js';
+import { convertFromIeeeExtended, float48, float80 } from './data-helpers.js';
 import { edits } from './diff/diff.js';
 
-let debug = (..._) => {};
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
+
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
 
@@ -23,7 +30,7 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
 class DataBuffer {
 /**
  * Creates an instance of DataBuffer.
- * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} [input] The data to process.
+ * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
  * @throws {TypeError} Missing input data.
  * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
  */
@@ -166,8 +173,8 @@ class DataBuffer {
 
   /**
    * Compares input data against the upcoming data, byte by byte.
-   * @param {number[] | Buffer} input The data to check for in upcoming bytes.
-   * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
+   * @param {number[] | Buffer | Uint8Array} input The data to check for in upcoming bytes.
+   * @returns {boolean} `true` if the data is the upcoming data, `false` if it is not or there is not enough buffer remaining.
    */
   isNextBytes(input) {
     debug('isNextBytes:', input);
@@ -671,6 +678,29 @@ class DataBuffer {
   }
 
   /**
+   * Read from the current offset and return the IEEE 754 extended float value.
+   * May be faulty with large numbers due to float percision.
+   * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+   * @returns {number} The IEEE 754 extended float value at the current offset.
+   */
+  readFloatIEEE754(littleEndian = false) {
+    const uint8 = this.read(10, littleEndian);
+    return convertFromIeeeExtended(uint8);
+  }
+
+  /**
+   * Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+   * May be faulty with large numbers due to float percision.
+   * @param {number} [offset] The offset to read from, default is 0.
+   * @param {boolean} [littleEndian] Read in Little Endian format, default is false.
+   * @returns {number} The IEEE 754 extended float value at the specified offset.
+   */
+  peekFloatIEEE754(offset = 0, littleEndian = false) {
+    const uint8 = this.peek(10, offset, littleEndian);
+    return convertFromIeeeExtended(uint8);
+  }
+
+  /**
    * Read from the current offset and return the value as a DataBuffer.
    * @param {number} length The number of bytes to read.
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
@@ -794,6 +824,7 @@ class DataBuffer {
       case 'utf16-le':
       case 'utf16bom':
       case 'utf16-bom': {
+        /** @type {boolean} */
         let littleEndian;
 
         // find endianness
@@ -825,7 +856,8 @@ class DataBuffer {
           }
         }
 
-        let w1;
+        /** @type {number} */
+        let w1 = 0;
         while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
           offset += 2;
 
@@ -863,7 +895,7 @@ class DataBuffer {
    * Read a null-terminated string from the current offset and advance the offset.
    * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
-   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
    * @returns {string} The read value as a string (without the null terminator).
    */
   readNullTerminatedString(encoding = 'ascii', nullValue = 0x00) {
@@ -877,7 +909,7 @@ class DataBuffer {
    * A null-terminated string is a sequence of bytes ending with a null byte (0x00).
    * @param {number} offset The offset to read from.
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
-   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
    * @returns {string} The read value as a string (without the null terminator).
    */
   peekNullTerminatedString(offset, encoding = 'ascii', nullValue = 0x00) {
@@ -893,12 +925,13 @@ class DataBuffer {
    * @param {number} offset The offset to read from.
    * @param {string} encoding The encoding of the string.
    * @param {boolean} advance Flag to optionally advance the offsets.
-   * @param {number} [nullValue=0x00] The byte value that terminates the string.
+   * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
    * @returns {string} The read value as a string (without the null terminator).
    */
   decodeNullTerminatedString(offset, encoding, advance, nullValue = 0x00) {
     debug('decodeNullTerminatedString:', { offset, encoding, advance, nullValue });
     encoding = encoding.toLowerCase();
+    /** @type {number[]} */
     const codes = [];
 
     switch (encoding) {

@@ -1,5 +1,9 @@
 export default GIFLZW;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * GIF LZW Compression
  * The compression method GIF uses is a variant of LZW (Lempel-Ziv-Welch) compression.
  * @class

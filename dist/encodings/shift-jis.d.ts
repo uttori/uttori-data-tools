@@ -15,7 +15,7 @@
  * @type {Record<number, UttoriCharacterEncoding>}
  */
 export const characterEncoding: Record<number, UttoriCharacterEncoding>;
-export function parse(data: DataBuffer): string;
+export function parse(data: import("../data-buffer.js").default): string;
 declare namespace _default {
     export { characterEncoding };
     export { parse };
@@ -43,5 +43,4 @@ export type UttoriCharacterEncoding = {
      */
     name: string;
 };
-import DataBuffer from '../data-buffer.js';
 //# sourceMappingURL=shift-jis.d.ts.map

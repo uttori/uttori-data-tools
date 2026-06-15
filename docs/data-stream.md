@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataStream">DataStream</a></dt>
+<dd><p>Helper class to ease working with binary files.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataStream"></a>
 
 ## DataStream
@@ -81,6 +104,8 @@ Helper class to ease working with binary files.
         * [.peekFloat64([offset], [littleEndian])](#DataStream+peekFloat64) ⇒ <code>number</code>
         * [.readFloat80([littleEndian])](#DataStream+readFloat80) ⇒ <code>number</code>
         * [.peekFloat80([offset], [littleEndian])](#DataStream+peekFloat80) ⇒ <code>number</code>
+        * [.readFloatIEEE754([littleEndian])](#DataStream+readFloatIEEE754) ⇒ <code>number</code>
+        * [.peekFloatIEEE754([offset], [littleEndian])](#DataStream+peekFloatIEEE754) ⇒ <code>number</code>
         * [.readBuffer(length)](#DataStream+readBuffer) ⇒ <code>DataBuffer</code>
         * [.peekBuffer(offset, length)](#DataStream+peekBuffer) ⇒ <code>DataBuffer</code>
         * [.readSingleBuffer(length)](#DataStream+readSingleBuffer) ⇒ <code>DataBuffer</code>
@@ -227,7 +252,7 @@ Compares input data against the upcoming data, byte by byte.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| input | <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> | The data to check for in upcoming bytes. |
+| input | <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code> | The data to check for in upcoming bytes. |
 
 <a name="DataStream+copy"></a>
 
@@ -656,6 +681,33 @@ Read from the specified offset without advancing the offsets and return the IEEE
 | [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 | [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
 
+<a name="DataStream+readFloatIEEE754"></a>
+
+### dataStream.readFloatIEEE754([littleEndian]) ⇒ <code>number</code>
+Read from the current offset and return the IEEE 754 extended float value.
+May be faulty with large numbers due to float percision.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
+**Returns**: <code>number</code> - The IEEE 754 extended float value at the current offset.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
+
+<a name="DataStream+peekFloatIEEE754"></a>
+
+### dataStream.peekFloatIEEE754([offset], [littleEndian]) ⇒ <code>number</code>
+Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+May be faulty with large numbers due to float percision.
+
+**Kind**: instance method of [<code>DataStream</code>](#DataStream)  
+**Returns**: <code>number</code> - The IEEE 754 extended float value at the specified offset.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
+
 <a name="DataStream+readBuffer"></a>
 
 ### dataStream.readBuffer(length) ⇒ <code>DataBuffer</code>
@@ -766,7 +818,7 @@ Creates a new DataStream from file data.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>string</code> \| <code>number</code> \| <code>ArrayBuffer</code> \| <code>Uint8Array</code> \| <code>Int8Array</code> \| <code>Uint16Array</code> \| <code>Int16Array</code> \| <code>Uint32Array</code> \| <code>Int32Array</code> \| <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>DataBuffer</code> | The data to process. |
+| data | <code>string</code> \| <code>number</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>Uint8Array</code> \| <code>Int8Array</code> \| <code>Uint16Array</code> \| <code>Int16Array</code> \| <code>Uint32Array</code> \| <code>Int32Array</code> \| <code>Array.&lt;number&gt;</code> \| <code>DataBuffer</code> | The data to process. |
 
 <a name="DataStream.fromBuffer"></a>
 
@@ -779,4 +831,19 @@ Creates a new DataStream from a DataBuffer.
 | Param | Type | Description |
 | --- | --- | --- |
 | buffer | <code>DataBuffer</code> | The DataBuffer containing the data to process. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

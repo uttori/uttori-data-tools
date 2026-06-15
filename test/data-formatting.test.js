@@ -115,7 +115,7 @@ test('formatTable: can create a table like MySQL', (t) => {
     ['Rita', 47, 'blue'],
     ['Peter', 8, 'brown'],
   ];
-  t.is(formatTable(data, { align: ['left', 'right', 'left'], theme: formatTableThemeMySQL }), `+-------+-----+-------+
+  t.is(formatTable(data, { align: ['left', 'right', 'left'], theme: formatTableThemeMySQL, padding: 1, title: '' }), `+-------+-----+-------+
 | Name  | Age | color |
 +-------+-----+-------+
 | John  |  23 | green |
@@ -123,6 +123,23 @@ test('formatTable: can create a table like MySQL', (t) => {
 | Rita  |  47 | blue  |
 | Peter |   8 | brown |
 +-------+-----+-------+`);
+});
+
+test('formatTable: falls back to default options when none are provided', (t) => {
+  const data = [
+    ['Name', 'Age', 'color'],
+    ['John', 23, 'green'],
+  ];
+  // Calling without options exercises the `options ?? {}` fallback and must match an explicit empty-options call.
+  t.is(formatTable(data), formatTable(data, {}));
+});
+
+test('formatTable: tolerates rows with an uneven number of columns', (t) => {
+  const data = [
+    ['Name', 'Age'],
+    ['John'],
+  ];
+  t.notThrows(() => formatTable(data));
 });
 
 test('formatTable: can create a table as Markdown', (t) => {
@@ -133,7 +150,7 @@ test('formatTable: can create a table as Markdown', (t) => {
     ['Rita', 47, 'blue'],
     ['Peter', 8, 'brown'],
   ];
-  t.is(formatTable(data, { align: ['right', 'left', 'right'], theme: formatTableThemeMarkdown }), `|  Name | Age | color |
+  t.is(formatTable(data, { align: ['right', 'left', 'right'], theme: formatTableThemeMarkdown, padding: 1, title: '' }), `|  Name | Age | color |
 |-------|-----|-------|
 |  John | 23  | green |
 |  Mary | 16  | brown |
@@ -150,7 +167,7 @@ test('formatTable: can create a table with Emoji', (t) => {
     ['Rita', 47, '💪🏼'],
     ['Peter', 8, '🕧'],
   ];
-  t.is(formatTable(data, { align: ['right', 'left', 'right'], title: 'Emoji', theme: formatTableThemeUnicode }), `╔═══════════════════════════╗
+  t.is(formatTable(data, { align: ['right', 'left', 'right'], title: 'Emoji', theme: formatTableThemeUnicode, padding: 1 }), `╔═══════════════════════════╗
 ║           Emoji           ║
 ╠═══════╦═════╦═════════════╣
 ║  Name ║ Age ║       Emoji ║

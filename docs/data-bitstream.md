@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBitstream">DataBitstream</a></dt>
+<dd><p>Read a DataStream as a stream of bits.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataBitstream"></a>
 
 ## DataBitstream
@@ -219,4 +242,19 @@ Creates a new DataBitstream from an array of bytes.
 | Param | Type | Description |
 | --- | --- | --- |
 | bytes | <code>Array.&lt;number&gt;</code> | The data to read as a bitstream. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

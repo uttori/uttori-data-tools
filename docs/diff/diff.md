@@ -70,6 +70,7 @@ If x and y are identical, the output has length zero.
 Note that this function has generally worse performance than [Hunks] for diffs with many changes.
 
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;Hunk&gt;</code>](#Hunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -82,6 +83,7 @@ Note that this function has generally worse performance than [Hunks] for diffs w
 
 ## createHunks(x, y, rx, ry, _context) ⇒ [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;Hunk&gt;</code>](#Hunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -119,6 +121,7 @@ If both x and y are identical, the output will consist of a match edit for every
 Note that this function has generally worse performance than [Edits] for diffs with many changes.
 
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;Edit&gt;</code>](#Edit) - The edits for the diff.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -130,6 +133,7 @@ Note that this function has generally worse performance than [Edits] for diffs w
 
 ## createEdits(x, y, rx, ry) ⇒ [<code>Array.&lt;Edit&gt;</code>](#Edit)
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;Edit&gt;</code>](#Edit) - The edits for the diff.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -148,6 +152,7 @@ Note that this function has generally worse performance than [Edits] for diffs w
 Main diff function.
 
 **Kind**: global function  
+**Returns**: [<code>DiffResult</code>](#DiffResult) - The result of the diff.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -198,10 +203,11 @@ Main diff function.
 
 ### diff~findId(e) ⇒ <code>number</code>
 **Kind**: inner method of [<code>diff</code>](#diff)  
+**Returns**: <code>number</code> - The id of the element.  
 
-| Param | Type |
-| --- | --- |
-| e | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| e | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The element to find the id of. |
 
 <a name="Edit"></a>
 

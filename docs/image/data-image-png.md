@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#ImagePNG">ImagePNG</a> ⇐ <code>DataBuffer</code></dt>
+<dd><p>PNG Decoder</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="ImagePNG"></a>
 
 ## ImagePNG ⇐ <code>DataBuffer</code>
@@ -503,7 +526,7 @@ Deinterlace with no interlacing.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Buffer</code> | Data to deinterlace. |
+| data | <code>Buffer</code> \| <code>Uint8Array</code> | Data to deinterlace. |
 
 <a name="ImagePNG+interlaceAdam7"></a>
 
@@ -524,7 +547,7 @@ Adam7 divides the image into 7 passes with different starting positions and step
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Buffer</code> | Data to deinterlace. |
+| data | <code>Buffer</code> \| <code>Uint8Array</code> | Data to deinterlace. |
 
 <a name="ImagePNG.fromFile"></a>
 
@@ -647,4 +670,19 @@ end
 | bpp | <code>number</code> | Bytes Per Pixel |
 | offset | <code>number</code> | Offset |
 | length | <code>number</code> | Length |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

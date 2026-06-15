@@ -10,6 +10,10 @@
 export const IPS_MAX_SIZE: number;
 export default IPS;
 /**
+ * No-op logger, replaced by the `debug` package when enabled.
+ */
+export type DebugLogger = (...args: any[]) => any;
+/**
  * A chunk of IPS data.
  */
 export type IPSChunk = {
@@ -24,11 +28,11 @@ export type IPSChunk = {
     /**
      * The type of change, value is not undefined when Run Length Encoding is being used.
      */
-    rle?: number;
+    rle?: number | undefined;
     /**
      * The data to be used for the change when not RLE.
      */
-    data?: number[];
+    data?: number[] | undefined;
 };
 /**
  * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
@@ -62,13 +66,13 @@ declare class IPS extends DataBuffer {
     static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
     /**
      * Creates an instance of IPS.
-     * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
      * @param {boolean} [parse] Whether to immediately parse the IPS file. Default is true.
      * @throws {TypeError} Missing input data.
      * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
      * @class
      */
-    constructor(input?: any[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, parse?: boolean);
+    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, parse?: boolean);
     /** @type {IPSChunk[]} The changed to be made. */
     hunks: IPSChunk[];
     /** @type {number} The 3 byte length the file should be truncated to. */

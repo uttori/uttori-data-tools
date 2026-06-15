@@ -1,3 +1,26 @@
+## Classes
+
+<dl>
+<dt><a href="#DataBuffer">DataBuffer</a></dt>
+<dd><p>Helper class for manipulating binary data.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
+</dd>
+</dl>
+
 <a name="DataBuffer"></a>
 
 ## DataBuffer
@@ -18,12 +41,13 @@ Helper class for manipulating binary data.
     * [new DataBuffer([input])](#new_DataBuffer_new)
     * _instance_
         * [.writing](#DataBuffer+writing) : <code>boolean</code>
-        * [.data](#DataBuffer+data) : <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
+        * [.data](#DataBuffer+data) : <code>Buffer</code> \| <code>Uint8Array</code>
         * [.lengthInBytes](#DataBuffer+lengthInBytes) : <code>number</code>
         * [.next](#DataBuffer+next) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.prev](#DataBuffer+prev) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.nativeEndian](#DataBuffer+nativeEndian) : <code>boolean</code>
         * [.offset](#DataBuffer+offset) : <code>number</code>
+        * [._buffer](#DataBuffer+_buffer) : <code>Array.&lt;number&gt;</code> \| <code>null</code>
         * [.buffer](#DataBuffer+buffer) : <code>Array.&lt;number&gt;</code>
         * [.length](#DataBuffer+length) ⇒ <code>number</code>
         * [.compare(input, [offset])](#DataBuffer+compare) ⇒ <code>boolean</code>
@@ -64,11 +88,16 @@ Helper class for manipulating binary data.
         * [.peekFloat64([offset], [littleEndian])](#DataBuffer+peekFloat64) ⇒ <code>number</code>
         * [.readFloat80([littleEndian])](#DataBuffer+readFloat80) ⇒ <code>number</code>
         * [.peekFloat80([offset], [littleEndian])](#DataBuffer+peekFloat80) ⇒ <code>number</code>
+        * [.readFloatIEEE754([littleEndian])](#DataBuffer+readFloatIEEE754) ⇒ <code>number</code>
+        * [.peekFloatIEEE754([offset], [littleEndian])](#DataBuffer+peekFloatIEEE754) ⇒ <code>number</code>
         * [.readBuffer(length)](#DataBuffer+readBuffer) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.peekBuffer(offset, length)](#DataBuffer+peekBuffer) ⇒ [<code>DataBuffer</code>](#DataBuffer)
         * [.readString(length, [encoding])](#DataBuffer+readString) ⇒ <code>string</code>
         * [.peekString(offset, length, [encoding])](#DataBuffer+peekString) ⇒ <code>string</code>
         * [.decodeString(offset, length, encoding, advance)](#DataBuffer+decodeString) ⇒ <code>string</code> ℗
+        * [.readNullTerminatedString([encoding], [nullValue])](#DataBuffer+readNullTerminatedString) ⇒ <code>string</code>
+        * [.peekNullTerminatedString(offset, [encoding], [nullValue])](#DataBuffer+peekNullTerminatedString) ⇒ <code>string</code>
+        * [.decodeNullTerminatedString(offset, encoding, advance, [nullValue])](#DataBuffer+decodeNullTerminatedString) ⇒ <code>string</code> ℗
         * [.reset()](#DataBuffer+reset)
         * [.writeUInt8(data, [offset], [advance])](#DataBuffer+writeUInt8)
         * [.writeUInt16(data, [offset], [advance], [littleEndian])](#DataBuffer+writeUInt16)
@@ -93,7 +122,7 @@ Creates an instance of DataBuffer.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [input] | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>undefined</code> | The data to process. |
+| [input] | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| [<code>DataBuffer</code>](#DataBuffer) \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> | The data to process. |
 
 **Example** *(new DataBuffer(stream))*  
 ```js
@@ -111,7 +140,7 @@ Is this instance for creating a new file?
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+data"></a>
 
-### dataBuffer.data : <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code>
+### dataBuffer.data : <code>Buffer</code> \| <code>Uint8Array</code>
 The bytes avaliable to read.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
@@ -145,10 +174,16 @@ Native Endianness of the machine, true is Little Endian, false is Big Endian
 Reading / Writing offset
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
+<a name="DataBuffer+_buffer"></a>
+
+### dataBuffer.\_buffer : <code>Array.&lt;number&gt;</code> \| <code>null</code>
+Backing store for the internal write buffer,`null` until first write to avoid copying when read-only,based on `this.writing` flag.
+
+**Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+buffer"></a>
 
 ### dataBuffer.buffer : <code>Array.&lt;number&gt;</code>
-Buffer for creating new files.
+Buffer for creating new files. Lazy-inits from a copy of data on first write when instance was created read-only.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+length"></a>
@@ -190,11 +225,11 @@ Diffs another DataBuffer against the current data buffer at a specified offset a
 Compares input data against the upcoming data, byte by byte.
 
 **Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
-**Returns**: <code>boolean</code> - True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.  
+**Returns**: <code>boolean</code> - `true` if the data is the upcoming data, `false` if it is not or there is not enough buffer remaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| input | <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> | The data to check for in upcoming bytes. |
+| input | <code>Array.&lt;number&gt;</code> \| <code>Buffer</code> \| <code>Uint8Array</code> | The data to check for in upcoming bytes. |
 
 <a name="DataBuffer+copy"></a>
 
@@ -635,6 +670,33 @@ Read from the specified offset without advancing the offsets and return the IEEE
 | [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
 | [littleEndian] | <code>boolean</code> |  | Read in Little Endian format, defaults to system value, default is the current nativeEndian value. |
 
+<a name="DataBuffer+readFloatIEEE754"></a>
+
+### dataBuffer.readFloatIEEE754([littleEndian]) ⇒ <code>number</code>
+Read from the current offset and return the IEEE 754 extended float value.
+May be faulty with large numbers due to float percision.
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>number</code> - The IEEE 754 extended float value at the current offset.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
+
+<a name="DataBuffer+peekFloatIEEE754"></a>
+
+### dataBuffer.peekFloatIEEE754([offset], [littleEndian]) ⇒ <code>number</code>
+Peek from the specified offset without advancing the offsets and return the IEEE 754 extended float value.
+May be faulty with large numbers due to float percision.
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>number</code> - The IEEE 754 extended float value at the specified offset.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [offset] | <code>number</code> | <code>0</code> | The offset to read from, default is 0. |
+| [littleEndian] | <code>boolean</code> | <code>false</code> | Read in Little Endian format, default is false. |
+
 <a name="DataBuffer+readBuffer"></a>
 
 ### dataBuffer.readBuffer(length) ⇒ [<code>DataBuffer</code>](#DataBuffer)
@@ -703,6 +765,52 @@ Supported Encodings: ascii / latin1, utf8 / utf-8, utf16-be, utf16be, utf16le, u
 | length | <code>number</code> \| <code>null</code> | The number of bytes to read, if not defined it is the remaining bytes in the buffer. If NULL a null terminated string will be read. |
 | encoding | <code>string</code> | The encoding of the string. |
 | advance | <code>boolean</code> | Flag to optionally advance the offsets. |
+
+<a name="DataBuffer+readNullTerminatedString"></a>
+
+### dataBuffer.readNullTerminatedString([encoding], [nullValue]) ⇒ <code>string</code>
+Read a null-terminated string from the current offset and advance the offset.
+A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>string</code> - The read value as a string (without the null terminator).  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
+| [nullValue] | <code>number</code> | <code>0</code> | The byte value that terminates the string, default is 0x00. |
+
+<a name="DataBuffer+peekNullTerminatedString"></a>
+
+### dataBuffer.peekNullTerminatedString(offset, [encoding], [nullValue]) ⇒ <code>string</code>
+Read a null-terminated string from the specified offset without advancing the offset.
+A null-terminated string is a sequence of bytes ending with a null byte (0x00).
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>string</code> - The read value as a string (without the null terminator).  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| offset | <code>number</code> |  | The offset to read from. |
+| [encoding] | <code>string</code> | <code>&quot;ascii&quot;</code> | The encoding of the string, default is `ascii`. |
+| [nullValue] | <code>number</code> | <code>0</code> | The byte value that terminates the string, default is 0x00. |
+
+<a name="DataBuffer+decodeNullTerminatedString"></a>
+
+### dataBuffer.decodeNullTerminatedString(offset, encoding, advance, [nullValue]) ⇒ <code>string</code> ℗
+Decode a null-terminated string from the specified offset.
+Reads bytes until a null byte (0x00) is encountered.
+
+**Kind**: instance method of [<code>DataBuffer</code>](#DataBuffer)  
+**Returns**: <code>string</code> - The read value as a string (without the null terminator).  
+**Access**: private  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| offset | <code>number</code> |  | The offset to read from. |
+| encoding | <code>string</code> |  | The encoding of the string. |
+| advance | <code>boolean</code> |  | Flag to optionally advance the offsets. |
+| [nullValue] | <code>number</code> | <code>0</code> | The byte value that terminates the string, default is 0x00. |
 
 <a name="DataBuffer+reset"></a>
 
@@ -819,4 +927,19 @@ Creates an instance of DataBuffer with given size.
 | Param | Type | Description |
 | --- | --- | --- |
 | size | <code>number</code> | The size of the requested DataBuffer. |
+
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="DebugLogger"></a>
+
+## DebugLogger : <code>function</code>
+No-op logger, replaced by the `debug` package when enabled.
+
+**Kind**: global typedef  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>\*</code> | The arguments to log. |
 

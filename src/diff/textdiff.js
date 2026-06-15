@@ -29,6 +29,7 @@ function splitLines(text) {
     return [];
   }
 
+  /** @type {string[]} */
   const lines = [];
   let start = 0;
   for (let i = 0; i < text.length; i++) {
@@ -54,7 +55,7 @@ function splitLines(text) {
  * @param {string} x The first text to compare
  * @param {string} y The second text to compare
  * @param {number} context Number of matching lines to include around changes (default: 3)
- * @returns {TextHunk[]}
+ * @returns {TextHunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export function textHunks(x, y, context = DEFAULT_CONTEXT) {
   const xlines = splitLines(x);
@@ -70,7 +71,7 @@ export function textHunks(x, y, context = DEFAULT_CONTEXT) {
  * textEdits returns edits for every element in the input. If x and y are identical, the output will consist of a match edit for every input element.
  * @param {string} x The first text to compare
  * @param {string} y The second text to compare
- * @returns {TextEdit[]}
+ * @returns {TextEdit[]} The edits for the diff.
  */
 export function textEdits(x, y) {
   const xlines = splitLines(x);
@@ -91,7 +92,7 @@ const PREFIX_INSERT = '+';
  * @param {string} x The first text to compare
  * @param {string} y The second text to compare
  * @param {number} context Number of matching lines to include around changes (default: 3)
- * @returns {string}
+ * @returns {string} The unified diff in string format.
  */
 export function unified(x, y, context = DEFAULT_CONTEXT) {
   const xlines = splitLines(x);
@@ -144,12 +145,12 @@ export function unified(x, y, context = DEFAULT_CONTEXT) {
 
 /**
  * Creates hunks with context support, based on Go's rvecs.Hunks implementation
- * @param {string[]} x
- * @param {string[]} y
- * @param {boolean[]} rx
- * @param {boolean[]} ry
- * @param {number} context
- * @returns {TextHunk[]}
+ * @param {string[]} x The first text to compare
+ * @param {string[]} y The second text to compare
+ * @param {boolean[]} rx The first array of booleans
+ * @param {boolean[]} ry The second array of booleans
+ * @param {number} context Number of matching lines to include around changes (default: 3)
+ * @returns {TextHunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 function createTextHunks(x, y, rx, ry, context) {
   /** @type {TextHunk[]} */
@@ -170,8 +171,8 @@ function createTextHunks(x, y, rx, ry, context) {
     if ((s < xLength && rx[s]) || (t < yLength && ry[t])) {
       run = 0; // not a match, reset run counter
 
-      // If we're not inside a hunk, start a new hunk or, if there's an overlap due to
-      // context, continue with the previous hunk.
+      // If we're not inside a hunk, start a new hunk or,
+      // if there's an overlap due to context, continue with the previous hunk.
       if (s0 < 0) {
         // Start of hunk - include context lines before
         s0 = Math.max(0, s - context);
@@ -223,15 +224,15 @@ function createTextHunks(x, y, rx, ry, context) {
 }
 
 /**
- * @param {string[]} x
- * @param {string[]} y
- * @param {boolean[]} rx
- * @param {boolean[]} ry
- * @param {number} startX
- * @param {number} endX
- * @param {number} startY
- * @param {number} endY
- * @returns {TextEdit[]}
+ * @param {string[]} x The first text to compare
+ * @param {string[]} y The second text to compare
+ * @param {boolean[]} rx The first array of booleans
+ * @param {boolean[]} ry The second array of booleans
+ * @param {number} startX The start line in x (zero-based)
+ * @param {number} endX The end line in x (zero-based)
+ * @param {number} startY The start line in y (zero-based)
+ * @param {number} endY The end line in y (zero-based)
+ * @returns {TextEdit[]} The edits for the diff.
  */
 function createTextEditsForRange(x, y, rx, ry, startX, endX, startY, endY) {
   /** @type {TextEdit[]} */
@@ -283,11 +284,11 @@ function createTextEditsForRange(x, y, rx, ry, startX, endX, startY, endY) {
 }
 
 /**
- * @param {string[]} x
- * @param {string[]} y
- * @param {boolean[]} rx
- * @param {boolean[]} ry
- * @returns {TextEdit[]}
+ * @param {string[]} x The first text to compare
+ * @param {string[]} y The second text to compare
+ * @param {boolean[]} rx The first array of booleans
+ * @param {boolean[]} ry The second array of booleans
+ * @returns {TextEdit[]} The edits for the diff.
  */
 function createTextEdits(x, y, rx, ry) {
   /** @type {TextEdit[]} */
@@ -331,8 +332,8 @@ function createTextEdits(x, y, rx, ry) {
 
 /**
  * Escapes HTML special characters
- * @param {string} str
- * @returns {string}
+ * @param {string} str The string to escape
+ * @returns {string} The escaped string.
  */
 function escapeHtml(str) {
   return str
@@ -345,7 +346,6 @@ function escapeHtml(str) {
 
 /**
  * htmlTable compares the lines in x and y and returns an HTML table showing the differences.
- *
  * @param {string} x The first text to compare (old version)
  * @param {string} y The second text to compare (new version)
  * @param {number} context Number of matching lines to include around changes (default: 3)
@@ -416,8 +416,9 @@ export function htmlTable(x, y, context = DEFAULT_CONTEXT) {
           yLineNo++;
           break;
         }
-        /* c8 ignore next 4 */
+        /* c8 ignore next 5 */
         default: {
+          // oxlint-disable-next-line no-console
           console.warn('🐛 Unknown Edit Operation:', edit.op);
           break;
         }

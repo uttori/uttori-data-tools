@@ -1,4 +1,11 @@
-let debug = (..._) => {};
+/**
+ * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
+ */
+
+/** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
 if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('IPS'); } catch {} }
 
@@ -41,7 +48,7 @@ export const IPS_MAX_SIZE = 0x1000000;
 class IPS extends DataBuffer {
   /**
    * Creates an instance of IPS.
-   * @param {Array|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
    * @param {boolean} [parse] Whether to immediately parse the IPS file. Default is true.
    * @throws {TypeError} Missing input data.
    * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
@@ -233,6 +240,7 @@ class IPS extends DataBuffer {
 
       if (b1 !== b2) {
         let RLEmode = true;
+        /** @type {number[]} */
         const differentData = [];
         const startOffset = modified.offset - 1;
 
@@ -261,11 +269,11 @@ class IPS extends DataBuffer {
           } else {
             // merge both records
             while (distance--) {
-              previousRecord.data.push(modified.data[previousRecord.offset + previousRecord.length]);
+              previousRecord.data?.push(modified.data[previousRecord.offset + previousRecord.length]);
               previousRecord.length++;
             }
-            previousRecord.data = previousRecord.data.concat(differentData);
-            previousRecord.length = previousRecord.data.length;
+            previousRecord.data = previousRecord.data?.concat(differentData);
+            previousRecord.length = previousRecord.data?.length ?? 0;
           }
         } else {
           if (startOffset >= IPS_MAX_SIZE) {

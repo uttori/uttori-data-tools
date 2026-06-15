@@ -55,6 +55,10 @@ Splits text into lines, preserving newline characters
 | --- | --- | --- |
 | text | <code>string</code> | The text to split |
 
+<a name="splitLines..lines"></a>
+
+### splitLines~lines : <code>Array.&lt;string&gt;</code>
+**Kind**: inner constant of [<code>splitLines</code>](#splitLines)  
 <a name="textHunks"></a>
 
 ## textHunks(x, y, context) ⇒ [<code>Array.&lt;TextHunk&gt;</code>](#TextHunk)
@@ -64,6 +68,7 @@ Hunks include a number of matching elements before and after the last delete or 
 If x and y are identical, the output has length zero.
 
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;TextHunk&gt;</code>](#TextHunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -78,6 +83,7 @@ textEdits compares the lines in x and y and returns the changes necessary to con
 textEdits returns edits for every element in the input. If x and y are identical, the output will consist of a match edit for every input element.
 
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;TextEdit&gt;</code>](#TextEdit) - The edits for the diff.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -90,6 +96,7 @@ textEdits returns edits for every element in the input. If x and y are identical
 Unified compares the lines in x and y and returns the changes necessary to convert from one to the other in unified format.
 
 **Kind**: global function  
+**Returns**: <code>string</code> - The unified diff in string format.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -107,14 +114,15 @@ Unified compares the lines in x and y and returns the changes necessary to conve
 Creates hunks with context support, based on Go's rvecs.Hunks implementation
 
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;TextHunk&gt;</code>](#TextHunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
-| Param | Type |
-| --- | --- |
-| x | <code>Array.&lt;string&gt;</code> | 
-| y | <code>Array.&lt;string&gt;</code> | 
-| rx | <code>Array.&lt;boolean&gt;</code> | 
-| ry | <code>Array.&lt;boolean&gt;</code> | 
-| context | <code>number</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| x | <code>Array.&lt;string&gt;</code> | The first text to compare |
+| y | <code>Array.&lt;string&gt;</code> | The second text to compare |
+| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
+| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
+| context | <code>number</code> | Number of matching lines to include around changes (default: 3) |
 
 <a name="createTextHunks..hunks"></a>
 
@@ -124,17 +132,18 @@ Creates hunks with context support, based on Go's rvecs.Hunks implementation
 
 ## createTextEditsForRange(x, y, rx, ry, startX, endX, startY, endY) ⇒ [<code>Array.&lt;TextEdit&gt;</code>](#TextEdit)
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;TextEdit&gt;</code>](#TextEdit) - The edits for the diff.  
 
-| Param | Type |
-| --- | --- |
-| x | <code>Array.&lt;string&gt;</code> | 
-| y | <code>Array.&lt;string&gt;</code> | 
-| rx | <code>Array.&lt;boolean&gt;</code> | 
-| ry | <code>Array.&lt;boolean&gt;</code> | 
-| startX | <code>number</code> | 
-| endX | <code>number</code> | 
-| startY | <code>number</code> | 
-| endY | <code>number</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| x | <code>Array.&lt;string&gt;</code> | The first text to compare |
+| y | <code>Array.&lt;string&gt;</code> | The second text to compare |
+| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
+| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
+| startX | <code>number</code> | The start line in x (zero-based) |
+| endX | <code>number</code> | The end line in x (zero-based) |
+| startY | <code>number</code> | The start line in y (zero-based) |
+| endY | <code>number</code> | The end line in y (zero-based) |
 
 <a name="createTextEditsForRange..edits"></a>
 
@@ -144,13 +153,14 @@ Creates hunks with context support, based on Go's rvecs.Hunks implementation
 
 ## createTextEdits(x, y, rx, ry) ⇒ [<code>Array.&lt;TextEdit&gt;</code>](#TextEdit)
 **Kind**: global function  
+**Returns**: [<code>Array.&lt;TextEdit&gt;</code>](#TextEdit) - The edits for the diff.  
 
-| Param | Type |
-| --- | --- |
-| x | <code>Array.&lt;string&gt;</code> | 
-| y | <code>Array.&lt;string&gt;</code> | 
-| rx | <code>Array.&lt;boolean&gt;</code> | 
-| ry | <code>Array.&lt;boolean&gt;</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| x | <code>Array.&lt;string&gt;</code> | The first text to compare |
+| y | <code>Array.&lt;string&gt;</code> | The second text to compare |
+| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
+| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
 
 <a name="createTextEdits..edits"></a>
 
@@ -162,10 +172,11 @@ Creates hunks with context support, based on Go's rvecs.Hunks implementation
 Escapes HTML special characters
 
 **Kind**: global function  
+**Returns**: <code>string</code> - The escaped string.  
 
-| Param | Type |
-| --- | --- |
-| str | <code>string</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>string</code> | The string to escape |
 
 <a name="htmlTable"></a>
 

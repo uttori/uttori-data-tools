@@ -178,6 +178,33 @@ test('single buffer', (t) => {
   t.deepEqual(new DataBuffer(new Uint8Array([10, 160])), stream.readSingleBuffer(4));
 });
 
+test('empty list', (t) => {
+  const stream = new DataStream(new DataBufferList());
+
+  t.throws(() => stream.readSingleBuffer(1), { message: 'No buffer to read from' });
+  t.throws(() => stream.peekSingleBuffer(0, 1), { message: 'No buffer to read from' });
+  t.throws(() => stream.rewind(0), { message: 'No buffer to read from' });
+});
+
+test('readUInt8: no buffer', (t) => {
+  const list = new DataBufferList();
+  list.append(new DataBuffer([42]));
+  const stream = new DataStream(list);
+  list.first = null;
+
+  t.throws(() => stream.readUInt8(), { message: 'No buffer to read from' });
+});
+
+test('rewind: no buffer', (t) => {
+  const list = new DataBufferList();
+  list.append(new DataBuffer([42]));
+  const stream = new DataStream(list);
+  stream.offset = 1;
+  list.first = null;
+
+  t.throws(() => stream.rewind(1), { message: 'No buffer to read from' });
+});
+
 test('uint8', (t) => {
   let value;
   let stream = makeStream([10, 160], [20, 29, 119]);
@@ -731,6 +758,133 @@ test('float80', (t) => {
   stream = makeStream([0x40, 0x01, 0xB5, 0x55, 0x56, 0x08, 0x4A, 0x51, 0x60, 0x00]);
   t.is(stream.peekFloat80(0, false), 5.666667);
   t.is(stream.readFloat80(false), 5.666667);
+});
+
+test('floatIEEE754', (t) => {
+  let stream;
+  let copy;
+
+  stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]);
+  copy = stream.copy();
+  t.is(stream.peekFloatIEEE754(), 1);
+  t.is(stream.readFloatIEEE754(), 1);
+  t.is(copy.readFloatIEEE754(), 1);
+
+  stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  copy = stream.copy();
+  t.is(stream.peekFloatIEEE754(), 1);
+  t.is(stream.readFloatIEEE754(), 1);
+  t.is(copy.readFloatIEEE754(), 1);
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xFF, 0x3F]);
+  t.is(stream.peekFloatIEEE754(0, true), 1);
+  t.is(stream.readFloatIEEE754(true), 1);
+
+  stream = makeStream([0xBF, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  copy = stream.copy();
+  t.is(stream.peekFloatIEEE754(), -1);
+  t.is(stream.readFloatIEEE754(), -1);
+  t.is(copy.readFloatIEEE754(), -1);
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xFF, 0xBF]);
+  t.is(stream.peekFloatIEEE754(0, true), -1);
+  t.is(stream.readFloatIEEE754(true), -1);
+
+  stream = makeStream([0x40, 0x0E, 0xAC, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  copy = stream.copy();
+  t.is(stream.peekFloatIEEE754(), 44100);
+  t.is(stream.readFloatIEEE754(), 44100);
+  t.is(copy.readFloatIEEE754(), 44100);
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x44, 0xAC, 0x0E, 0x40]);
+  t.is(stream.peekFloatIEEE754(0, true), 44100);
+  t.is(stream.readFloatIEEE754(true), 44100);
+
+  stream = makeStream([0x7F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  copy = stream.copy();
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloatIEEE754());
+  t.is(Number.POSITIVE_INFINITY, stream.readFloatIEEE754());
+  t.is(Number.POSITIVE_INFINITY, copy.readFloatIEEE754());
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x7F]);
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloatIEEE754(0, true));
+  t.is(Number.POSITIVE_INFINITY, stream.readFloatIEEE754(true));
+
+  stream = makeStream([0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloatIEEE754());
+  t.is(Number.NEGATIVE_INFINITY, stream.readFloatIEEE754());
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF]);
+  t.is(Number.NEGATIVE_INFINITY, stream.peekFloatIEEE754(0, true));
+  t.is(Number.NEGATIVE_INFINITY, stream.readFloatIEEE754(true));
+
+  stream = makeStream([0x7F, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(Number.POSITIVE_INFINITY, stream.peekFloatIEEE754());
+  t.is(Number.POSITIVE_INFINITY, stream.readFloatIEEE754());
+
+  stream = makeStream([0x40, 0x00, 0xC9, 0x0F, 0xDA, 0x9E, 0x46, 0xA7, 0x88, 0x00]);
+  t.is(stream.peekFloatIEEE754(), 3.14159265);
+  t.is(stream.readFloatIEEE754(), 3.14159265);
+
+  stream = makeStream([0x00, 0x88, 0xA7, 0x46, 0x9E, 0xDA, 0x0F, 0xC9, 0x00, 0x40]);
+  t.is(stream.peekFloatIEEE754(0, true), 3.14159265);
+  t.is(stream.readFloatIEEE754(true), 3.14159265);
+
+  stream = makeStream([0x3F, 0xFD, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xA8, 0xFF]);
+  copy = stream.copy();
+  t.is(stream.peekFloatIEEE754(), 0.3333333333333333);
+  t.is(stream.readFloatIEEE754(), 0.3333333333333333);
+  t.is(copy.readFloatIEEE754(), 0.3333333333333333);
+
+  stream = makeStream([0x41, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0xAE, 0xA9, 0xF8, 0x00]);
+  t.is(stream.peekFloatIEEE754(), 1.1945305291680097e+103);
+  t.is(stream.readFloatIEEE754(), 1.1945305291680097e+103);
+
+  stream = makeStream([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(), 0);
+
+  stream = makeStream([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(), -0);
+  t.is((1 / stream.peekFloatIEEE754()) < 0, true);
+  t.is(stream.readFloatIEEE754(), -0);
+
+  stream = makeStream([0x40, 0x02, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 10);
+  t.is(stream.readFloatIEEE754(), 10);
+
+  stream = makeStream([0x40, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 2.5);
+  t.is(stream.readFloatIEEE754(), 2.5);
+
+  stream = makeStream([0x40, 0x0C, 0x8C, 0xA2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 9000.5);
+  t.is(stream.readFloatIEEE754(), 9000.5);
+
+  stream = makeStream([0x40, 0x05, 0xFA, 0xAA, 0xA6, 0x4C, 0x2F, 0x83, 0x7B, 0x4A]);
+  t.is(stream.peekFloatIEEE754(0), 125.3333);
+  t.is(stream.readFloatIEEE754(), 125.3333);
+
+  stream = makeStream([0x40, 0x01, 0xAA, 0xAA, 0xA9, 0xF7, 0xB5, 0xAE, 0xA0, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 5.333333);
+  t.is(stream.readFloatIEEE754(), 5.333333);
+
+  stream = makeStream([0x40, 0x01, 0xB5, 0x55, 0x56, 0x08, 0x4A, 0x51, 0x60, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 5.666667);
+  t.is(stream.readFloatIEEE754(), 5.666667);
+
+  stream = makeStream([0x3F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00]);
+  t.is(stream.peekFloatIEEE754(0), 1.9999999995343387);
+  t.is(stream.readFloatIEEE754(), 1.9999999995343387);
+
+  stream = makeStream([0x3F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
+  t.is(stream.peekFloatIEEE754(0), 2 ** -63);
+  t.is(stream.readFloatIEEE754(), 2 ** -63);
+
+  stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.throws(() => stream.readFloatIEEE754(), { message: 'Insufficient Bytes: 1' });
+
+  stream = makeStream([0x3F, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  t.throws(() => stream.peekFloatIEEE754(0), { message: 'Insufficient Bytes: 9 + 1' });
 });
 
 test('ascii/latin1', (t) => {
