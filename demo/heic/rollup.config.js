@@ -5,20 +5,14 @@ import cleanup from 'rollup-plugin-cleanup';
 import replace from '@rollup/plugin-replace';
 
 const config = {
-  input: 'demo/demo.js',
+  input: 'demo/heic/index.js',
   output: {
-    file: 'demo/wav.js',
+    file: 'demo/heic/heic.js',
     format: 'es',
-    name: 'AudioWAV',
+    name: 'ImageHEIC',
     sourcemap: false,
   },
   plugins: [
-    // Replace zlib with pako for brwosers
-    replace({
-      "const zlib = require('zlib');": "const pako = require('pako/lib/inflate.js');",
-      'zlib.inflateSync(': 'pako.inflate(',
-      delimiters: ['', ''],
-    }),
     nodeResolve({
       mainFields: ['module', 'main'],
     }),
@@ -28,6 +22,7 @@ const config = {
       'process.env.UTTORI_AUDIOWAV_DEBUG': 'false',
       'process.env.UTTORI_IMAGEPNG_DEBUG': 'false',
       delimiters: ['', ''],
+      preventAssignment: true,
     }),
     commonjs(),
     babel(),

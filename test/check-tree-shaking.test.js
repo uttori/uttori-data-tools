@@ -10,6 +10,8 @@ const plugins = [
   replace({
     preventAssignment: true,
     'process.env.UTTORI_DATA_DEBUG': 'false',
+    'process.env.UTTORI_AUDIOMIDI_DEBUG': 'false',
+    'process.env.UTTORI_AUDIOWAV_DEBUG': 'false',
     'process.env.UTTORI_IMAGEPNG_DEBUG': 'false',
   }),
 ];
@@ -42,7 +44,6 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     'data-buffer-list.js',
     'data-stream.js',
     'audio-wav.js',
-    'audio-midi.js',
     '3-of-3.js',
   ]);
 });
@@ -69,7 +70,6 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     'data-stream.js',
     'data-bitstream.js',
     'audio-wav.js',
-    'audio-midi.js',
     '4-of-1.js',
   ]);
 });
@@ -95,7 +95,6 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     'data-buffer.js',
     'data-hash-crc32.js',
     'audio-wav.js',
-    'audio-midi.js',
     '3-of-2.js',
   ]);
 });
@@ -141,7 +140,6 @@ test('Tree Shaking: { ImagePNG, DataBuffer, DataBufferList, DataStream }', async
     'data-buffer.js',
     'data-image-png.js',
     'audio-wav.js',
-    'audio-midi.js',
     'imagepng.js',
   ]);
 });

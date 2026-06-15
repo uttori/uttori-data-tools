@@ -748,5 +748,5 @@ declare class AudioMIDI extends DataBuffer {
      */
     validate(): string[];
 }
-import { DataBuffer } from '@uttori/data-tools';
+import { DataBuffer } from './../index.js';
 //# sourceMappingURL=audio-midi.d.ts.map

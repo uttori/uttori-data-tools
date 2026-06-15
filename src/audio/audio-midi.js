@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { DataBuffer, DataStream } from '@uttori/data-tools';
+import { DataBuffer, DataStream } from './../index.js';
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.

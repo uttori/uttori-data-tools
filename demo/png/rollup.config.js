@@ -25,6 +25,8 @@ const config = {
     }),
     replace({
       'process.env.UTTORI_DATA_DEBUG': 'false',
+      'process.env.UTTORI_AUDIOMIDI_DEBUG': 'false',
+      'process.env.UTTORI_AUDIOWAV_DEBUG': 'false',
       'process.env.UTTORI_IMAGEPNG_DEBUG': 'false',
       delimiters: ['', ''],
       preventAssignment: true,

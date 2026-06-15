@@ -1,7 +1,6 @@
 import zlib from 'zlib';
 
-import DataBuffer from '../data-buffer.js';
-import DataBufferList from '../data-buffer-list.js';
+import { DataBuffer, DataBufferList } from './../index.js';
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -10,8 +9,9 @@ import DataBufferList from '../data-buffer-list.js';
  */
 
 /** @type {DebugLogger} */
+let debug = () => {};
 /* c8 ignore next */
-let debug = () => {}; try { const { default: d } = await import('debug'); debug = d('Uttori.AudioWAV'); } catch {}
+if (process.env.UTTORI_AUDIOWAV_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.AudioWAV'); } catch {} }
 
 /**
  * A decoded WAV / AIFF file header.

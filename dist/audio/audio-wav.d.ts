@@ -1252,5 +1252,5 @@ declare class AudioWAV extends DataBuffer {
      */
     decodeChunk(): string;
 }
-import DataBuffer from '../data-buffer.js';
+import { DataBuffer } from './../index.js';
 //# sourceMappingURL=audio-wav.d.ts.map

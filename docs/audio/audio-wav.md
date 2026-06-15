@@ -24,6 +24,13 @@ The array index is the sample index (<code>0</code>–<code>119</code>) and the 
 </dd>
 </dl>
 
+## Functions
+
+<dl>
+<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
+<dd></dd>
+</dl>
+
 ## Typedefs
 
 <dl>
@@ -705,6 +712,10 @@ The Roland SP-404SX pad labels in sample-index order: pads `A1`–`J12` across b
 The array index is the sample index (`0`–`119`) and the value is the pad label, so it serves both decode (index to label) and encode (label to index via `indexOf`).
 
 **Kind**: global constant  
+<a name="debug"></a>
+
+## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
 <a name="DebugLogger"></a>
 
 ## DebugLogger : <code>function</code>
