@@ -1,8 +1,4 @@
-export default DataBuffer;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
+export type DebugLogger = (...args: any) => any;
 /**
  * Helper class for manipulating binary data.
  * @property {Buffer|Uint8Array} data The data to process.
@@ -18,23 +14,8 @@ export type DebugLogger = (...args: any[]) => any;
  * @class
  */
 declare class DataBuffer {
-    /**
-     * Creates an instance of DataBuffer with given size.
-     * @param {number} size The size of the requested DataBuffer.
-     * @returns {DataBuffer} The new DataBuffer.
-     */
-    static allocate(size: number): DataBuffer;
-    /**
-     * Creates an instance of DataBuffer.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
-     * @throws {TypeError} Missing input data.
-     * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
-     */
-    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array);
     /** @type {boolean} Is this instance for creating a new file? */
     writing: boolean;
-    /** @type {Buffer|Uint8Array} The bytes avaliable to read. */
-    data: Buffer | Uint8Array;
     /** @type {number} The number of bytes avaliable to read. */
     lengthInBytes: number;
     /** @type {DataBuffer|null} When the buffer is part of a bufferlist, the next DataBuffer in the list. */
@@ -52,11 +33,26 @@ declare class DataBuffer {
      * based on `this.writing` flag.
      */
     _buffer: number[] | null;
+    /** @type {Buffer|Uint8Array} Bytes owned or borrowed by this view. */
+    data: Buffer | Uint8Array;
+    /**
+   * Creates an instance of DataBuffer.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
+   * @throws {TypeError} Missing input data.
+   * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
+   */
+    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array);
     /**
      * Buffer for creating new files. Lazy-inits from a copy of data on first write when instance was created read-only.
      * @type {number[]}
      */
     get buffer(): number[];
+    /**
+     * Creates an instance of DataBuffer with given size.
+     * @param {number} size The size of the requested DataBuffer.
+     * @returns {DataBuffer} The new DataBuffer.
+     */
+    static allocate(size: number): DataBuffer;
     /**
      * Helper to match arrays by returning the data length.
      * @returns {number} The data length of the DataBuffer.
@@ -75,7 +71,7 @@ declare class DataBuffer {
      * @param {number} [offset] The offset to start the comparison from, default is 0.
      * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
      */
-    diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): import("./diff/diff.js").Edit[];
+    diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): import('./diff/diff.js').Edit[];
     /**
      * Compares input data against the upcoming data, byte by byte.
      * @param {number[] | Buffer | Uint8Array} input The data to check for in upcoming bytes.
@@ -459,4 +455,5 @@ declare class DataBuffer {
      */
     commit(): void;
 }
+export default DataBuffer;
 //# sourceMappingURL=data-buffer.d.ts.map

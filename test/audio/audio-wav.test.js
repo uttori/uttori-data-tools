@@ -172,26 +172,24 @@ test('AudioWAV.decodeRLND(): can decode a Roland SP-404SX chunk', async (t) => {
 });
 
 test('AudioWAV.decodeSMPL(): can decode a sampler chunk with sample loops and sampler data', (t) => {
-  // Hand-built `smpl` chunk: header, one sample loop, and a single trailing sampler-specific data byte.
-  const chunk = Buffer.from([
-    0x73, 0x6D, 0x70, 0x6C, // 'smpl'
-    0x00, 0x00, 0x00, 0x00, // size (unused by the decoder)
-    0x01, 0x00, 0x00, 0x00, // manufacturer 1-4
-    0x02, // product
-    0x03, // samplePeriod
-    0x3C, // midiUnityNote (60)
-    0x00, // midiPitchFraction
-    0x00, // SMPTEFormat
-    0x00, 0x00, 0x00, 0x00, // SMPTEOffset 1-4
-    0x01, // sampleLoopsCount
-    0x01, // sampleDataSize
-    0x0A, 0x00, 0x01, 0x02, 0x00, 0x00, // loop: ID, type, start, end, fraction, count
-    0xAB, // sampler-specific data
-  ]);
+  // RIFF smpl fields are 32-bit; loop points above 255 detect byte-wide reads.
+  const chunk = Buffer.alloc(69);
+  chunk.write('smpl', 0);
+  chunk.writeUInt32LE(61, 4);
+  chunk.writeUInt32LE(1, 8); // manufacturer
+  chunk.writeUInt32LE(2, 12); // product
+  chunk.writeUInt32LE(3, 16); // sample period
+  chunk.writeUInt32LE(60, 20); // MIDI unity note
+  chunk.writeUInt32LE(1, 36); // sample loop count
+  chunk.writeUInt32LE(1, 40); // sampler data size
+  chunk.writeUInt32LE(10, 44); // loop ID
+  chunk.writeUInt32LE(256, 52); // inclusive loop start
+  chunk.writeUInt32LE(511, 56); // inclusive loop end
+  chunk[68] = 0xAB;
   const value = AudioWAV.decodeSMPL(chunk);
   t.is(value.sampleLoopsCount, 1);
   t.is(value.sampleDataSize, 1);
-  t.deepEqual(value.sampleLoops, [{ ID: 10, type: 0, start: 1, end: 2, fraction: 0, count: 0 }]);
+  t.deepEqual(value.sampleLoops, [{ ID: 10, type: 0, start: 256, end: 511, fraction: 0, count: 0 }]);
 });
 
 test('AudioWAV.decodeFMT(): labels an unrecognized audio format tag', (t) => {

@@ -1,4 +1,10 @@
-export default Myers;
+/**
+ * @typedef {object} SplitResult
+ * @property {number} s0 The start index of the first array
+ * @property {number} s1 The end index of the first array
+ * @property {number} t0 The start index of the second array
+ * @property {number} t1 The end index of the second array
+ */
 export type SplitResult = {
     /**
      * The start index of the first array
@@ -36,13 +42,6 @@ export type InitResult = {
     tmax: number;
 };
 /**
- * @typedef {object} SplitResult
- * @property {number} s0 The start index of the first array
- * @property {number} s1 The end index of the first array
- * @property {number} t0 The start index of the second array
- * @property {number} t1 The end index of the second array
- */
-/**
  * @typedef {object} InitResult
  * @property {number} smin The start index of the first array
  * @property {number} smax The end index of the first array
@@ -64,14 +63,6 @@ export type InitResult = {
  * @see {@link https://blog.jcoglan.com/2017/02/12/the-myers-diff-algorithm-part-1/}
  */
 declare class Myers {
-    /**
-     * @param {number[]} xidx Mapping of s indices to result vector positions
-     * @param {number[]} yidx Mapping of t indices to result vector positions
-     * @param {string[] | number[] | Uint8Array[]} x0 The first array to compare
-     * @param {string[] | number[] | Uint8Array[]} y0 The second array to compare
-     * @param {import('./diff.js').EqualityFunction} equal Equality function to compare elements
-     */
-    constructor(xidx: number[], yidx: number[], x0: string[] | number[] | Uint8Array[], y0: string[] | number[] | Uint8Array[], equal: import("./diff.js").EqualityFunction);
     /** @type {string[] | number[] | Uint8Array[]} */
     x: string[] | number[] | Uint8Array[];
     /** @type {string[] | number[] | Uint8Array[]} */
@@ -91,7 +82,7 @@ declare class Myers {
     /** @type {boolean[]} */
     resultVectorY: boolean[];
     /** @type {import('./diff.js').EqualityFunction} */
-    equal: import("./diff.js").EqualityFunction;
+    equal: import('./diff.js').EqualityFunction;
     /** @type {number} */
     smin: number;
     /** @type {number} */
@@ -100,6 +91,14 @@ declare class Myers {
     tmin: number;
     /** @type {number} */
     tmax: number;
+    /**
+     * @param {number[]} xidx Mapping of s indices to result vector positions
+     * @param {number[]} yidx Mapping of t indices to result vector positions
+     * @param {string[] | number[] | Uint8Array[]} x0 The first array to compare
+     * @param {string[] | number[] | Uint8Array[]} y0 The second array to compare
+     * @param {import('./diff.js').EqualityFunction} equal Equality function to compare elements
+     */
+    constructor(xidx: number[], yidx: number[], x0: string[] | number[] | Uint8Array[], y0: string[] | number[] | Uint8Array[], equal: import('./diff.js').EqualityFunction);
     /**
      * Find an optimal d-path from (smin, tmin) to (smax, tmax).
      * @param {number} smin The start index of the first array
@@ -118,4 +117,5 @@ declare class Myers {
      */
     split(smin: number, smax: number, tmin: number, tmax: number): SplitResult;
 }
+export default Myers;
 //# sourceMappingURL=myers.d.ts.map

@@ -679,11 +679,11 @@ export const formatDiffHex = (edits, options = {}) => {
         // Skip the next insert since we combined them
         i++;
       } else {
-        // Standalone delete - show as x → x (no visual change in this context)
+        // Standalone delete - show as x ➜ x (no visual change in this context)
         rowBuffer.push({ x, y: x, op: 0 });
       }
     } else if (op === 2) { // Insert (standalone, not part of replacement)
-      // Standalone insert - show as 0 → y
+      // Standalone insert - show as 0 ➜ y
       rowBuffer.push({ x: 0, y, op: 2 });
     }
 

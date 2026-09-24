@@ -7,7 +7,7 @@
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBufferList'); } catch {} }
+if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBufferList'); } catch {} }
 
 /**
  * A linked list of DataBuffers.

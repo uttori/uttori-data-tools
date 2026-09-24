@@ -40,8 +40,8 @@ Helper class for manipulating binary data.
 * [DataBuffer](#DataBuffer)
     * [new DataBuffer([input])](#new_DataBuffer_new)
     * _instance_
-        * [.writing](#DataBuffer+writing) : <code>boolean</code>
         * [.data](#DataBuffer+data) : <code>Buffer</code> \| <code>Uint8Array</code>
+        * [.writing](#DataBuffer+writing) : <code>boolean</code>
         * [.lengthInBytes](#DataBuffer+lengthInBytes) : <code>number</code>
         * [.next](#DataBuffer+next) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
         * [.prev](#DataBuffer+prev) : [<code>DataBuffer</code>](#DataBuffer) \| <code>null</code>
@@ -132,16 +132,16 @@ buffer.readUInt8();
 buffer.readUInt8();
 ➜ 0x08
 ```
+<a name="DataBuffer+data"></a>
+
+### dataBuffer.data : <code>Buffer</code> \| <code>Uint8Array</code>
+Bytes owned or borrowed by this view.
+
+**Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+writing"></a>
 
 ### dataBuffer.writing : <code>boolean</code>
 Is this instance for creating a new file?
-
-**Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
-<a name="DataBuffer+data"></a>
-
-### dataBuffer.data : <code>Buffer</code> \| <code>Uint8Array</code>
-The bytes avaliable to read.
 
 **Kind**: instance property of [<code>DataBuffer</code>](#DataBuffer)  
 <a name="DataBuffer+lengthInBytes"></a>

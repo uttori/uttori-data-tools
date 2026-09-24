@@ -291,10 +291,9 @@ class AudioMIDI extends DataBuffer {
       /** @type {number | undefined} The last status byte seen, for running status. */
       let laststatusByte;
       while (this.offset < trackEnd && this.remainingBytes() > 0) {
+        // Initialize the required timing field before mutating optional event fields.
         /** @type {MidiTrackEvent} */
-        const event = {};
-        // Read the delta time.
-        event.deltaTime = this.readVariableLengthValues();
+        const event = { deltaTime: this.readVariableLengthValues() };
         // Update current time based on delta time
         currentTime += event.deltaTime;
 

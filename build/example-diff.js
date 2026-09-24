@@ -34,7 +34,7 @@ const binaryDiff = formatDiffHex(binaryEdits, { bytesPerRow: 16 });
 console.log(binaryDiff);
 
 // Myers Graph
-console.log('=== Example 1: [a,b,c] → [a,x,c] ===');
+console.log('=== Example 1: [a,b,c] ➜ [a,x,c] ===');
 const x1 = ['a', 'b', 'c'];
 const y1 = ['a', 'x', 'c'];
 const m1 = new Myers(x1.map((_, i) => i), y1.map((_, i) => i), x1, y1, (a, b) => a === b);
@@ -44,7 +44,7 @@ console.log(formatMyersGraph(m1.resultVectorX, m1.resultVectorY, x1, y1));
 console.log('\nFull grid (diagonals at (0,0) and (2,2)):');
 console.log(formatMyersGraph(m1.resultVectorX, m1.resultVectorY, x1, y1, { showFull: true }));
 
-console.log('\n\n=== Example 2: Identical sequences [a,b,c] → [a,b,c] ===');
+console.log('\n\n=== Example 2: Identical sequences [a,b,c] ➜ [a,b,c] ===');
 const x2 = ['a', 'b', 'c'];
 const y2 = ['a', 'b', 'c'];
 const m2 = new Myers(x2.map((_, i) => i), y2.map((_, i) => i), x2, y2, (a, b) => a === b);
@@ -52,7 +52,7 @@ m2.compare(m2.smin, m2.smax, m2.tmin, m2.tmax);
 console.log('Path (should be all diagonal):');
 console.log(formatMyersGraph(m2.resultVectorX, m2.resultVectorY, x2, y2));
 
-console.log('\n\n=== Example 3: Completely different [a,b] → [x,y] ===');
+console.log('\n\n=== Example 3: Completely different [a,b] ➜ [x,y] ===');
 const x3 = ['a', 'b'];
 const y3 = ['x', 'y'];
 const m3 = new Myers(x3.map((_, i) => i), y3.map((_, i) => i), x3, y3, (a, b) => a === b);

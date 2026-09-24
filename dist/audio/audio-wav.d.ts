@@ -1,11 +1,5 @@
-export default AudioWAV;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
-/**
- * A decoded WAV / AIFF file header.
- */
+import DataBuffer from '../data-buffer.js';
+export type DebugLogger = (...args: any) => any;
 export type WavHeader = {
     /**
      * The container ID: `RIFF`, `RF64`, `BW64`, `FORM`, `AIFF`, or `AIFC`.
@@ -24,9 +18,6 @@ export type WavHeader = {
      */
     type: string;
 };
-/**
- * A decoded `fmt ` (format) chunk. Fields after `bitsPerSample` are only present for extended / extensible formats.
- */
 export type WavFormat = {
     /**
      * The chunk ID, `fmt `.
@@ -67,47 +58,44 @@ export type WavFormat = {
     /**
      * The size of the extended parameter block, when present.
      */
-    extraParamSize?: number | undefined;
+    extraParamSize?: number;
     /**
      * The valid bits per sample (extensible format).
      */
-    validBitsPerSample?: number | undefined;
+    validBitsPerSample?: number;
     /**
      * The channel mask (extensible format).
      */
-    channelMask?: number | undefined;
+    channelMask?: number;
     /**
      * The human-readable channel mask label.
      */
-    channelMaskLabel?: string | undefined;
+    channelMaskLabel?: string;
     /**
      * The first GUID sub-format field.
      */
-    subFormat_1?: number | undefined;
+    subFormat_1?: number;
     /**
      * The second GUID sub-format field.
      */
-    subFormat_2?: number | undefined;
+    subFormat_2?: number;
     /**
      * The third GUID sub-format field.
      */
-    subFormat_3?: number | undefined;
+    subFormat_3?: number;
     /**
      * The fourth GUID sub-format field.
      */
-    subFormat_4?: number | undefined;
+    subFormat_4?: number;
     /**
      * The fifth GUID sub-format field.
      */
-    subFormat_5?: number | undefined;
+    subFormat_5?: number;
     /**
      * The raw extended parameter bytes.
      */
-    extraParams?: Uint8Array<ArrayBufferLike> | undefined;
+    extraParams?: Uint8Array;
 };
-/**
- * A single entry from a LIST `INFO` chunk.
- */
 export type WavListInfo = {
     /**
      * The 4-character info ID.
@@ -122,9 +110,6 @@ export type WavListInfo = {
      */
     text: string;
 };
-/**
- * A single entry from a LIST `adtl` (associated data list) chunk.
- */
 export type WavListAdtl = {
     /**
      * The 4-character sub-chunk ID.
@@ -137,15 +122,12 @@ export type WavListAdtl = {
     /**
      * The label text, for `labl` sub-chunks.
      */
-    label?: string | undefined;
+    label?: string;
     /**
      * The labeled text, for `ltxt` sub-chunks.
      */
-    ltxt?: string | undefined;
+    ltxt?: string;
 };
-/**
- * A single cue point from a `cue ` chunk.
- */
 export type WavCuePoint = {
     /**
      * The unique cue point identifier.
@@ -172,9 +154,6 @@ export type WavCuePoint = {
      */
     sampleOffset: number;
 };
-/**
- * A decoded `cue ` chunk.
- */
 export type WavCue = {
     /**
      * The chunk ID, `cue `.
@@ -193,9 +172,6 @@ export type WavCue = {
      */
     data: WavCuePoint[];
 };
-/**
- * A decoded `ResU` chunk (zlib-compressed JSON used by Logic Pro X).
- */
 export type WavResU = {
     /**
      * The chunk ID, `ResU`.
@@ -210,9 +186,6 @@ export type WavResU = {
      */
     data?: unknown;
 };
-/**
- * A parsed chunk entry stored on {@link AudioWAV#chunks}.
- */
 export type WavChunk = {
     /**
      * The chunk type label (e.g. `header`, `format`, `data`).
@@ -225,28 +198,22 @@ export type WavChunk = {
     /**
      * The raw bytes of the chunk, when retained.
      */
-    chunk?: Uint8Array<ArrayBufferLike> | undefined;
+    chunk?: Uint8Array;
     /**
      * Set when the chunk type is recognized but not decoded.
      */
-    unknown?: boolean | undefined;
+    unknown?: boolean;
     /**
      * A human-readable note for special / opaque chunks.
      */
-    description?: string | undefined;
+    description?: string;
 };
-/**
- * A decoded `data` chunk value (the audio payload itself is not retained, only its computed duration).
- */
 export type WavData = {
     /**
      * The audio duration in seconds.
      */
     duration: number;
 };
-/**
- * A decoded `LIST` chunk.
- */
 export type WavList = {
     /**
      * The chunk ID, `LIST`.
@@ -263,11 +230,8 @@ export type WavList = {
     /**
      * The parsed sub-list entries.
      */
-    data?: WavListInfo[] | WavListAdtl[] | undefined;
+    data?: WavListInfo[] | WavListAdtl[];
 };
-/**
- * A decoded `tlst` (Trigger List) chunk.
- */
 export type WavTriggerList = {
     /**
      * The referenced list (`cue` or `playlist`).
@@ -310,18 +274,12 @@ export type WavTriggerList = {
      */
     function: number;
 };
-/**
- * A decoded `fact` chunk.
- */
 export type WavFact = {
     /**
      * The number of samples per channel.
      */
     numberOfSamples: number;
 };
-/**
- * A decoded `PEAK` chunk.
- */
 export type WavPeak = {
     /**
      * The peak chunk version.
@@ -340,9 +298,6 @@ export type WavPeak = {
      */
     bitAlign: number;
 };
-/**
- * A decoded `DISP` (Display) chunk.
- */
 export type WavDisplay = {
     /**
      * The Windows clipboard format identifier.
@@ -353,9 +308,6 @@ export type WavDisplay = {
      */
     data: number;
 };
-/**
- * A decoded `acid` (ACID Loop) chunk.
- */
 export type WavAcid = {
     /**
      * The file type bit mask.
@@ -390,9 +342,6 @@ export type WavAcid = {
      */
     tempo: number;
 };
-/**
- * A decoded `inst` (Instrument) chunk.
- */
 export type WavInstrument = {
     /**
      * The MIDI note for the sample's original pitch (0-127).
@@ -423,9 +372,6 @@ export type WavInstrument = {
      */
     highVelocity: number;
 };
-/**
- * A single sample loop entry from a `smpl` chunk.
- */
 export type WavSampleLoop = {
     /**
      * The unique loop ID (may reference a cue point).
@@ -452,9 +398,6 @@ export type WavSampleLoop = {
      */
     count: number;
 };
-/**
- * A decoded `smpl` (Sample) chunk.
- */
 export type WavSample = {
     /**
      * Manufacturer code byte 1.
@@ -523,11 +466,8 @@ export type WavSample = {
     /**
      * The optional sampler-specific data.
      */
-    sampleData?: Uint8Array<ArrayBufferLike> | undefined;
+    sampleData?: Uint8Array;
 };
-/**
- * A decoded `RLND` (Roland) chunk.
- */
 export type WavRoland = {
     /**
      * The chunk ID, `RLND`.
@@ -566,9 +506,6 @@ export type WavRoland = {
      */
     sampleLabel: string;
 };
-/**
- * A decoded `bext` (Broadcast Wave Format extension) chunk.
- */
 export type WavBext = {
     /**
      * The chunk ID, `bext`.
@@ -581,71 +518,68 @@ export type WavBext = {
     /**
      * The description of the sound sequence.
      */
-    description?: string | undefined;
+    description?: string;
     /**
      * The name of the originator.
      */
-    originator?: string | undefined;
+    originator?: string;
     /**
      * The reference of the originator.
      */
-    originatorReference?: string | undefined;
+    originatorReference?: string;
     /**
      * The origination date (yyyy:mm:dd).
      */
-    originationDate?: string | undefined;
+    originationDate?: string;
     /**
      * The origination time (hh:mm:ss).
      */
-    originationTime?: string | undefined;
+    originationTime?: string;
     /**
      * The first sample count since midnight, low word.
      */
-    timeReferenceLow?: number | undefined;
+    timeReferenceLow?: number;
     /**
      * The first sample count since midnight, high word.
      */
-    timeReferenceHigh?: number | undefined;
+    timeReferenceHigh?: number;
     /**
      * The BWF version.
      */
-    version?: number | undefined;
+    version?: number;
     /**
      * The SMPTE UMID (64 bytes).
      */
-    umid?: Uint8Array<ArrayBufferLike> | undefined;
+    umid?: Uint8Array;
     /**
      * The integrated loudness value (LUFS x 100).
      */
-    loudnessValue?: number | undefined;
+    loudnessValue?: number;
     /**
      * The loudness range (LU x 100).
      */
-    loudnessRange?: number | undefined;
+    loudnessRange?: number;
     /**
      * The maximum true peak level (dBTP x 100).
      */
-    maxTruePeakLevel?: number | undefined;
+    maxTruePeakLevel?: number;
     /**
      * The maximum momentary loudness (LUFS x 100).
      */
-    maxMomentaryLoudness?: number | undefined;
+    maxMomentaryLoudness?: number;
     /**
      * The maximum short-term loudness (LUFS x 100).
      */
-    maxShortTermLoudness?: number | undefined;
+    maxShortTermLoudness?: number;
     /**
      * 180 reserved bytes.
      */
-    reserved?: Uint8Array<ArrayBufferLike> | undefined;
+    reserved?: Uint8Array;
     /**
      * The coding history.
      */
-    codingHistory?: Uint8Array<ArrayBufferLike> | undefined;
+    codingHistory?: Uint8Array;
 };
-/**
- * A single table entry from a `ds64` chunk.
- */
 export type WavDS64TableEntry = {
     /**
      * The referenced chunk ID.
@@ -660,9 +594,6 @@ export type WavDS64TableEntry = {
      */
     chunkSizeHigh: number;
 };
-/**
- * A decoded `ds64` (DataSize 64) chunk used by RF64 files.
- */
 export type WavDS64 = {
     /**
      * The chunk ID, `ds64`.
@@ -705,9 +636,6 @@ export type WavDS64 = {
      */
     table: WavDS64TableEntry[];
 };
-/**
- * A single slice entry from a `strc` chunk.
- */
 export type WavStrcSlice = {
     /**
      * An unknown header value (0 or 2).
@@ -742,9 +670,6 @@ export type WavStrcSlice = {
      */
     ID2: number;
 };
-/**
- * A decoded `strc` (ACID-related) chunk.
- */
 export type WavStrc = {
     /**
      * An unknown value (always 28).
@@ -779,9 +704,6 @@ export type WavStrc = {
      */
     slices: WavStrcSlice[];
 };
-/**
- * A decoded AIFF `COMM` (Common) chunk.
- */
 export type AiffCommon = {
     /**
      * The chunk ID, `COMM`.
@@ -816,9 +738,6 @@ export type AiffCommon = {
      */
     compressionTypeName: string;
 };
-/**
- * A decoded AIFF `SSND` (Sound Data) chunk.
- */
 export type AiffSoundData = {
     /**
      * The chunk ID, `SSND`.
@@ -841,9 +760,6 @@ export type AiffSoundData = {
      */
     soundData: Uint8Array;
 };
-/**
- * A decoded AIFF-C `FVER` (Format Version) chunk.
- */
 export type AiffFormatVersion = {
     /**
      * The chunk ID, `FVER`.
@@ -875,6 +791,20 @@ export type AiffFormatVersion = {
  * @augments DataBuffer
  */
 declare class AudioWAV extends DataBuffer {
+    container: string;
+    type: string;
+    /** @type {WavChunk[]} */
+    chunks: WavChunk[];
+    options: {
+        roundOddChunks: boolean;
+    };
+    /**
+     * Creates a new AudioWAV.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
+     * @param {object} [opts] Options for this AudioWAV instance.
+     * @class
+     */
+    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: object);
     /**
      * Creates a new AudioWAV from file data.
      * @param {Buffer} data The data of the file to process.
@@ -891,6 +821,10 @@ declare class AudioWAV extends DataBuffer {
      * @static
      */
     static fromBuffer(buffer: DataBuffer, options?: object): AudioWAV;
+    /**
+     * Parse the WAV file, decoding the supported chunks.
+     */
+    parse(): void;
     /**
      * Decodes and validates WAV Header.
      * Checks for `RIFF` / `RF64` / `BW64` header, reads the size, and then checks for the `WAVE` header.
@@ -914,10 +848,22 @@ declare class AudioWAV extends DataBuffer {
      * @static
      */
     static encodeHeader({ riff, size, format }: {
-        riff?: string | undefined;
+        riff?: string;
         size: number;
-        format?: string | undefined;
+        format?: string;
     }): Buffer;
+    /**
+     * Decodes the chunk type, and attempts to parse that chunk if supported.
+     * Supported Chunk Types: `fmt `, `fact`, `inst`, `DISP`, `smpl`, `tlst`, `data`, `LIST`, `RLND`, `JUNK`, `acid`, `cue `, `bext`, `ResU`, `ds64`, `cart`
+     *
+     * Chunk Structure:
+     * Length: 4 bytes (integer)
+     * Type:   4 bytes (string)
+     * Chunk:  {length} bytes
+     * @returns {string} Chunk Type
+     * @throws {Error} Invalid Chunk Length when less than 0
+     */
+    decodeChunk(): string;
     /**
      * Decode the FMT (Format) chunk.
      * Should be the first chunk in the data stream.
@@ -954,14 +900,14 @@ declare class AudioWAV extends DataBuffer {
      * @static
      */
     static encodeFMT(data?: {
-        audioFormatValue?: number | undefined;
-        channels?: number | undefined;
-        sampleRate?: number | undefined;
-        byteRate?: number | undefined;
-        blockAlign?: number | undefined;
-        bitsPerSample?: number | undefined;
-        extraParamSize?: number | undefined;
-        extraParams?: number | undefined;
+        audioFormatValue?: number;
+        channels?: number;
+        sampleRate?: number;
+        byteRate?: number;
+        blockAlign?: number;
+        bitsPerSample?: number;
+        extraParamSize?: number;
+        extraParams?: number;
     }): Buffer;
     /**
      * Decode the LIST (LIST Information) chunk.
@@ -1111,10 +1057,10 @@ declare class AudioWAV extends DataBuffer {
      */
     static encodeRLND(data: {
         device: string;
-        unknown1?: number | undefined;
-        unknown2?: number | undefined;
-        unknown3?: number | undefined;
-        unknown4?: number | undefined;
+        unknown1?: number;
+        unknown2?: number;
+        unknown3?: number;
+        unknown4?: number;
         sampleIndex: number | string;
     }): Buffer<ArrayBuffer>;
     /**
@@ -1221,36 +1167,6 @@ declare class AudioWAV extends DataBuffer {
      * @static
      */
     static decodeFVER(chunk: string | Buffer | Uint8Array): AiffFormatVersion;
-    /**
-     * Creates a new AudioWAV.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     * @param {object} [opts] Options for this AudioWAV instance.
-     * @class
-     */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: object);
-    container: string;
-    type: string;
-    /** @type {WavChunk[]} */
-    chunks: WavChunk[];
-    options: {
-        roundOddChunks: boolean;
-    };
-    /**
-     * Parse the WAV file, decoding the supported chunks.
-     */
-    parse(): void;
-    /**
-     * Decodes the chunk type, and attempts to parse that chunk if supported.
-     * Supported Chunk Types: `fmt `, `fact`, `inst`, `DISP`, `smpl`, `tlst`, `data`, `LIST`, `RLND`, `JUNK`, `acid`, `cue `, `bext`, `ResU`, `ds64`, `cart`
-     *
-     * Chunk Structure:
-     * Length: 4 bytes (integer)
-     * Type:   4 bytes (string)
-     * Chunk:  {length} bytes
-     * @returns {string} Chunk Type
-     * @throws {Error} Invalid Chunk Length when less than 0
-     */
-    decodeChunk(): string;
 }
-import { DataBuffer } from './../index.js';
+export default AudioWAV;
 //# sourceMappingURL=audio-wav.d.ts.map

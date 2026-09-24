@@ -1,8 +1,6 @@
-export default DataBitstream;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
+import DataStream from './data-stream.js';
+import DataBuffer from './data-buffer.js';
+export type DebugLogger = (...args: any) => any;
 /**
  * Read a DataStream as a stream of bits.
  * @property {DataStream} stream The DataStream to process.
@@ -17,6 +15,15 @@ export type DebugLogger = (...args: any[]) => any;
  * @class
  */
 declare class DataBitstream {
+    /** @type {DataStream} The DataStream being processed. */
+    stream: DataStream;
+    /** @type {number} The number of buffers in the list. */
+    bitPosition: number;
+    /**
+     * Creates an instance of DataBitstream.
+     * @param {DataStream} stream The DataStream to process.
+     */
+    constructor(stream: DataStream);
     /**
      * Creates a new DataBitstream from file data.
      * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
@@ -31,15 +38,6 @@ declare class DataBitstream {
      * @static
      */
     static fromBytes(bytes: number[]): DataBitstream;
-    /**
-     * Creates an instance of DataBitstream.
-     * @param {DataStream} stream The DataStream to process.
-     */
-    constructor(stream: DataStream);
-    /** @type {DataStream} The DataStream being processed. */
-    stream: DataStream;
-    /** @type {number} The number of buffers in the list. */
-    bitPosition: number;
     /**
      * Creates a copy of the DataBitstream.
      * @returns {DataBitstream} The copied DataBufferList.
@@ -114,6 +112,5 @@ declare class DataBitstream {
      */
     peekLSB(bits: number, signed?: boolean): number;
 }
-import DataStream from './data-stream.js';
-import DataBuffer from './data-buffer.js';
+export default DataBitstream;
 //# sourceMappingURL=data-bitstream.d.ts.map

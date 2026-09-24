@@ -1,8 +1,5 @@
-export default ImagePNG;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
+import DataBuffer from '../data-buffer.js';
+export type DebugLogger = (...args: any) => any;
 /**
  * PNG Decoder
  * @property {number} width Pixel Width
@@ -43,93 +40,6 @@ export type DebugLogger = (...args: any[]) => any;
  * @augments DataBuffer
  */
 declare class ImagePNG extends DataBuffer {
-    /**
-     * Creates a new ImagePNG from file data.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data of the image to process.
-     * @returns {ImagePNG} the new ImagePNG instance for the provided file data
-     * @static
-     */
-    static fromFile(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): ImagePNG;
-    /**
-     * Creates a new ImagePNG from a DataBuffer.
-     * @param {DataBuffer} buffer The DataBuffer of the image to process.
-     * @returns {ImagePNG} the new ImagePNG instance for the provided DataBuffer
-     * @static
-     */
-    static fromBuffer(buffer: DataBuffer): ImagePNG;
-    /**
-     * No filtering, direct copy.
-     * @param {number[]|Uint8Array} pixels Pixels to update.
-     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
-     * @param {number} bpp Bytes Per Pixel
-     * @param {number} offset Offset
-     * @param {number} length Length
-     * @returns {number[]|Uint8Array} Pixels
-     */
-    static unFilterNone(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
-    /**
-     * The Sub() filter transmits the difference between each byte and the value of the corresponding byte of the prior pixel.
-     * Sub(x) = Raw(x) + Raw(x - bpp)
-     * @param {number[]|Uint8Array} pixels Pixels to update.
-     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
-     * @param {number} bpp - Bytes Per Pixel
-     * @param {number} offset Offset
-     * @param {number} length Length
-     * @returns {number[]|Uint8Array} Pixels
-     */
-    static unFilterSub(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
-    /**
-     * The Up() filter is just like the Sub() filter except that the pixel immediately above the current pixel, rather than just to its left, is used as the predictor.
-     * Up(x) = Raw(x) + Prior(x)
-     * @param {number[]|Uint8Array} pixels Pixels to update.
-     * @param {number[]|Uint8Array} scanline - Scanline to search for pixels in.
-     * @param {number} _bpp Bytes Per Pixel, Unused
-     * @param {number} offset Offset
-     * @param {number} length Length
-     * @returns {number[]|Uint8Array} Pixels
-     */
-    static unFilterUp(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, _bpp: number, offset: number, length: number): number[] | Uint8Array;
-    /**
-     * The Average() filter uses the average of the two neighboring pixels (left and above) to predict the value of a pixel.
-     * Average(x) = Raw(x) + floor((Raw(x-bpp)+Prior(x))/2)
-     * @param {number[]|Uint8Array} pixels Pixels to update.
-     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
-     * @param {number} bpp Bytes Per Pixel
-     * @param {number} offset Offset
-     * @param {number} length Length
-     * @returns {number[]|Uint8Array} Pixels
-     */
-    static unFilterAverage(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
-    /**
-     * The Paeth() filter computes a simple linear function of the three neighboring pixels (left, above, upper left), then chooses as predictor the neighboring pixel closest to the computed value.
-     * This technique was developed by Alan W. Paeth.
-     * Paeth(x) = Raw(x) + PaethPredictor(Raw(x-bpp), Prior(x), Prior(x-bpp))
-     * function PaethPredictor (a, b, c)
-     * begin
-     * ; a = left, b = above, c = upper left
-     * p := a + b - c        ; initial estimate
-     * pa := abs(p - a)      ; distances to a, b, c
-     * pb := abs(p - b)
-     * pc := abs(p - c)
-     * ; return nearest of a,b,c,
-     * ; breaking ties in order a,b,c.
-     * if pa <= pb AND pa <= pc then return a
-     * else if pb <= pc then return b
-     * else return c
-     * end
-     * @param {number[]|Uint8Array} pixels Pixels to update.
-     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
-     * @param {number} bpp Bytes Per Pixel
-     * @param {number} offset Offset
-     * @param {number} length Length
-     * @returns {number[]|Uint8Array} Pixels
-     */
-    static unFilterPaeth(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
-    /**
-     * Creates a new ImagePNG.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array);
     /** @type {number} Pixel Width */
     width: number;
     /** @type {number} Pixel Height */
@@ -160,6 +70,25 @@ declare class ImagePNG extends DataBuffer {
     dataChunks: Uint8Array[];
     /** @type {number[]|Uint8Array} PNG Signature from the data */
     header: number[] | Uint8Array;
+    /**
+     * Creates a new ImagePNG.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
+     */
+    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array);
+    /**
+     * Creates a new ImagePNG from file data.
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data of the image to process.
+     * @returns {ImagePNG} the new ImagePNG instance for the provided file data
+     * @static
+     */
+    static fromFile(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): ImagePNG;
+    /**
+     * Creates a new ImagePNG from a DataBuffer.
+     * @param {DataBuffer} buffer The DataBuffer of the image to process.
+     * @returns {ImagePNG} the new ImagePNG instance for the provided DataBuffer
+     * @static
+     */
+    static fromBuffer(buffer: DataBuffer): ImagePNG;
     /**
      * Sets the bitDepth on the ImagePNG instance.
      * @param {number} bitDepth The bitDepth to set, one of: 1, 2, 4, 8, 16
@@ -332,6 +261,74 @@ declare class ImagePNG extends DataBuffer {
      * @see {@link https://github.com/SixLabors/ImageSharp/blob/master/src/ImageSharp/Formats/Png/Adam7.cs}
      */
     interlaceAdam7(data: Buffer | Uint8Array): void;
+    /**
+     * No filtering, direct copy.
+     * @param {number[]|Uint8Array} pixels Pixels to update.
+     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
+     * @param {number} bpp Bytes Per Pixel
+     * @param {number} offset Offset
+     * @param {number} length Length
+     * @returns {number[]|Uint8Array} Pixels
+     */
+    static unFilterNone(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
+    /**
+     * The Sub() filter transmits the difference between each byte and the value of the corresponding byte of the prior pixel.
+     * Sub(x) = Raw(x) + Raw(x - bpp)
+     * @param {number[]|Uint8Array} pixels Pixels to update.
+     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
+     * @param {number} bpp - Bytes Per Pixel
+     * @param {number} offset Offset
+     * @param {number} length Length
+     * @returns {number[]|Uint8Array} Pixels
+     */
+    static unFilterSub(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
+    /**
+     * The Up() filter is just like the Sub() filter except that the pixel immediately above the current pixel, rather than just to its left, is used as the predictor.
+     * Up(x) = Raw(x) + Prior(x)
+     * @param {number[]|Uint8Array} pixels Pixels to update.
+     * @param {number[]|Uint8Array} scanline - Scanline to search for pixels in.
+     * @param {number} _bpp Bytes Per Pixel, Unused
+     * @param {number} offset Offset
+     * @param {number} length Length
+     * @returns {number[]|Uint8Array} Pixels
+     */
+    static unFilterUp(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, _bpp: number, offset: number, length: number): number[] | Uint8Array;
+    /**
+     * The Average() filter uses the average of the two neighboring pixels (left and above) to predict the value of a pixel.
+     * Average(x) = Raw(x) + floor((Raw(x-bpp)+Prior(x))/2)
+     * @param {number[]|Uint8Array} pixels Pixels to update.
+     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
+     * @param {number} bpp Bytes Per Pixel
+     * @param {number} offset Offset
+     * @param {number} length Length
+     * @returns {number[]|Uint8Array} Pixels
+     */
+    static unFilterAverage(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
+    /**
+     * The Paeth() filter computes a simple linear function of the three neighboring pixels (left, above, upper left), then chooses as predictor the neighboring pixel closest to the computed value.
+     * This technique was developed by Alan W. Paeth.
+     * Paeth(x) = Raw(x) + PaethPredictor(Raw(x-bpp), Prior(x), Prior(x-bpp))
+     * function PaethPredictor (a, b, c)
+     * begin
+     * ; a = left, b = above, c = upper left
+     * p := a + b - c        ; initial estimate
+     * pa := abs(p - a)      ; distances to a, b, c
+     * pb := abs(p - b)
+     * pc := abs(p - c)
+     * ; return nearest of a,b,c,
+     * ; breaking ties in order a,b,c.
+     * if pa <= pb AND pa <= pc then return a
+     * else if pb <= pc then return b
+     * else return c
+     * end
+     * @param {number[]|Uint8Array} pixels Pixels to update.
+     * @param {number[]|Uint8Array} scanline Scanline to search for pixels in.
+     * @param {number} bpp Bytes Per Pixel
+     * @param {number} offset Offset
+     * @param {number} length Length
+     * @returns {number[]|Uint8Array} Pixels
+     */
+    static unFilterPaeth(pixels: number[] | Uint8Array, scanline: number[] | Uint8Array, bpp: number, offset: number, length: number): number[] | Uint8Array;
 }
-import DataBuffer from '../data-buffer.js';
+export default ImagePNG;
 //# sourceMappingURL=data-image-png.d.ts.map

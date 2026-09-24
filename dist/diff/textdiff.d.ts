@@ -1,43 +1,4 @@
-/**
- * Hunks compares the lines in x and y and returns the changes necessary to convert from one to the other.
- * The output is a sequence of hunks that each describe a number of consecutive edits.
- * Hunks include a number of matching elements before and after the last delete or insert operation.
- * If x and y are identical, the output has length zero.
- * @param {string} x The first text to compare
- * @param {string} y The second text to compare
- * @param {number} context Number of matching lines to include around changes (default: 3)
- * @returns {TextHunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
- */
-export function textHunks(x: string, y: string, context?: number): TextHunk[];
-/**
- * textEdits compares the lines in x and y and returns the changes necessary to convert from one to the other.
- * textEdits returns edits for every element in the input. If x and y are identical, the output will consist of a match edit for every input element.
- * @param {string} x The first text to compare
- * @param {string} y The second text to compare
- * @returns {TextEdit[]} The edits for the diff.
- */
-export function textEdits(x: string, y: string): TextEdit[];
-/**
- * Unified compares the lines in x and y and returns the changes necessary to convert from one to the other in unified format.
- *
- * @param {string} x The first text to compare
- * @param {string} y The second text to compare
- * @param {number} context Number of matching lines to include around changes (default: 3)
- * @returns {string} The unified diff in string format.
- */
-export function unified(x: string, y: string, context?: number): string;
-/**
- * htmlTable compares the lines in x and y and returns an HTML table showing the differences.
- * @param {string} x The first text to compare (old version)
- * @param {string} y The second text to compare (new version)
- * @param {number} context Number of matching lines to include around changes (default: 3)
- * @returns {string} HTML table string
- */
-export function htmlTable(x: string, y: string, context?: number): string;
-export const DEFAULT_CONTEXT: 3;
-/**
- * Edit describes a single edit of a line-by-line diff.
- */
+export declare const DEFAULT_CONTEXT = 3;
 export type TextEdit = {
     /**
      * Edit operation
@@ -48,9 +9,6 @@ export type TextEdit = {
      */
     line: string;
 };
-/**
- * Hunk describes a sequence of consecutive edits.
- */
 export type TextHunk = {
     /**
      * Start line in x (zero-based).
@@ -73,4 +31,40 @@ export type TextHunk = {
      */
     edits: TextEdit[];
 };
+/**
+ * Hunks compares the lines in x and y and returns the changes necessary to convert from one to the other.
+ * The output is a sequence of hunks that each describe a number of consecutive edits.
+ * Hunks include a number of matching elements before and after the last delete or insert operation.
+ * If x and y are identical, the output has length zero.
+ * @param {string} x The first text to compare
+ * @param {string} y The second text to compare
+ * @param {number} context Number of matching lines to include around changes (default: 3)
+ * @returns {TextHunk[]} The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
+ */
+export declare function textHunks(x: string, y: string, context?: number): TextHunk[];
+/**
+ * textEdits compares the lines in x and y and returns the changes necessary to convert from one to the other.
+ * textEdits returns edits for every element in the input. If x and y are identical, the output will consist of a match edit for every input element.
+ * @param {string} x The first text to compare
+ * @param {string} y The second text to compare
+ * @returns {TextEdit[]} The edits for the diff.
+ */
+export declare function textEdits(x: string, y: string): TextEdit[];
+/**
+ * Unified compares the lines in x and y and returns the changes necessary to convert from one to the other in unified format.
+ *
+ * @param {string} x The first text to compare
+ * @param {string} y The second text to compare
+ * @param {number} context Number of matching lines to include around changes (default: 3)
+ * @returns {string} The unified diff in string format.
+ */
+export declare function unified(x: string, y: string, context?: number): string;
+/**
+ * htmlTable compares the lines in x and y and returns an HTML table showing the differences.
+ * @param {string} x The first text to compare (old version)
+ * @param {string} y The second text to compare (new version)
+ * @param {number} context Number of matching lines to include around changes (default: 3)
+ * @returns {string} HTML table string
+ */
+export declare function htmlTable(x: string, y: string, context?: number): string;
 //# sourceMappingURL=textdiff.d.ts.map

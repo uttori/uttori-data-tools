@@ -1,4 +1,4 @@
-import zlib from 'node:zlib';
+import { inflate } from 'pako';
 import DataBuffer from '../data-buffer.js';
 
 /**
@@ -10,7 +10,7 @@ import DataBuffer from '../data-buffer.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.ImagePNG'); } catch {} }
+if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.ImagePNG'); } catch {} }
 
 /**
  * PNG Decoder
@@ -535,7 +535,7 @@ class ImagePNG extends DataBuffer {
     /** @type {Uint8Array} */
     let out;
     try {
-      out = zlib.inflateSync(data);
+      out = inflate(data);
     } /* c8 ignore next 3 */ catch (err) {
       debug('Error Inflating:', err);
       throw err;

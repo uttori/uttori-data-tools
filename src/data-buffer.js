@@ -11,7 +11,7 @@ import { edits } from './diff/diff.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
+if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
 
 /**
  * Helper class for manipulating binary data.
@@ -28,7 +28,10 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
  * @class
  */
 class DataBuffer {
-/**
+  /** @type {Buffer|Uint8Array} Bytes owned or borrowed by this view. */
+  data = new Uint8Array(0);
+
+  /**
  * Creates an instance of DataBuffer.
  * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
  * @throws {TypeError} Missing input data.
@@ -38,14 +41,12 @@ class DataBuffer {
     /** @type {boolean} Is this instance for creating a new file? */
     this.writing = false;
 
-    /** @type {Buffer|Uint8Array} The bytes avaliable to read. */
-    this.data = Buffer.alloc(0);
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
       debug('constructor: from Buffer');
       this.data = Buffer.from(input);
     } else if (typeof input === 'string') {
       debug('constructor: from string');
-      this.data = Buffer.from(input);
+      this.data = new TextEncoder().encode(input);
     } else if (input instanceof Uint8Array) {
       debug('constructor: from Uint8Array');
       this.data = input;

@@ -1,6 +1,7 @@
-import zlib from 'zlib';
+import { inflate } from 'pako';
 
-import { DataBuffer, DataBufferList } from './../index.js';
+import DataBuffer from '../data-buffer.js';
+import DataBufferList from '../data-buffer-list.js';
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -11,7 +12,7 @@ import { DataBuffer, DataBufferList } from './../index.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_AUDIOWAV_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.AudioWAV'); } catch {} }
+if (typeof process !== 'undefined' && process.env.UTTORI_AUDIOWAV_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.AudioWAV'); } catch {} }
 
 /**
  * A decoded WAV / AIFF file header.
@@ -1616,22 +1617,22 @@ class AudioWAV extends DataBuffer {
 
     // The product / model ID of the target device, specific to the manufacturer.
     // A value of zero means no specific product.
-    const product = smpl.readUInt8();
+    const product = smpl.readUInt32(true);
 
     // The period of one sample in nanoseconds.
     // For example, at the sampling rate 44.1 KHz the size of one sample is (1 / 44100) * 1,000,000,000 = 22675 nanoseconds = 0x00005893
-    const samplePeriod = smpl.readUInt8();
+    const samplePeriod = smpl.readUInt32(true);
 
     // The MIDI note that will play when this sample is played at its current pitch.
     // The values are between 0 and 127.
-    const midiUnityNote = smpl.readUInt8();
+    const midiUnityNote = smpl.readUInt32(true);
 
     // The fraction of a semitone up from the specified note.
     // For example, one-half semitone is 50 cents and will be specified as 0x80.
-    const midiPitchFraction = smpl.readUInt8();
+    const midiPitchFraction = smpl.readUInt32(true);
 
     // The SMPTE format. Possible values are 0, 24, 25, 29, and 30.
-    const SMPTEFormat = smpl.readUInt8();
+    const SMPTEFormat = smpl.readUInt32(true);
 
     // Specifies a time offset for the sample, if the sample should start at a later time and not immediately.
     // The first byte of this value specifies the number of hours and is in between -23 and 23.
@@ -1645,10 +1646,10 @@ class AudioWAV extends DataBuffer {
     const SMPTEOffset4 = smpl.readUInt8();
 
     // Specifies the number of sample loops that are contained in this chunk's data.
-    const sampleLoopsCount = smpl.readUInt8();
+    const sampleLoopsCount = smpl.readUInt32(true);
 
     // The number of bytes of optional sampler specific data that follows the sample loops.
-    const sampleDataSize = smpl.readUInt8();
+    const sampleDataSize = smpl.readUInt32(true);
 
     // Sample Loops
     /** @type {WavSampleLoop[]} */
@@ -1657,31 +1658,31 @@ class AudioWAV extends DataBuffer {
       debug('decodeSMPL sampleLoopsCount', sampleLoopsCount);
       for (let i = 0; i < sampleLoopsCount; i++) {
         // A unique ID of the loop, which could be a cue point.
-        const ID = smpl.readUInt8();
+        const ID = smpl.readUInt32(true);
 
         // A type of 0 means normal forward looping type.
         // A value of 1 means alternating (forward and backward) looping type.
         // A value of 2 means backward looping type.
         // The values 3-31 are reserved for future standard types.
         // The values 32 and above are sampler / manufacturer specific types.
-        const type = smpl.readUInt8();
+        const type = smpl.readUInt32(true);
 
         // The start point of the loop in samples.
-        const start = smpl.readUInt8();
+        const start = smpl.readUInt32(true);
 
         // he end point of the loop in samples.
         // The end sample is also played.
-        const end = smpl.readUInt8();
+        const end = smpl.readUInt32(true);
 
         // The resolution at which this loop should be fine tuned.
         // A value of zero means current resolution.
         // A value of 50 cents (0x80) means 1/2 sample.
-        const fraction = smpl.readUInt8();
+        const fraction = smpl.readUInt32(true);
 
         // The number of times to play the loop.
         // A value of zero means infinitely
         //  In a MIDI sampler that may mean infinite sustain.
-        const count = smpl.readUInt8();
+        const count = smpl.readUInt32(true);
         sampleLoops.push({
           ID,
           type,
@@ -2036,7 +2037,7 @@ class AudioWAV extends DataBuffer {
 
     let decompressed = '';
     try {
-      decompressed = zlib.inflateSync(data).toString('utf8');
+      decompressed = new TextDecoder().decode(inflate(data));
       debug('Inflated Size:', decompressed.length);
     } catch (error) {
       debug('Error Inflating ResU:', error);

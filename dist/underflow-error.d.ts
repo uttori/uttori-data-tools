@@ -1,4 +1,3 @@
-export default UnderflowError;
 /**
  * Error thrown when insufficient bytes are avaliable to process.
  * @example <caption>new UnderflowError(message)</caption>
@@ -7,12 +6,13 @@ export default UnderflowError;
  * @class
  */
 declare class UnderflowError extends Error {
+    stack: string | undefined;
     /**
      * Creates a new UnderflowError.
      * @param {string} message Message to show when the error is thrown.
      * @class
      */
     constructor(message: string);
-    stack: string | undefined;
 }
+export default UnderflowError;
 //# sourceMappingURL=underflow-error.d.ts.map

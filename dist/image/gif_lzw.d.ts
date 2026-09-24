@@ -1,24 +1,25 @@
-export default GIFLZW;
 /**
  * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
  */
-export type DebugLogger = (...args: any[]) => any;
+export type DebugLogger = (...args: any) => any;
 /**
  * GIF LZW Compression
  * The compression method GIF uses is a variant of LZW (Lempel-Ziv-Welch) compression.
  * @class
  */
 declare class GIFLZW {
-    /**
-     * Creates a new GIFLZW instance.
-     * @param {number[]} input The input data
-     */
-    constructor(input?: number[]);
     input: number[];
     /** @type {number[]} */
     output: number[];
     offset: number;
     bitOffset: number;
+    /**
+     * Creates a new GIFLZW instance.
+     * @param {number[]} input The input data
+     */
+    constructor(input?: number[]);
     /**
      * Initialize the compression or decompression dictionary based on the code size.
      * @param {number} size Size of lookup, `(1 << Code Size) + 2`, the extra two are Clear Code & End of Information
@@ -53,4 +54,5 @@ declare class GIFLZW {
      */
     decompress(codeSize: number, useInput?: boolean): string;
 }
+export default GIFLZW;
 //# sourceMappingURL=gif_lzw.d.ts.map

@@ -1,8 +1,6 @@
-export default DataStream;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
+import DataBuffer from './data-buffer.js';
+import DataBufferList from './data-buffer-list.js';
+export type DebugLogger = (...args: any) => any;
 /**
  * Helper class to ease working with binary files.
  * @property {number} size ArrayBuffer byteLength
@@ -25,29 +23,6 @@ export type DebugLogger = (...args: any[]) => any;
  * @class
  */
 declare class DataStream {
-    /**
-     * Creates a new DataStream from file data.
-     * @param {string|number|ArrayBuffer|Buffer|Uint8Array|Int8Array|Uint16Array|Int16Array|Uint32Array|Int32Array|number[]|DataBuffer} data The data to process.
-     * @returns {DataStream} The new DataStream instance for the provided file data.
-     * @static
-     */
-    static fromData(data: string | number | ArrayBuffer | Buffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | DataBuffer): DataStream;
-    /**
-     * Creates a new DataStream from a DataBuffer.
-     * @param {DataBuffer} buffer The DataBuffer containing the data to process.
-     * @returns {DataStream} The new DataStream instance for the provided DataBuffer.
-     * @static
-     */
-    static fromBuffer(buffer: DataBuffer): DataStream;
-    /**
-     * Creates a new DataStream.
-     * @param {DataBufferList} list The DataBufferList to process
-     * @param {object} options Options for this instance
-     * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing, default is 16.
-     */
-    constructor(list: DataBufferList, options?: {
-        size?: number | undefined;
-    });
     /** @type {number} ArrayBuffer byteLength */
     size: number;
     /** @type {ArrayBuffer} Instance of ArrayBuffer used for the various typed arrays */
@@ -80,6 +55,29 @@ declare class DataStream {
     localOffset: number;
     /** @type {number} Reading offset for all chunks */
     offset: number;
+    /**
+     * Creates a new DataStream.
+     * @param {DataBufferList} list The DataBufferList to process
+     * @param {object} options Options for this instance
+     * @param {number} [options.size] ArrayBuffer byteLength for the underlying binary parsing, default is 16.
+     */
+    constructor(list: DataBufferList, options?: {
+        size?: number;
+    });
+    /**
+     * Creates a new DataStream from file data.
+     * @param {string|number|ArrayBuffer|Buffer|Uint8Array|Int8Array|Uint16Array|Int16Array|Uint32Array|Int32Array|number[]|DataBuffer} data The data to process.
+     * @returns {DataStream} The new DataStream instance for the provided file data.
+     * @static
+     */
+    static fromData(data: string | number | ArrayBuffer | Buffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | number[] | DataBuffer): DataStream;
+    /**
+     * Creates a new DataStream from a DataBuffer.
+     * @param {DataBuffer} buffer The DataBuffer containing the data to process.
+     * @returns {DataStream} The new DataStream instance for the provided DataBuffer.
+     * @static
+     */
+    static fromBuffer(buffer: DataBuffer): DataStream;
     /**
      * Compares input data against the current data.
      * @param {DataStream} input The DataStream to compare against.
@@ -389,6 +387,5 @@ declare class DataStream {
      */
     reset(): void;
 }
-import DataBufferList from './data-buffer-list.js';
-import DataBuffer from './data-buffer.js';
+export default DataStream;
 //# sourceMappingURL=data-stream.d.ts.map

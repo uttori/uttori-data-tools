@@ -210,9 +210,9 @@ test('formatDiffHex: multiple byte changes', (t) => {
 
   const output = formatDiffHex(edits, { showBits: false });
 
-  t.true(output.includes('+FD')); // 0x02 → 0xFF: +253
-  t.true(output.includes('+A6')); // 0x04 → 0xAA: +166
-  t.true(output.includes('+B5')); // 0x06 → 0xBB: +181
+  t.true(output.includes('+FD')); // 0x02 ➜ 0xFF: +253
+  t.true(output.includes('+A6')); // 0x04 ➜ 0xAA: +166
+  t.true(output.includes('+B5')); // 0x06 ➜ 0xBB: +181
 });
 
 test('formatDiffHex: with offset disabled', (t) => {
@@ -278,7 +278,7 @@ test('formatDiffHex: negative delta', (t) => {
 
   const output = formatDiffHex(edits, { showBits: false });
 
-  t.true(output.includes('-DF')); // 0xFF → 0x20: -223
+  t.true(output.includes('-DF')); // 0xFF ➜ 0x20: -223
 });
 
 test('formatDiffHex: empty edits', (t) => {
@@ -320,7 +320,7 @@ test('formatDiffHex: standalone delete operation (not followed by insert)', (t) 
 
   // Should show the deleted byte (0x02)
   t.true(output.includes('02'));
-  // Standalone delete should be shown as match (x → x)
+  // Standalone delete should be shown as match (x ➜ x)
   t.true(output.includes('01') && output.includes('03'));
 });
 

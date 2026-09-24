@@ -1,21 +1,10 @@
 /**
- * A chunk of IPS data.
- * @typedef {object} IPSChunk
- * @property {number} offset 3 bytes. The starting offset of the change.
- * @property {number} length The length of the change.
- * @property {number} [rle] The type of change, value is not undefined when Run Length Encoding is being used.
- * @property {number[]} [data] The data to be used for the change when not RLE.
- */
-/** @type {number} The maximum size of a file in the IPS format, 16 megabytes. */
-export const IPS_MAX_SIZE: number;
-export default IPS;
-/**
  * No-op logger, replaced by the `debug` package when enabled.
+ * @callback DebugLogger
+ * @param {...*} args The arguments to log.
  */
-export type DebugLogger = (...args: any[]) => any;
-/**
- * A chunk of IPS data.
- */
+export type DebugLogger = (...args: any) => any;
+import DataBuffer from '@uttori/data-tools/data-buffer';
 export type IPSChunk = {
     /**
      * 3 bytes. The starting offset of the change.
@@ -28,12 +17,22 @@ export type IPSChunk = {
     /**
      * The type of change, value is not undefined when Run Length Encoding is being used.
      */
-    rle?: number | undefined;
+    rle?: number;
     /**
      * The data to be used for the change when not RLE.
      */
-    data?: number[] | undefined;
+    data?: number[];
 };
+/**
+ * A chunk of IPS data.
+ * @typedef {object} IPSChunk
+ * @property {number} offset 3 bytes. The starting offset of the change.
+ * @property {number} length The length of the change.
+ * @property {number} [rle] The type of change, value is not undefined when Run Length Encoding is being used.
+ * @property {number[]} [data] The data to be used for the change when not RLE.
+ */
+/** @type {number} The maximum size of a file in the IPS format, 16 megabytes. */
+export declare const IPS_MAX_SIZE: number;
 /**
  * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
  * "IPS" allegedly stands for "International Patching System".
@@ -56,14 +55,10 @@ export type IPSChunk = {
  * @see {@link http://fileformats.archiveteam.org/wiki/IPS_(binary_patch_format)}
  */
 declare class IPS extends DataBuffer {
-    /**
-     * Calculate the difference between two DataBuffers and save it as an IPS patch.
-     * @static
-     * @param {DataBuffer} original The original file to compare against.
-     * @param {DataBuffer} modified The modified file.
-     * @returns {IPS} The IPS patch file data as a Buffer.
-     */
-    static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
+    /** @type {IPSChunk[]} The changed to be made. */
+    hunks: IPSChunk[];
+    /** @type {number} The 3 byte length the file should be truncated to. */
+    truncate: number;
     /**
      * Creates an instance of IPS.
      * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
@@ -73,10 +68,6 @@ declare class IPS extends DataBuffer {
      * @class
      */
     constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, parse?: boolean);
-    /** @type {IPSChunk[]} The changed to be made. */
-    hunks: IPSChunk[];
-    /** @type {number} The 3 byte length the file should be truncated to. */
-    truncate: number;
     /**
      * Parse the IPS file, decoding the hunks.
      */
@@ -105,6 +96,14 @@ declare class IPS extends DataBuffer {
      * @returns {DataBuffer} The patched binary.
      */
     apply(input: DataBuffer): DataBuffer;
+    /**
+     * Calculate the difference between two DataBuffers and save it as an IPS patch.
+     * @static
+     * @param {DataBuffer} original The original file to compare against.
+     * @param {DataBuffer} modified The modified file.
+     * @returns {IPS} The IPS patch file data as a Buffer.
+     */
+    static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
 }
-import DataBuffer from '@uttori/data-tools/data-buffer';
+export default IPS;
 //# sourceMappingURL=data-patch-ips.d.ts.map

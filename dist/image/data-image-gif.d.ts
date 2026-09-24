@@ -1,8 +1,5 @@
-export default ImageGIF;
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
-export type DebugLogger = (...args: any[]) => any;
+import DataBuffer from '../data-buffer.js';
+export type DebugLogger = (...args: any) => any;
 export type ImageGIFOptions = {
     /**
      * Options for the ImageGIF instance.
@@ -66,9 +63,6 @@ export type ImageGIFImageDescriptor = {
      */
     lzwData: number[];
 };
-/**
- * A decoded animation frame reference.
- */
 export type ImageGIFFrame = {
     /**
      * The frame index in the order it was decoded.
@@ -81,11 +75,8 @@ export type ImageGIFFrame = {
     /**
      * The disposal method from the Graphic Control Extension, when present.
      */
-    disposal?: number | undefined;
+    disposal?: number;
 };
-/**
- * A decoded Comment Extension.
- */
 export type ImageGIFComment = {
     /**
      * The offset of the comment extension in the data.
@@ -94,11 +85,8 @@ export type ImageGIFComment = {
     /**
      * The decoded comment text.
      */
-    comment?: string | undefined;
+    comment?: string;
 };
-/**
- * A decoded Plain Text Extension.
- */
 export type ImageGIFPlainTextExtension = {
     /**
      * The offset of the plain text extension in the data.
@@ -107,39 +95,39 @@ export type ImageGIFPlainTextExtension = {
     /**
      * Column number, in pixels, of the left edge of the text grid.
      */
-    textGridLeftPosition?: number | undefined;
+    textGridLeftPosition?: number;
     /**
      * Row number, in pixels, of the top edge of the text grid.
      */
-    textGridTopPosition?: number | undefined;
+    textGridTopPosition?: number;
     /**
      * Width of the text grid in pixels.
      */
-    imageGridWidth?: number | undefined;
+    imageGridWidth?: number;
     /**
      * Height of the text grid in pixels.
      */
-    imageGridHeight?: number | undefined;
+    imageGridHeight?: number;
     /**
      * Width, in pixels, of each cell in the grid.
      */
-    characterCellWidth?: number | undefined;
+    characterCellWidth?: number;
     /**
      * Height, in pixels, of each cell in the grid.
      */
-    characterCellHeight?: number | undefined;
+    characterCellHeight?: number;
     /**
      * Index into the Global Color Table for the text foreground.
      */
-    textForegroundColorIndex?: number | undefined;
+    textForegroundColorIndex?: number;
     /**
      * Index into the Global Color Table for the text background.
      */
-    textBackgroundColorIndex?: number | undefined;
+    textBackgroundColorIndex?: number;
     /**
      * The decoded plain text data.
      */
-    plainText?: string | undefined;
+    plainText?: string;
 };
 /**
  * @typedef {Object} ImageGIFOptions
@@ -216,32 +204,6 @@ export type ImageGIFPlainTextExtension = {
  * @class
  */
 declare class ImageGIF extends DataBuffer {
-    /**
-     * Creates a new ImageGIF from file data.
-     *
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data of the image to process.
-     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
-     * @returns {ImageGIF} the new ImageGIF instance for the provided file data
-     * @static
-     */
-    static fromFile(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: ImageGIFOptions): ImageGIF;
-    /**
-     * Creates a new ImageGIF from a DataBuffer.
-     *
-     * @param {DataBuffer} buffer The DataBuffer of the image to process.
-     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
-     * @returns {ImageGIF} the new ImageGIF instance for the provided DataBuffer
-     * @static
-     */
-    static fromBuffer(buffer: DataBuffer, opts?: ImageGIFOptions): ImageGIF;
-    /**
-     * Creates a new ImageGIF.
-     *
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     * @param {ImageGIFOptions} [options] Options for this ImageGIF instance.
-     * @class
-     */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: ImageGIFOptions);
     header: string;
     version: number;
     width: number;
@@ -271,6 +233,38 @@ declare class ImageGIF extends DataBuffer {
     imageNext: boolean;
     /** @type {ImageGIFOptions} */
     options: ImageGIFOptions;
+    packed: number | undefined;
+    globalColorTable: number | undefined;
+    colorResolution: number | undefined;
+    sortFlag: number | undefined;
+    backgroundColorIndex: number | undefined;
+    pixelAspectRatio: number | undefined;
+    /**
+     * Creates a new ImageGIF.
+     *
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
+     * @param {ImageGIFOptions} [options] Options for this ImageGIF instance.
+     * @class
+     */
+    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: ImageGIFOptions);
+    /**
+     * Creates a new ImageGIF from file data.
+     *
+     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data of the image to process.
+     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
+     * @returns {ImageGIF} the new ImageGIF instance for the provided file data
+     * @static
+     */
+    static fromFile(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: ImageGIFOptions): ImageGIF;
+    /**
+     * Creates a new ImageGIF from a DataBuffer.
+     *
+     * @param {DataBuffer} buffer The DataBuffer of the image to process.
+     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
+     * @returns {ImageGIF} the new ImageGIF instance for the provided DataBuffer
+     * @static
+     */
+    static fromBuffer(buffer: DataBuffer, opts?: ImageGIFOptions): ImageGIF;
     /**
      * Parse the GIF file, decoding the chunks.
      */
@@ -307,12 +301,6 @@ declare class ImageGIF extends DataBuffer {
      * It is exactly seven bytes long.
      */
     decodeLogicalScreenDescriptor(): void;
-    packed: number | undefined;
-    globalColorTable: number | undefined;
-    colorResolution: number | undefined;
-    sortFlag: number | undefined;
-    backgroundColorIndex: number | undefined;
-    pixelAspectRatio: number | undefined;
     /**
      * Decodes the Global Color Table.
      *
@@ -342,5 +330,5 @@ declare class ImageGIF extends DataBuffer {
      */
     getPixel(x: number, y: number): Array<number>;
 }
-import DataBuffer from '../data-buffer.js';
+export default ImageGIF;
 //# sourceMappingURL=data-image-gif.d.ts.map
