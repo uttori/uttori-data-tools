@@ -7,7 +7,12 @@
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBufferList'); } catch {} }
+if (typeof process !== "undefined" && process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("DataBufferList");
+  } catch {}
+}
 
 /**
  * A linked list of DataBuffers.
@@ -27,7 +32,7 @@ class DataBufferList {
    * @param {import('./data-buffer.js').default[]} [buffers] DataBuffers to initialize with.
    */
   constructor(buffers) {
-    debug('constructor');
+    debug("constructor");
     /** @type {import('./data-buffer.js').default|null} The first DataBuffer in the list. */
     this.first = null;
     /** @type {import('./data-buffer.js').default|null} The last DataBuffer in the list. */
@@ -51,7 +56,7 @@ class DataBufferList {
    * @returns {DataBufferList} The copied DataBufferList.
    */
   copy() {
-    debug('copy');
+    debug("copy");
     const result = new DataBufferList();
 
     result.first = this.first;
@@ -69,7 +74,7 @@ class DataBufferList {
    * @returns {number} The new number of buffers in the DataBufferList.
    */
   append(buffer) {
-    debug('append');
+    debug("append");
     buffer.prev = this.last;
     if (this.last) {
       this.last.next = buffer;
@@ -83,7 +88,7 @@ class DataBufferList {
     this.availableBuffers++;
     this.totalBuffers++;
 
-    debug('append:', this.totalBuffers);
+    debug("append:", this.totalBuffers);
     return this.totalBuffers;
   }
 
@@ -93,11 +98,11 @@ class DataBufferList {
    */
   moreAvailable() {
     if (this.first && this.first.next != null) {
-      debug('moreAvailable: true');
+      debug("moreAvailable: true");
       return true;
     }
 
-    debug('moreAvailable: false');
+    debug("moreAvailable: false");
     return false;
   }
 
@@ -108,18 +113,18 @@ class DataBufferList {
    * @returns {boolean} Returns false if there is no more buffers, returns true when the next buffer is set.
    */
   advance() {
-    debug('advance');
+    debug("advance");
     if (this.first) {
       this.availableBytes -= this.first.length;
       this.availableBuffers--;
     }
     if (this.first && this.first.next) {
-      debug('advance: advancing');
+      debug("advance: advancing");
       this.first = this.first.next;
       return true;
     }
 
-    debug('advance: nothing to advance to');
+    debug("advance: nothing to advance to");
     this.first = null;
     return false;
   }
@@ -129,7 +134,7 @@ class DataBufferList {
    * @returns {boolean} Returns false if there is no previous buffer, returns true when the previous buffer is set.
    */
   rewind() {
-    debug('rewind');
+    debug("rewind");
     if (this.first && !this.first.prev) {
       return false;
     }
@@ -140,14 +145,14 @@ class DataBufferList {
       this.availableBuffers++;
     }
 
-    return (this.first != null);
+    return this.first != null;
   }
 
   /**
    * Reset the list to the beginning.
    */
   reset() {
-    debug('reset');
+    debug("reset");
     while (this.rewind()) {
       continue;
     }

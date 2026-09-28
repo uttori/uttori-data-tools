@@ -7,7 +7,12 @@
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataFormatting'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("DataFormatting");
+  } catch {}
+}
 
 /**
  * Format a numeric value for display.
@@ -39,7 +44,12 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
  * @returns {string} The human friendly representation of the number of bytes.
  * @see {@link https://en.wikipedia.org/wiki/Byte#Multiple-byte_units|Multiple-byte units}
  */
-export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']) => {
+export const formatBytes = (
+  input,
+  decimals = 2,
+  bytes = 1024,
+  sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+) => {
   if (input === 0) {
     return `0 ${sizes[0]}`;
   }
@@ -57,10 +67,10 @@ export const formatBytes = (input, decimals = 2, bytes = 1024, sizes = ['Bytes',
 export const formatASCII = (value, asciiFlags, _data) => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
   if (value < 0x20) {
-    return /** @type {FormatASCIIOutput} */ ([' ', asciiFlags]);
+    return /** @type {FormatASCIIOutput} */ ([" ", asciiFlags]);
   }
-  if (value > 0x7E) {
-    return /** @type {FormatASCIIOutput} */ (['.', asciiFlags]);
+  if (value > 0x7e) {
+    return /** @type {FormatASCIIOutput} */ ([".", asciiFlags]);
   }
   // Alternatively: value.replace(/[^\x20-\x7E]+/g, '_')
   return /** @type {FormatASCIIOutput} */ ([String.fromCharCode(value), asciiFlags]);
@@ -77,8 +87,8 @@ export const formatASCII = (value, asciiFlags, _data) => {
  * @type {HexTableFormater}
  */
 export const hexTableFormaters = {
-  offset: (value) => value.toString(16).padStart(8, '0'),
-  value: (value) => value.toString(16).padStart(2, '0').toUpperCase(),
+  offset: (value) => value.toString(16).padStart(8, "0"),
+  value: (value) => value.toString(16).padStart(2, "0").toUpperCase(),
   ascii: formatASCII,
 };
 
@@ -94,9 +104,26 @@ export const hexTableFormaters = {
  * @type {HexTableHeader}
  */
 export const hexTableHeader = {
-  offset: '76543210',
-  value: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0A', '0B', '0C', '0D', '0E', '0F'],
-  ascii: '0123456789ABCDEF',
+  offset: "76543210",
+  value: [
+    "00",
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "0A",
+    "0B",
+    "0C",
+    "0D",
+    "0E",
+    "0F",
+  ],
+  ascii: "0123456789ABCDEF",
 };
 
 /**
@@ -124,25 +151,31 @@ export const hexTableDimensions = {
  * @param {HexTableFormater} format The formatting functions for displaying offset, bytes and ASCII values.
  * @returns {string} The hex table ASCII.
  */
-export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, header = hexTableHeader, format = hexTableFormaters) => {
+export const hexTable = (
+  input,
+  offset = 0,
+  dimensions = hexTableDimensions,
+  header = hexTableHeader,
+  format = hexTableFormaters,
+) => {
   // Do not manipulate the input data.
   const data = input.copy();
   // Build the header, offset, then bytes with grouping & the dashed line seperator
   // Start with determining the customizable byte area for the header and seperatpr
-  let headerByteValues = '';
+  let headerByteValues = "";
   header.value.forEach((byte, column) => {
     headerByteValues += byte;
     // Grouping by provided value value, add spacing every gap space, but not the last column.
-    if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
-      headerByteValues += ' ';
+    if (column + 1 !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+      headerByteValues += " ";
     }
   });
   let output = `| ${header.offset} | ${headerByteValues} | ${header.ascii} |\n`;
-  output += `|-${'-'.repeat(header.offset.length)}-|-${'-'.repeat(headerByteValues.length)}-|-${'-'.repeat(header.ascii.length)}-|\n`;
+  output += `|-${"-".repeat(header.offset.length)}-|-${"-".repeat(headerByteValues.length)}-|-${"-".repeat(header.ascii.length)}-|\n`;
 
   // Build the actual data portion of the table, starting from the provided offset.
-  let ascii = '';
-  let asciiValue = '';
+  let ascii = "";
+  let asciiValue = "";
   /** @type {Record<string, boolean|number|string>} */
   let asciiFlags = {};
   let row = 0;
@@ -162,8 +195,8 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
     ascii += asciiValue;
 
     // Add spacing every gap space, but not the last column.
-    if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
-      output += ' ';
+    if (column + 1 !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+      output += " ";
     }
 
     // Update the counters.
@@ -173,7 +206,7 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
     // Is this a new column, if so we reset
     if (column >= dimensions.columns) {
       output += ` | ${ascii} |\n`;
-      ascii = '';
+      ascii = "";
       column = 0;
       row++;
     }
@@ -184,14 +217,14 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
     while (column <= dimensions.columns) {
       if (column === dimensions.columns) {
         output += ` | ${ascii} |`;
-        ascii = '';
+        ascii = "";
         row++;
       }
-      ascii += ' ';
-      output += '  ';
+      ascii += " ";
+      output += "  ";
       // Add spacing every gap space, but not the last column.
-      if ((column + 1) !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
-        output += ' ';
+      if (column + 1 !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
+        output += " ";
       }
       column++;
       offset++;
@@ -212,18 +245,18 @@ export const hexTable = (input, offset = 0, dimensions = hexTableDimensions, hea
  */
 export const formatTableLine = (columnLengths, type, options) => {
   // Separator for top bottom mid
-  let separator = '';
+  let separator = "";
   const { theme } = options;
 
   switch (type) {
-    case 'top':
-    case 'title_top':
+    case "top":
+    case "title_top":
       separator += theme.upperLeft;
       break;
-    case 'bottom':
+    case "bottom":
       separator += theme.lowerLeft;
       break;
-    case 'title_bottom':
+    case "title_bottom":
     default:
       separator += theme.intersectionLeft;
   }
@@ -236,14 +269,14 @@ export const formatTableLine = (columnLengths, type, options) => {
 
     if (i === columnLengths.length - 1) {
       switch (type) {
-        case 'top':
-        case 'title_top':
+        case "top":
+        case "title_top":
           separator += theme.upperRight;
           break;
-        case 'bottom':
+        case "bottom":
           separator += theme.lowerRight;
           break;
-        case 'title_bottom':
+        case "title_bottom":
           separator += theme.intersectionRight;
           break;
         default:
@@ -251,14 +284,14 @@ export const formatTableLine = (columnLengths, type, options) => {
       }
     } else {
       switch (type) {
-        case 'top':
-        case 'title_bottom':
+        case "top":
+        case "title_bottom":
           separator += theme.intersectionTop;
           break;
-        case 'bottom':
+        case "bottom":
           separator += theme.intersectionBottom;
           break;
-        case 'title_top':
+        case "title_top":
           separator += theme.line;
           break;
         default:
@@ -295,17 +328,17 @@ export const formatTableLine = (columnLengths, type, options) => {
 export const formatTableThemeMySQL = {
   topRow: true,
   bottomRow: true,
-  upperLeft: '+',
-  upperRight: '+',
-  lowerLeft: '+',
-  lowerRight: '+',
-  intersection: '+',
-  line: '-',
-  wall: '|',
-  intersectionTop: '+',
-  intersectionBottom: '+',
-  intersectionLeft: '+',
-  intersectionRight: '+',
+  upperLeft: "+",
+  upperRight: "+",
+  lowerLeft: "+",
+  lowerRight: "+",
+  intersection: "+",
+  line: "-",
+  wall: "|",
+  intersectionTop: "+",
+  intersectionBottom: "+",
+  intersectionLeft: "+",
+  intersectionRight: "+",
 };
 
 /**
@@ -315,17 +348,17 @@ export const formatTableThemeMySQL = {
 export const formatTableThemeUnicode = {
   topRow: true,
   bottomRow: true,
-  upperLeft: '╔',
-  upperRight: '╗',
-  lowerLeft: '╚',
-  lowerRight: '╝',
-  intersection: '╬',
-  line: '═',
-  wall: '║',
-  intersectionTop: '╦',
-  intersectionBottom: '╩',
-  intersectionLeft: '╠',
-  intersectionRight: '╣',
+  upperLeft: "╔",
+  upperRight: "╗",
+  lowerLeft: "╚",
+  lowerRight: "╝",
+  intersection: "╬",
+  line: "═",
+  wall: "║",
+  intersectionTop: "╦",
+  intersectionBottom: "╩",
+  intersectionLeft: "╠",
+  intersectionRight: "╣",
 };
 
 /**
@@ -335,17 +368,17 @@ export const formatTableThemeUnicode = {
 export const formatTableThemeMarkdown = {
   topRow: false,
   bottomRow: false,
-  upperLeft: '|',
-  upperRight: '|',
-  lowerLeft: '|',
-  lowerRight: '|',
-  intersection: '|',
-  line: '-',
-  wall: '|',
-  intersectionTop: '|',
-  intersectionBottom: '|',
-  intersectionLeft: '|',
-  intersectionRight: '|',
+  upperLeft: "|",
+  upperRight: "|",
+  lowerLeft: "|",
+  lowerRight: "|",
+  intersection: "|",
+  line: "-",
+  wall: "|",
+  intersectionTop: "|",
+  intersectionBottom: "|",
+  intersectionLeft: "|",
+  intersectionRight: "|",
 };
 
 // TODO: Emoji length is incorrect, for example:
@@ -368,17 +401,17 @@ export const formatTable = (data, options) => {
   // Use JSON parse & stringify to get a deep copy of the parameter array
   data = structuredClone(data);
   options = {
-    align: ['left'],
+    align: ["left"],
     padding: 1,
     theme: formatTableThemeMySQL,
-    title: '',
+    title: "",
     ...(options ?? {}),
   };
 
   // Ensure all the rows have the same number of columns.
   const allSameLength = data.every(({ length }) => length === data[0].length);
   if (!allSameLength) {
-    debug('Uneven number of columns');
+    debug("Uneven number of columns");
   }
 
   // Make an array with the length of each column
@@ -391,23 +424,23 @@ export const formatTable = (data, options) => {
   }
 
   // Add the title or the top line if the theme needs it
-  let outputString = '';
+  let outputString = "";
   if (options.title) {
-    outputString += `${formatTableLine(columnLengths, 'title_top', options)}\n`;
+    outputString += `${formatTableLine(columnLengths, "title_top", options)}\n`;
 
-    const total_length = formatTableLine(columnLengths, '', options).length;
+    const total_length = formatTableLine(columnLengths, "", options).length;
     const rem = total_length - 2 - options.title.length;
     const half = Math.floor(rem / 2);
 
     let row = options.theme.wall;
-    row += Array(half + 1).join(' ');
+    row += Array(half + 1).join(" ");
     row += options.title;
-    row += Array(half + 1 + (rem % 2)).join(' ');
+    row += Array(half + 1 + (rem % 2)).join(" ");
     row += options.theme.wall;
     outputString += `${row}\n`;
-    outputString += `${formatTableLine(columnLengths, 'title_bottom', options)}\n`;
+    outputString += `${formatTableLine(columnLengths, "title_bottom", options)}\n`;
   } else if (options.theme.topRow) {
-    outputString += `${formatTableLine(columnLengths, 'top', options)}\n`; // Add top line
+    outputString += `${formatTableLine(columnLengths, "top", options)}\n`; // Add top line
   }
 
   // Fill rows
@@ -415,23 +448,23 @@ export const formatTable = (data, options) => {
     let row = options.theme.wall;
 
     for (let j = 0; j < data[i].length; j++) {
-      let col = Array(options.padding + 1).join(' '); // Left padding
+      let col = Array(options.padding + 1).join(" "); // Left padding
 
-      if (options.align[j] === 'right') {
+      if (options.align[j] === "right") {
         for (let l = 0; l < columnLengths[j] - String(data[i][j]).length; l++) {
-          col += ' ';
+          col += " ";
         }
         col += data[i][j];
       } else {
         col += data[i][j];
         if (String(data[i][j]).length < columnLengths[j]) {
           for (let l = 0; l < columnLengths[j] - String(data[i][j]).length; l++) {
-            col += ' ';
+            col += " ";
           }
         }
       }
 
-      col += Array(options.padding + 1).join(' ');
+      col += Array(options.padding + 1).join(" ");
 
       // if its not the last col
       if (j !== data[i].length - 1) {
@@ -444,12 +477,12 @@ export const formatTable = (data, options) => {
 
     // Header
     if (i === 0) {
-      outputString += `${formatTableLine(columnLengths, '', options)}\n`;
+      outputString += `${formatTableLine(columnLengths, "", options)}\n`;
     }
   }
 
   if (options.theme.bottomRow) {
-    outputString += formatTableLine(columnLengths, 'bottom', options);
+    outputString += formatTableLine(columnLengths, "bottom", options);
   }
 
   return outputString;
@@ -475,7 +508,7 @@ export const formatDiffHex = (edits, options = {}) => {
     ...options,
   };
 
-  let output = '';
+  let output = "";
   let xOffset = 0;
   /** @type {import('./diff/diff.js').Edit[]} */
   let rowBuffer = [];
@@ -486,179 +519,186 @@ export const formatDiffHex = (edits, options = {}) => {
     // Check if this row has any changes
     const hasChanges = rowBuffer.some(({ op }) => op !== 0);
 
-    const offsetPrefix = config.showOffset ? `${xOffset.toString(16).padStart(8, '0')} | ` : '';
+    const offsetPrefix = config.showOffset ? `${xOffset.toString(16).padStart(8, "0")} | ` : "";
 
     // If no changes, just show a single row
     if (!hasChanges) {
       let row = offsetPrefix;
-      let rowBits = '';
-      let rowAscii = '';
+      let rowBits = "";
+      let rowAscii = "";
 
       for (let i = 0; i < config.bytesPerRow; i++) {
         if (i < rowBuffer.length) {
           const { x } = rowBuffer[i];
-          const hex = x.toString(16).padStart(2, '0').toUpperCase();
+          const hex = x.toString(16).padStart(2, "0").toUpperCase();
           row += hex;
 
           if (config.showBits) {
-            const bits = x.toString(2).padStart(8, '0');
+            const bits = x.toString(2).padStart(8, "0");
             rowBits += bits;
           }
 
           if (config.showAscii) {
-            const char = (Number(x) >= 0x20 && Number(x) <= 0x7E) ? String.fromCharCode(Number(x)) : '.';
+            const char =
+              Number(x) >= 0x20 && Number(x) <= 0x7e ? String.fromCharCode(Number(x)) : ".";
             rowAscii += char;
           }
         } else {
-          row += '  ';
-          if (config.showBits) rowBits += '        ';
-          if (config.showAscii) rowAscii += ' ';
+          row += "  ";
+          if (config.showBits) rowBits += "        ";
+          if (config.showAscii) rowAscii += " ";
         }
 
         // Add spacing: 1 space between bytes, 2 spaces every 4 bytes
         if (i < config.bytesPerRow - 1) {
-          row += ((i + 1) % 4 === 0) ? '  ' : ' ';
-          if (config.showBits) rowBits += ((i + 1) % 4 === 0) ? '  ' : ' ';
+          row += (i + 1) % 4 === 0 ? "  " : " ";
+          if (config.showBits) rowBits += (i + 1) % 4 === 0 ? "  " : " ";
         }
       }
 
       if (config.showBits) {
-        row += ' | ' + rowBits;
+        row += " | " + rowBits;
       }
 
       if (config.showAscii) {
-        row += ' | ' + rowAscii;
+        row += " | " + rowAscii;
       }
 
-      output += row + '\n';
+      output += row + "\n";
       rowBuffer = [];
       return;
     }
 
     // Has changes, show three-row format
-    const offsetPadding = config.showOffset ? ' '.repeat(11) : '';
+    const offsetPadding = config.showOffset ? " ".repeat(11) : "";
 
     // Row 1: Original data
     let row1 = offsetPrefix;
-    let row1Bits = '';
-    let row1Ascii = '';
+    let row1Bits = "";
+    let row1Ascii = "";
 
     // Row 2: Delta (difference between y and x)
     let row2 = offsetPadding;
-    let row2Bits = '';
+    let row2Bits = "";
 
     // Row 3: Resulting data
     let row3 = offsetPrefix;
-    let row3Bits = '';
-    let row3Ascii = '';
+    let row3Bits = "";
+    let row3Ascii = "";
 
     for (let i = 0; i < config.bytesPerRow; i++) {
       if (i < rowBuffer.length) {
         const { x, y, op } = rowBuffer[i];
 
         // Original value
-        const hex1 = x.toString(16).padStart(2, '0').toUpperCase();
+        const hex1 = x.toString(16).padStart(2, "0").toUpperCase();
         row1 += hex1;
 
         if (config.showBits) {
-          const bits1 = x.toString(2).padStart(8, '0');
+          const bits1 = x.toString(2).padStart(8, "0");
           row1Bits += bits1;
         }
 
         if (config.showAscii) {
-          const char = (Number(x) >= 0x20 && Number(x) <= 0x7E) ? String.fromCharCode(Number(x)) : '.';
+          const char =
+            Number(x) >= 0x20 && Number(x) <= 0x7e ? String.fromCharCode(Number(x)) : ".";
           row1Ascii += char;
         }
 
         // Delta calculation - sign goes in the preceding space, then hex value
-        if (op === 0) { // Match - no change
-          row2 += '  ';
-          if (config.showBits) row2Bits += '        ';
+        if (op === 0) {
+          // Match - no change
+          row2 += "  ";
+          if (config.showBits) row2Bits += "        ";
         } else {
           // Calculate signed difference
           const diff = Number(y) - Number(x);
-          const sign = diff >= 0 ? '+' : '-';
+          const sign = diff >= 0 ? "+" : "-";
           const absDiff = Math.abs(diff);
-          const deltaHex = absDiff.toString(16).padStart(2, '0').toUpperCase();
+          const deltaHex = absDiff.toString(16).padStart(2, "0").toUpperCase();
           // Back up one character to place sign in the space before the hex
           row2 = row2.slice(0, -1) + sign + deltaHex;
 
           if (config.showBits) {
             // Show XOR of bits to highlight which bits changed
             const xor = Number(x) ^ Number(y);
-            const xorBits = xor.toString(2).padStart(8, '0');
+            const xorBits = xor.toString(2).padStart(8, "0");
             // Replace 0s with spaces, keep 1s to show which bits flipped
-            const diffBits = xorBits.split('').map(b => b === '1' ? '^' : ' ').join('');
+            const diffBits = xorBits
+              .split("")
+              .map((b) => (b === "1" ? "^" : " "))
+              .join("");
             row2Bits += diffBits;
           }
         }
 
         // Resulting value
-        const hex3 = y.toString(16).padStart(2, '0').toUpperCase();
+        const hex3 = y.toString(16).padStart(2, "0").toUpperCase();
         row3 += hex3;
 
         if (config.showBits) {
-          const bits3 = y.toString(2).padStart(8, '0');
+          const bits3 = y.toString(2).padStart(8, "0");
           row3Bits += bits3;
         }
 
         if (config.showAscii) {
-          const char = (Number(y) >= 0x20 && Number(y) <= 0x7E) ? String.fromCharCode(Number(y)) : '.';
+          const char =
+            Number(y) >= 0x20 && Number(y) <= 0x7e ? String.fromCharCode(Number(y)) : ".";
           row3Ascii += char;
         }
       } else {
-        row1 += '  ';
-        row2 += '  ';
-        row3 += '  ';
+        row1 += "  ";
+        row2 += "  ";
+        row3 += "  ";
         if (config.showBits) {
-          row1Bits += '        ';
-          row2Bits += '        ';
-          row3Bits += '        ';
+          row1Bits += "        ";
+          row2Bits += "        ";
+          row3Bits += "        ";
         }
         if (config.showAscii) {
-          row1Ascii += ' ';
-          row3Ascii += ' ';
+          row1Ascii += " ";
+          row3Ascii += " ";
         }
       }
 
       // Add spacing: 1 space between bytes, 2 spaces every 4 bytes
       if (i < config.bytesPerRow - 1) {
         if ((i + 1) % 4 === 0) {
-          row1 += '  ';
-          row2 += '  ';
-          row3 += '  ';
+          row1 += "  ";
+          row2 += "  ";
+          row3 += "  ";
           if (config.showBits) {
-            row1Bits += '  ';
-            row2Bits += '  ';
-            row3Bits += '  ';
+            row1Bits += "  ";
+            row2Bits += "  ";
+            row3Bits += "  ";
           }
         } else {
-          row1 += ' ';
-          row2 += ' ';
-          row3 += ' ';
+          row1 += " ";
+          row2 += " ";
+          row3 += " ";
           if (config.showBits) {
-            row1Bits += ' ';
-            row2Bits += ' ';
-            row3Bits += ' ';
+            row1Bits += " ";
+            row2Bits += " ";
+            row3Bits += " ";
           }
         }
       }
     }
 
     if (config.showBits) {
-      row1 += ' | ' + row1Bits;
-      row2 += ' | ' + row2Bits;
-      row3 += ' | ' + row3Bits;
+      row1 += " | " + row1Bits;
+      row2 += " | " + row2Bits;
+      row3 += " | " + row3Bits;
     }
 
     if (config.showAscii) {
-      row1 += ' | ' + row1Ascii;
-      row3 += ' | ' + row3Ascii;
+      row1 += " | " + row1Ascii;
+      row3 += " | " + row3Ascii;
     }
 
-    output += row1 + '\n';
-    output += row2 + '\n';
-    output += row3 + '\n';
+    output += row1 + "\n";
+    output += row2 + "\n";
+    output += row3 + "\n";
 
     rowBuffer = [];
   };
@@ -668,9 +708,11 @@ export const formatDiffHex = (edits, options = {}) => {
     const edit = edits[i];
     const { op, x, y } = edit;
 
-    if (op === 0) { // Match
+    if (op === 0) {
+      // Match
       rowBuffer.push({ x, y, op });
-    } else if (op === 1) { // Delete
+    } else if (op === 1) {
+      // Delete
       // Check if next edit is an insert - if so, treat as replacement
       if (i + 1 < edits.length && edits[i + 1].op === 2) {
         const nextEdit = edits[i + 1];
@@ -682,7 +724,8 @@ export const formatDiffHex = (edits, options = {}) => {
         // Standalone delete - show as x ➜ x (no visual change in this context)
         rowBuffer.push({ x, y: x, op: 0 });
       }
-    } else if (op === 2) { // Insert (standalone, not part of replacement)
+    } else if (op === 2) {
+      // Insert (standalone, not part of replacement)
       // Standalone insert - show as 0 ➜ y
       rowBuffer.push({ x: 0, y, op: 2 });
     }
@@ -711,14 +754,14 @@ export const formatDiffHunks = (hunks, options = {}) => {
     ...options,
   };
 
-  let output = '';
+  let output = "";
 
   for (const hunk of hunks) {
     const { posX, posY, edits } = hunk;
 
     // Find the range of changes (non-match operations)
-    let firstChangeIdx = edits.findIndex(e => e.op !== 0);
-    let lastChangeIdx = edits.length - 1 - [...edits].reverse().findIndex(e => e.op !== 0);
+    let firstChangeIdx = edits.findIndex((e) => e.op !== 0);
+    let lastChangeIdx = edits.length - 1 - [...edits].reverse().findIndex((e) => e.op !== 0);
 
     // No changes in this hunk, skip it
     if (firstChangeIdx === -1) {
@@ -750,12 +793,13 @@ export const formatDiffHunks = (hunks, options = {}) => {
       const edit = edits[i];
       const { op, x, y } = edit;
 
-      if (typeof x === 'number' || typeof y === 'number') {
+      if (typeof x === "number" || typeof y === "number") {
         const value = op === 2 ? y : x;
-        const hex = typeof value === 'number' ? value.toString(16).padStart(2, '0').toUpperCase() : '??';
+        const hex =
+          typeof value === "number" ? value.toString(16).padStart(2, "0").toUpperCase() : "??";
 
-        let char = '.';
-        if (typeof value === 'number' && value >= 0x20 && value <= 0x7E) {
+        let char = ".";
+        if (typeof value === "number" && value >= 0x20 && value <= 0x7e) {
           char = String.fromCharCode(value);
         }
 
@@ -772,7 +816,7 @@ export const formatDiffHunks = (hunks, options = {}) => {
       }
     }
 
-    output += '\n';
+    output += "\n";
   }
 
   return output.trim();
@@ -846,7 +890,9 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
 
   // Initialize grid with spaces
   /** @type {string[][]} */
-  const grid = Array.from({ length: charHeight }, () => Array.from({ length: charWidth }, () => ' '));
+  const grid = Array.from({ length: charHeight }, () =>
+    Array.from({ length: charWidth }, () => " "),
+  );
 
   if (config.showFull) {
     // Draw full grid
@@ -856,25 +902,25 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
         const gridX = col * 4;
 
         // Place node
-        grid[gridY][gridX] = 'o';
+        grid[gridY][gridX] = "o";
 
         // Horizontal edges
         if (col < width) {
-          grid[gridY][gridX + 1] = '-';
-          grid[gridY][gridX + 2] = '-';
-          grid[gridY][gridX + 3] = '-';
+          grid[gridY][gridX + 1] = "-";
+          grid[gridY][gridX + 2] = "-";
+          grid[gridY][gridX + 3] = "-";
         }
 
         // Vertical edges
         if (row < height) {
-          grid[gridY + 1][gridX] = '|';
+          grid[gridY + 1][gridX] = "|";
         }
 
         // Diagonal edges (only where the elements actually match)
         if (col < width && row < height) {
           // Check if x[col] actually equals y[row]
           if (x[col] === y[row]) {
-            grid[gridY + 1][gridX + 2] = '\\';
+            grid[gridY + 1][gridX + 2] = "\\";
           }
         }
       }
@@ -887,7 +933,7 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
       const gridX = col * 4;
 
       // Place node
-      grid[gridY][gridX] = 'o';
+      grid[gridY][gridX] = "o";
 
       // Draw edge to next node
       if (i < path.length - 1) {
@@ -895,42 +941,42 @@ export const formatMyersGraph = (rx, ry, x, y, options = {}) => {
 
         if (next.diagonal) {
           // Diagonal edge
-          grid[gridY + 1][gridX + 2] = '\\';
+          grid[gridY + 1][gridX + 2] = "\\";
         } else if (next.horizontal) {
           // Horizontal edge
-          grid[gridY][gridX + 1] = '-';
-          grid[gridY][gridX + 2] = '-';
-          grid[gridY][gridX + 3] = '-';
+          grid[gridY][gridX + 1] = "-";
+          grid[gridY][gridX + 2] = "-";
+          grid[gridY][gridX + 3] = "-";
         } else if (next.vertical) {
           // Vertical edge
-          grid[gridY + 1][gridX] = '|';
+          grid[gridY + 1][gridX] = "|";
         }
       }
     }
   }
 
   // Convert grid to string with labels
-  let output = '';
+  let output = "";
 
   if (config.showLabels) {
     // Top row: column numbers
     for (let col = 0; col <= width; col++) {
-      output += col.toString().padStart(4, ' ');
+      output += col.toString().padStart(4, " ");
     }
-    output += '\n';
+    output += "\n";
   }
 
   // Grid rows
   for (let row = 0; row < charHeight; row++) {
     if (config.showLabels && row % 2 === 0) {
       // Add row number for node lines
-      output += (row / 2).toString().padStart(2, ' ') + ' ';
+      output += (row / 2).toString().padStart(2, " ") + " ";
     } else if (config.showLabels) {
       // Spacer for edge lines
-      output += '   ';
+      output += "   ";
     }
 
-    output += grid[row].join('') + '\n';
+    output += grid[row].join("") + "\n";
   }
 
   return output.trimEnd();

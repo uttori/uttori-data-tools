@@ -7,10 +7,16 @@
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('IPS'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("IPS");
+  } catch {}
+}
 
-import DataBuffer from '@uttori/data-tools/data-buffer';
-import { hexTable } from '../data-formating.js';
+import DataBuffer from "@uttori/data-tools/data-buffer";
+
+import { hexTable } from "../data-formating.js";
 
 /**
  * A chunk of IPS data.
@@ -72,7 +78,7 @@ class IPS extends DataBuffer {
    * Parse the IPS file, decoding the hunks.
    */
   parse() {
-    debug('parse');
+    debug("parse");
     // Verify the header of the patch file.
     this.decodeHeader();
 
@@ -81,15 +87,15 @@ class IPS extends DataBuffer {
       const offset = this.readUInt24();
 
       // Check for "EOF" ASCII string as 0x454f46 for the end of patch data
-      if (offset === 0x454F46) {
+      if (offset === 0x454f46) {
         // If there are no more remaining bytes, we are done.
         if (!this.remainingBytes()) {
-          debug('EOF:', offset);
+          debug("EOF:", offset);
           break;
         } else if (this.remainingBytes() === 3) {
           // We have a truncate command after the "EOF" string.
           this.truncate = this.readUInt24();
-          debug('Truncate:', this.truncate, 'at offset', offset);
+          debug("Truncate:", this.truncate, "at offset", offset);
           break;
         }
       }
@@ -99,17 +105,24 @@ class IPS extends DataBuffer {
       if (length === 0x0000) {
         length = this.readUInt16();
         const rle = this.readUInt8();
-        debug('RLE:', `0x${rle.toString(16).toUpperCase().padStart(2, '0')}`, 'with length', length, 'at offset', offset);
+        debug(
+          "RLE:",
+          `0x${rle.toString(16).toUpperCase().padStart(2, "0")}`,
+          "with length",
+          length,
+          "at offset",
+          offset,
+        );
         this.hunks.push({ offset, rle, length });
       } else {
         const data = this.read(length);
-        debug('XXX:', 'with length', length, 'at offset', offset);
+        debug("XXX:", "with length", length, "at offset", offset);
         debug(hexTable(new DataBuffer(data)));
         this.hunks.push({ offset, length, data: Array.from(data) });
       }
     }
 
-    debug('Hunks:', this.hunks.length);
+    debug("Hunks:", this.hunks.length);
   }
 
   /**
@@ -125,11 +138,11 @@ class IPS extends DataBuffer {
    * @throws {Error} Missing or invalid IPS header
    */
   decodeHeader() {
-    debug('decodeHeader:', this.offset);
+    debug("decodeHeader:", this.offset);
     const header = this.readString(5);
-    debug('Header:', header);
-    if (header !== 'PATCH') {
-      throw new Error('Missing or invalid IPS header.');
+    debug("Header:", header);
+    if (header !== "PATCH") {
+      throw new Error("Missing or invalid IPS header.");
     }
   }
 
@@ -143,12 +156,12 @@ class IPS extends DataBuffer {
     let bytes = 5;
     // Calculate all the hunks sizes.
     for (const hunk of this.hunks) {
-      if (typeof hunk.rle !== 'undefined') {
+      if (typeof hunk.rle !== "undefined") {
         // offset + 0x0000 + length + RLE byte to be written
-        bytes += (3 + 2 + 2 + 1);
-      } else if (typeof hunk.data !== 'undefined') {
+        bytes += 3 + 2 + 2 + 1;
+      } else if (typeof hunk.data !== "undefined") {
         // offset + length + data
-        bytes += (3 + 2 + hunk.data.length);
+        bytes += 3 + 2 + hunk.data.length;
       }
     }
     // EOF string
@@ -158,24 +171,24 @@ class IPS extends DataBuffer {
       bytes += 3;
     }
 
-    debug('encode bytes:', bytes);
+    debug("encode bytes:", bytes);
     const patch = new DataBuffer();
-    patch.writeString('PATCH', 0);
+    patch.writeString("PATCH", 0);
 
     // Loop over the hunks to export
     for (const hunk of this.hunks) {
       patch.writeUInt24(hunk.offset);
-      if (typeof hunk.rle !== 'undefined') {
+      if (typeof hunk.rle !== "undefined") {
         patch.writeUInt16(0x0000);
         patch.writeUInt16(hunk.length);
         patch.writeUInt8(hunk.rle);
-      } else if (typeof hunk.data !== 'undefined') {
+      } else if (typeof hunk.data !== "undefined") {
         patch.writeUInt16(hunk.data.length);
         patch.writeBytes(hunk.data);
       }
     }
     // Close the patch.
-    patch.writeString('EOF');
+    patch.writeString("EOF");
 
     // Check for the "cut" command data.
     if (this.truncate) {
@@ -250,7 +263,7 @@ class IPS extends DataBuffer {
             RLEmode = false;
           }
 
-          if (!modified.remainingBytes() || differentData.length === 0xFFFF) {
+          if (!modified.remainingBytes() || differentData.length === 0xffff) {
             break;
           }
 
@@ -260,7 +273,11 @@ class IPS extends DataBuffer {
 
         // check if this record is near the previous one
         let distance = startOffset - (previousRecord.offset + previousRecord.length);
-        if (!previousRecord.rle && distance < 6 && (previousRecord.length + distance + differentData.length) < 0xFFFF) {
+        if (
+          !previousRecord.rle &&
+          distance < 6 &&
+          previousRecord.length + distance + differentData.length < 0xffff
+        ) {
           if (RLEmode && differentData.length > 6) {
             // separate a potential RLE record
             original.seek(startOffset);
@@ -269,7 +286,9 @@ class IPS extends DataBuffer {
           } else {
             // merge both records
             while (distance--) {
-              previousRecord.data?.push(modified.data[previousRecord.offset + previousRecord.length]);
+              previousRecord.data?.push(
+                modified.data[previousRecord.offset + previousRecord.length],
+              );
               previousRecord.length++;
             }
             previousRecord.data = previousRecord.data?.concat(differentData);
@@ -277,7 +296,7 @@ class IPS extends DataBuffer {
           }
         } else {
           if (startOffset >= IPS_MAX_SIZE) {
-            throw new Error('files are too big for IPS format');
+            throw new Error("files are too big for IPS format");
           }
 
           if (RLEmode && differentData.length > 2) {

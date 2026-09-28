@@ -82,8 +82,8 @@ class Myers {
     this.xidx = xidx;
     this.yidx = yidx;
     this.equal = equal;
-    this.resultVectorX = Array.from({length: x0.length + 1}, () => false);
-    this.resultVectorY = Array.from({length: y0.length + 1}, () => false);
+    this.resultVectorX = Array.from({ length: x0.length + 1 }, () => false);
+    this.resultVectorY = Array.from({ length: y0.length + 1 }, () => false);
 
     // Initialize bounds
     let smin = 0;
@@ -307,7 +307,8 @@ class Myers {
         }
         let t = s - k;
 
-        const s0 = s, t0 = t;
+        const s0 = s,
+          t0 = t;
         while (s > smin && t > tmin && this.equal(x[s - 1], y[t - 1])) {
           s--;
           t--;
@@ -328,4 +329,4 @@ class Myers {
   }
 }
 
-export default  Myers;
+export default Myers;

@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. This projec
 
 - 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
 
+## [4.2.0](https://github.com/uttori/uttori-data-tools/compare/v4.1.0...v4.2.0) - 2026-09-24
+
+- 🧰 Add `CRC32.compute` for unsigned CRC-32/ISO-HDLC and `CRC32.crc32c` for Castagnoli CRC-32C, optimize
+
 ## [4.1.0](https://github.com/uttori/uttori-data-tools/compare/v4.0.0...v4.1.0) - 2026-09-24
 
 - 🛠 Switch from `zlib` to `pako` for the same experience in Node & Browser

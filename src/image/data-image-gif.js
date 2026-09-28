@@ -1,6 +1,6 @@
-import DataBitstream from '../data-bitstream.js';
-import DataBuffer from '../data-buffer.js';
-import GIFLZW from './gif_lzw.js';
+import DataBitstream from "../data-bitstream.js";
+import DataBuffer from "../data-buffer.js";
+import GIFLZW from "./gif_lzw.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -11,7 +11,12 @@ import GIFLZW from './gif_lzw.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.ImageGIF'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("Uttori.ImageGIF");
+  } catch {}
+}
 
 /**
  * @typedef {Object} ImageGIFOptions
@@ -100,11 +105,14 @@ class ImageGIF extends DataBuffer {
    * @param {ImageGIFOptions} [options] Options for this ImageGIF instance.
    * @class
    */
-  constructor(input, options = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } }) {
+  constructor(
+    input,
+    options = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } },
+  ) {
     super(input);
 
     // GIF Specific Details
-    this.header = '';
+    this.header = "";
     this.version = 0;
 
     this.width = 0;
@@ -141,7 +149,7 @@ class ImageGIF extends DataBuffer {
     this.options = {
       ...options,
     };
-    debug('this.options', this.options);
+    debug("this.options", this.options);
 
     this.parse();
   }
@@ -154,8 +162,11 @@ class ImageGIF extends DataBuffer {
    * @returns {ImageGIF} the new ImageGIF instance for the provided file data
    * @static
    */
-  static fromFile(data, opts = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } }) {
-    debug('fromFile:', data);
+  static fromFile(
+    data,
+    opts = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } },
+  ) {
+    debug("fromFile:", data);
     return new ImageGIF(data, opts);
   }
 
@@ -167,8 +178,11 @@ class ImageGIF extends DataBuffer {
    * @returns {ImageGIF} the new ImageGIF instance for the provided DataBuffer
    * @static
    */
-  static fromBuffer(buffer, opts = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } }) {
-    debug('fromBuffer:', buffer.length);
+  static fromBuffer(
+    buffer,
+    opts = { rules: { strict_block_size: false, strict_lzw_minimum_code_size: false } },
+  ) {
+    debug("fromBuffer:", buffer.length);
     return new ImageGIF(buffer, opts);
   }
 
@@ -176,7 +190,7 @@ class ImageGIF extends DataBuffer {
    * Parse the GIF file, decoding the chunks.
    */
   parse() {
-    debug('parse');
+    debug("parse");
     this.decodeHeader();
     this.decodeLogicalScreenDescriptor();
 
@@ -186,41 +200,41 @@ class ImageGIF extends DataBuffer {
 
     this.imageNext = false;
     while (this.remainingBytes()) {
-      if (this.isNextBytes([0x21, 0xFF])) {
+      if (this.isNextBytes([0x21, 0xff])) {
         this.decodeApplicationExtension();
-      } else if (this.isNextBytes([0x21, 0xFE])) {
+      } else if (this.isNextBytes([0x21, 0xfe])) {
         this.decodeCommentExtension();
-      } else if (this.isNextBytes([0x21, 0xF9])) {
+      } else if (this.isNextBytes([0x21, 0xf9])) {
         this.decodeGraphicControlExtension();
-      } /* c8 ignore next 5 */ else if (this.isNextBytes([0x21, 0xCE])) {
-        debug('🎁 NAME:', this.offset);
+      } /* c8 ignore next 5 */ else if (this.isNextBytes([0x21, 0xce])) {
+        debug("🎁 NAME:", this.offset);
         // NAME
         // the only reference to this extension I could find was in gifsicle.
         // I'm not sure if this is something gifsicle just made up or if this actually exists outside of this app
         this.decodeDataSubBlocks();
       } else if (this.isNextBytes([0x21, 0x01])) {
         this.decodePlainTextExtension();
-      } else if (this.isNextBytes([0x2C])) {
+      } else if (this.isNextBytes([0x2c])) {
         try {
           this.decodeImageDescriptor();
         } catch (error) {
-          debug('Unexpected error in decodeImageDescriptor:', error);
+          debug("Unexpected error in decodeImageDescriptor:", error);
           // TODO Throw errors here for strict
         }
-      } else if (this.isNextBytes([0x3B])) {
-        debug('TRAILER 0x3B');
+      } else if (this.isNextBytes([0x3b])) {
+        debug("TRAILER 0x3B");
         this.advance(1);
         return;
       } else {
         const unknown = this.readUInt8();
-        debug('UNKNOWN:', this.offset, unknown, `0x${unknown.toString(16)}`);
+        debug("UNKNOWN:", this.offset, unknown, `0x${unknown.toString(16)}`);
       }
     }
   }
 
   decodeImageDescriptor() {
     // 0x00: Image Separator - Identifies the beginning of an Image Descriptor. This field contains the fixed value 0x2C.
-    debug('decodeImageDescriptor: at offset', this.offset);
+    debug("decodeImageDescriptor: at offset", this.offset);
     /** @type {ImageGIFImageDescriptor} */
     const imageDescriptor = {
       offset: this.offset,
@@ -247,19 +261,19 @@ class ImageGIF extends DataBuffer {
 
     // 0x01: Image Left Position - Column number, in pixels, of the left edge of the image, with respect to the left edge of the Logical Screen. Leftmost column of the Logical Screen is 0.
     imageDescriptor.leftPosition = this.readUInt16(true);
-    debug('Left Position:', imageDescriptor.leftPosition);
+    debug("Left Position:", imageDescriptor.leftPosition);
 
     // 0x03: Image Top Position - Row number, in pixels, of the top edge of the image with respect to the top edge of the Logical Screen. Top row of the Logical Screen is 0.
     imageDescriptor.topPosition = this.readUInt16(true);
-    debug('top position:', imageDescriptor.topPosition);
+    debug("top position:", imageDescriptor.topPosition);
 
     // 0x05: Image Width - Width of the image in pixels.
     imageDescriptor.width = this.readUInt16(true);
-    debug('Width:', imageDescriptor.width);
+    debug("Width:", imageDescriptor.width);
 
     // 0x07: Image Height - Height of the image in pixels.
     imageDescriptor.height = this.readUInt16(true);
-    debug('Height:', imageDescriptor.height);
+    debug("Height:", imageDescriptor.height);
 
     // 0x09: Packed Field:
     //         Local Color Table Flag        1 Bit
@@ -283,23 +297,25 @@ class ImageGIF extends DataBuffer {
     imageDescriptor.localColorTableSize = localColorTableSize;
 
     if (localColorTableFlag) {
-      debug(`LOCAL COLOR TABLE IS ${3 * (2 ** (localColorTableSize + 1))} BYTES`);
-      imageDescriptor.localColorTable = this.read(3 * (2 ** (localColorTableSize + 1)));
-      debug('localColorTable bytes:', imageDescriptor.localColorTable.length);
+      debug(`LOCAL COLOR TABLE IS ${3 * 2 ** (localColorTableSize + 1)} BYTES`);
+      imageDescriptor.localColorTable = this.read(3 * 2 ** (localColorTableSize + 1));
+      debug("localColorTable bytes:", imageDescriptor.localColorTable.length);
     } else {
-      debug('NO LOCAL COLOR TABLE');
+      debug("NO LOCAL COLOR TABLE");
     }
 
     const lzwMinimumCodeSize = this.readUInt8();
-    if ((lzwMinimumCodeSize < 2) || (lzwMinimumCodeSize > 8)) {
+    if (lzwMinimumCodeSize < 2 || lzwMinimumCodeSize > 8) {
       const error = `Invalid LZW Minimum Code Size: ${lzwMinimumCodeSize} < 2 or ${lzwMinimumCodeSize} > 8`;
       debug(this.options.rules);
       if (this.options.rules.strict_lzw_minimum_code_size) {
         throw new Error(error);
       }
     }
-    debug(`LZW Minimum Code Size: ${this.offset} === 0x${lzwMinimumCodeSize.toString(16)} / ${lzwMinimumCodeSize}`);
-    debug('Table Based Image Data:', this.offset);
+    debug(
+      `LZW Minimum Code Size: ${this.offset} === 0x${lzwMinimumCodeSize.toString(16)} / ${lzwMinimumCodeSize}`,
+    );
+    debug("Table Based Image Data:", this.offset);
     imageDescriptor.lzwMinimumCodeSize = lzwMinimumCodeSize;
 
     imageDescriptor.lzwData = this.decodeDataSubBlocks();
@@ -330,11 +346,11 @@ class ImageGIF extends DataBuffer {
   // 0x05 - 0x06: Delay Time - If not 0, this field specifies the number of hundredths (1/100) of a second to wait before continuing with the processing of the Data Stream. The clock starts ticking immediately after the graphic is rendered. This field may be used in conjunction with the User Input Flag field.
   // 0x07: Transparent Color Index - The Transparency Index is such that when encountered, the corresponding pixel of the display device is not modified and processing goes on to the next pixel. The index is present if and only if the Transparency Flag is set to 1.
   decodeGraphicControlExtension() {
-    debug('decodeGraphicControlExtension: offset', this.offset);
+    debug("decodeGraphicControlExtension: offset", this.offset);
     this.advance(2);
 
     const blockSize = this.readUInt8();
-    debug('blockSize:', blockSize);
+    debug("blockSize:", blockSize);
     if (blockSize !== 4) {
       const error = `Invalid Graphic Control Block Size: ${blockSize} !== 4`;
       debug(error);
@@ -353,41 +369,41 @@ class ImageGIF extends DataBuffer {
   }
 
   decodeApplicationExtension() {
-    debug('decodeApplicationExtension:', this.offset);
+    debug("decodeApplicationExtension:", this.offset);
     // 0x00: Extension Label - Defines this block as an extension. This field contains the fixed value 0x21 (33).
     // 0x01: Application Extension Label - Identifies the block as an Application Extension. This field contains the fixed value 0xFF (255).
     this.advance(2);
     // 0x02: Block Size - Number of bytes in this extension block, following the Block Size field, up to but not including the beginning of the Application Data.
     const blockSize = this.readUInt8();
-    debug('blockSize:', blockSize);
+    debug("blockSize:", blockSize);
     // 0x03: Application Identifier - Sequence of eight printable ASCII characters used to identify the application owning the Application Extension.
     const applicationIdentifier = this.readString(8);
-    debug('applicationIdentifier:', applicationIdentifier);
+    debug("applicationIdentifier:", applicationIdentifier);
     // 0x0B: Application Authentication Code - Sequence of three bytes used to authenticate the Application Identifier. An Application program may use an algorithm to compute a binary code that uniquely identifies it as the application owning the Application Extension. This field contains the fixed value "2.0". Sometimes Application Identifier and Application Authentication Code fields are referred as one "NETSCAPE2.0" field.
     const applicationAuthenticationCode = this.readString(3);
-    debug('applicationAuthenticationCode:', applicationAuthenticationCode);
+    debug("applicationAuthenticationCode:", applicationAuthenticationCode);
 
     switch (applicationIdentifier) {
       /* c8 ignore next 1 */
-      case 'ANIMEXTS':
-      case 'NETSCAPE': {
+      case "ANIMEXTS":
+      case "NETSCAPE": {
         // 0x0E: Sub-block Data Size - Indicates the number of data bytes to follow. The size of the block does not account for the size byte itself.
         const subblockDataSize = this.readUInt8();
-        debug('subblockDataSize:', subblockDataSize);
+        debug("subblockDataSize:", subblockDataSize);
         // 0x0F: Sub-block ID - Identifies the Netscape Looping Extension.
         const subblockID = this.readUInt8();
-        debug('subblockID:', subblockID);
+        debug("subblockID:", subblockID);
         // 0x10: Loop Count - Indicates the number of iterations the animated GIF should be executed. This field is an unsigned 2-byte integer in little-endian (least significant byte first) byte order. 0x00 (0) means infinite loop.
         const loopCount = this.readUInt16(true);
-        debug('loopCount:', loopCount);
+        debug("loopCount:", loopCount);
         // 0x12: Block Terminator - This zero-length data block marks the end of the Application Extension.
         const blockTerminator = this.readUInt8();
-        debug('blockTerminator:', blockTerminator);
+        debug("blockTerminator:", blockTerminator);
         break;
       }
       /* c8 ignore next 9 -- no test asset contains a GIF Construction Set ('GIFCONnb') application extension */
-      case 'GIFCONnb': {
-        debug('GIF Construction Set Extension: Unsupported');
+      case "GIFCONnb": {
+        debug("GIF Construction Set Extension: Unsupported");
         this.advance(blockSize - (8 + 3));
         while (!this.isNextBytes([0x00])) {
           this.advance(1);
@@ -397,7 +413,7 @@ class ImageGIF extends DataBuffer {
       }
       /* c8 ignore next 8 */
       default: {
-        debug('Unsupported:', applicationIdentifier);
+        debug("Unsupported:", applicationIdentifier);
         this.advance(blockSize - (8 + 3));
         while (!this.isNextBytes([0x00])) {
           this.advance(1);
@@ -408,25 +424,25 @@ class ImageGIF extends DataBuffer {
   }
 
   decodeCommentExtension() {
-    debug('decodeCommentExtension:', this.offset);
+    debug("decodeCommentExtension:", this.offset);
     /** @type {ImageGIFComment} */
     const comment = { offset: this.offset };
     this.advance(2);
 
-    let data = '';
+    let data = "";
     let blockSize = this.readUInt8();
-    debug('blockSize:', blockSize);
+    debug("blockSize:", blockSize);
     while (blockSize > 0) {
       data += this.readString(blockSize);
       blockSize = this.readUInt8();
     }
     comment.comment = data;
     this.comments.push(comment);
-    debug('comment:', comment.comment);
+    debug("comment:", comment.comment);
   }
 
   decodePlainTextExtension() {
-    debug('decodePlainTextExtension:', this.offset);
+    debug("decodePlainTextExtension:", this.offset);
     /** @type {ImageGIFPlainTextExtension} */
     const plainText = { offset: this.offset };
     // Extension Introducer - Identifies the beginning of an extension block. This field contains the fixed value 0x21.
@@ -435,43 +451,43 @@ class ImageGIF extends DataBuffer {
 
     // Block Size - Number of bytes in the extension, after the Block Size field and up to but not including the beginning of the data portion. This field contains the fixed value 12.
     const blockSize = this.readUInt8();
-    debug('blockSize:', blockSize);
+    debug("blockSize:", blockSize);
 
     // Text Grid Left Position - Column number, in pixels, of the left edge of the text grid, with respect to the left edge of the Logical Screen.
     plainText.textGridLeftPosition = this.readUInt16(true);
-    debug('Text Grid Left Position:', plainText.textGridLeftPosition);
+    debug("Text Grid Left Position:", plainText.textGridLeftPosition);
 
     // Text Grid Top Position - Row number, in pixels, of the top edge of the text grid, with respect to the top edge of the Logical Screen.
     plainText.textGridTopPosition = this.readUInt16(true);
-    debug('Text Grid Top Position:', plainText.textGridTopPosition);
+    debug("Text Grid Top Position:", plainText.textGridTopPosition);
 
     // Image Grid Width - Width of the text grid in pixels.
     plainText.imageGridWidth = this.readUInt16(true);
-    debug('Image Grid Width:', plainText.imageGridWidth);
+    debug("Image Grid Width:", plainText.imageGridWidth);
 
     // Image Grid Height - Height of the text grid in pixels.
     plainText.imageGridHeight = this.readUInt16(true);
-    debug('Image Grid Height:', plainText.imageGridHeight);
+    debug("Image Grid Height:", plainText.imageGridHeight);
 
     // Character Cell Width - Width, in pixels, of each cell in the grid.
     plainText.characterCellWidth = this.readUInt8();
-    debug('Character Cell Width:', plainText.characterCellWidth);
+    debug("Character Cell Width:", plainText.characterCellWidth);
 
     // Character Cell Height - Height, in pixels, of each cell in the grid.
     plainText.characterCellHeight = this.readUInt8();
-    debug('Character Cell Height:', plainText.characterCellHeight);
+    debug("Character Cell Height:", plainText.characterCellHeight);
 
     // Text Foreground Color Index - Index into the Global Color Table to be used to render the text foreground.
     plainText.textForegroundColorIndex = this.readUInt8();
-    debug('Text Foreground Color Index:', plainText.textForegroundColorIndex);
+    debug("Text Foreground Color Index:", plainText.textForegroundColorIndex);
 
     // Text Background Color Index - Index into the Global Color Table to be used to render the text background.
     plainText.textBackgroundColorIndex = this.readUInt8();
-    debug('Text Background Color Index:', plainText.textBackgroundColorIndex);
+    debug("Text Background Color Index:", plainText.textBackgroundColorIndex);
 
     // Plain Text Data - Sequence of sub-blocks, each of size at most 255 bytes and at least 1 byte, with the size in a byte preceding the data. The end of the sequence is marked by the Block Terminator.
     // Block Terminator - This zero-length data block marks the end of the Plain Text Data Blocks.
-    let plainTextData = '';
+    let plainTextData = "";
     let ptdBlockSize = this.readUInt8();
     while (ptdBlockSize > 0) {
       plainTextData += this.readString(ptdBlockSize);
@@ -480,7 +496,7 @@ class ImageGIF extends DataBuffer {
 
     plainText.plainText = plainTextData;
     this.plainTextExtensions.push(plainText);
-    debug('plainTextData:', plainText.plainText);
+    debug("plainTextData:", plainText.plainText);
   }
 
   /**
@@ -488,7 +504,7 @@ class ImageGIF extends DataBuffer {
    * @returns {number[]} The decoded data
    */
   decodeDataSubBlocks() {
-    debug('decodeDataSubBlocks:', this.offset);
+    debug("decodeDataSubBlocks:", this.offset);
     let blockSize = this.readUInt8();
     // debug('blockSize:', blockSize);
     /** @type {number[]} */
@@ -519,20 +535,20 @@ class ImageGIF extends DataBuffer {
    * @throws {Error} Missing or invalid GIF header
    */
   decodeHeader() {
-    debug('decodeHeader:', this.offset);
+    debug("decodeHeader:", this.offset);
     /* c8 ignore next 3 */
     if (this.offset !== 0) {
-      debug('Offset should be at 0 to read the header.');
+      debug("Offset should be at 0 to read the header.");
     }
 
     const header = this.readString(6);
-    debug('Header:', header);
-    if (header === 'GIF89a') {
+    debug("Header:", header);
+    if (header === "GIF89a") {
       this.version = 89;
-    } else if (header === 'GIF87a') {
+    } else if (header === "GIF87a") {
       this.version = 87;
     } else {
-      throw new Error('Missing or invalid GIF header.');
+      throw new Error("Missing or invalid GIF header.");
     }
 
     this.header = header;
@@ -545,10 +561,10 @@ class ImageGIF extends DataBuffer {
    * It is exactly seven bytes long.
    */
   decodeLogicalScreenDescriptor() {
-    debug('decodeLogicalScreenDescriptor:', this.offset);
+    debug("decodeLogicalScreenDescriptor:", this.offset);
     /* c8 ignore next 3 */
     if (this.offset !== 6) {
-      debug('Offset should be at 6, just after the header.');
+      debug("Offset should be at 6, just after the header.");
     }
 
     // Width & Height are 16-bit, nonnegative integers (0-65,535).
@@ -622,12 +638,12 @@ class ImageGIF extends DataBuffer {
    * If the global color table flag is set to 1 in the logical screen descriptor block, the global color table is then required to immediately follow that block.
    */
   decodeGlobalColorTable() {
-    debug('decodeGlobalColorTable:', this.offset);
+    debug("decodeGlobalColorTable:", this.offset);
     // `sizeOfGlobalColorTable` is always set by decodeLogicalScreenDescriptor() before this runs.
     this.colors = 2 ** (this.sizeOfGlobalColorTable + 1);
     this.palette = this.read(this.colors * 3, true);
-    debug('colors =', this.colors);
-    debug('palette size =', this.colors * 3);
+    debug("colors =", this.colors);
+    debug("palette size =", this.colors * 3);
   }
 
   /**
@@ -636,9 +652,9 @@ class ImageGIF extends DataBuffer {
    * @throws {Error} No image descriptors found
    */
   decodePixels() {
-    debug('decodePixels');
+    debug("decodePixels");
     if (this.imageDescriptors.length === 0) {
-      throw new Error('No image descriptors found');
+      throw new Error("No image descriptors found");
     }
 
     // Use the first image descriptor
@@ -655,7 +671,7 @@ class ImageGIF extends DataBuffer {
       this.pixels[i] = decompressed.charCodeAt(i);
     }
 
-    debug('Decompressed', this.pixels.length, 'pixels');
+    debug("Decompressed", this.pixels.length, "pixels");
   }
 
   /**
@@ -671,7 +687,7 @@ class ImageGIF extends DataBuffer {
    */
   getPixel(x, y) {
     if (!this.pixels || this.pixels.length === 0) {
-      throw new Error('Pixel data has not been decoded.');
+      throw new Error("Pixel data has not been decoded.");
     }
     if (!Number.isInteger(x) || x >= this.width || x < 0) {
       throw new Error(`x position out of bounds or invalid: ${x}`);

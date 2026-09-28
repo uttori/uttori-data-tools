@@ -7,7 +7,12 @@
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.GIFLZW'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("Uttori.GIFLZW");
+  } catch {}
+}
 
 /**
  * GIF LZW Compression
@@ -20,7 +25,7 @@ class GIFLZW {
    * @param {number[]} input The input data
    */
   constructor(input = []) {
-    debug('constructor:', input);
+    debug("constructor:", input);
     this.input = input;
     /** @type {number[]} */
     this.output = [];
@@ -35,7 +40,7 @@ class GIFLZW {
    * @returns {Record<number|string, number|string>} The built to size dictionary.
    */
   buildDictionary(size, compress = true) {
-    debug('buildDictionary:', size);
+    debug("buildDictionary:", size);
     /** @type {Record<number|string, number|string>} */
     const dictionary = {};
     let i = 0;
@@ -56,9 +61,9 @@ class GIFLZW {
    * @param {number} code The code
    */
   pack(codeLength, code) {
-    debug('pack:', { codeLength, code });
+    debug("pack:", { codeLength, code });
     if (!this.output[this.offset]) {
-      debug('new offset, next byte:', this.offset);
+      debug("new offset, next byte:", this.offset);
       this.output[this.offset] = 0;
     }
 
@@ -66,10 +71,10 @@ class GIFLZW {
       if (this.bitOffset > 7) {
         this.output[++this.offset] = 0;
         this.bitOffset = 0;
-        debug('bitOffset > 7, next byte:', this.offset);
+        debug("bitOffset > 7, next byte:", this.offset);
       }
       const value = (code & 0x1) << this.bitOffset;
-      debug('value:', value);
+      debug("value:", value);
       this.output[this.offset] += value;
       code >>= 1; // code = Math.floor(code / 2);
       this.bitOffset++;
@@ -87,7 +92,7 @@ class GIFLZW {
    * @returns {number} The unpacked code
    */
   unpack(codeLength, useInput = true) {
-    debug('unpack:', codeLength);
+    debug("unpack:", codeLength);
     const data = useInput ? this.input : this.output;
     let code = 0;
     for (let i = 0; i < codeLength; i++) {
@@ -114,12 +119,12 @@ class GIFLZW {
    * @returns {number[]} The compressed output
    */
   compress(codeSize) {
-    debug('compress:', { codeSize });
+    debug("compress:", { codeSize });
     let codeLength = codeSize + 1;
     // Dictionary size is 1 code for each of the colors in the global/local color table.
     // Plus two special control codes.
     let dictionarySize = (1 << codeSize) + 2; // Math.pow(2, codeSize) + 2;
-    debug('dictionarySize:', dictionarySize);
+    debug("dictionarySize:", dictionarySize);
 
     // The value of the special codes depends on the value of the LZW minimum code size from the image data block.
     // If the LZW minimum code size is the same as the color table size, then special codes immediatly follow the colors;
@@ -134,14 +139,14 @@ class GIFLZW {
 
     // If the input was empty, we don't actually have any data to compress.
     if (this.input.length === 0) {
-      debug('No data provided.');
+      debug("No data provided.");
       this.pack(codeLength, endOfInformation);
       return this.output;
     }
 
     // Initialized the code table
     let dictionary = this.buildDictionary(dictionarySize);
-    let sequence = '';
+    let sequence = "";
     // Read each color index from the index stream into our index buffer.
     for (const i of this.input) {
       // Read the next index in the index stream into char.
@@ -188,14 +193,14 @@ class GIFLZW {
    * @returns {string} The decompressed output
    */
   decompress(codeSize, useInput = true) {
-    debug('decompress:', { codeSize, useInput });
+    debug("decompress:", { codeSize, useInput });
 
     // Clear Code (CC) in the image data is our cue to reinitialize the code table.
     const clearCode = 1 << codeSize;
-    debug('clearCode:', clearCode);
+    debug("clearCode:", clearCode);
     // End Of Information code (EOI) means we have reached the end of the image.
     const endOfInformation = (1 << codeSize) + 1;
-    debug('endOfInformation:', endOfInformation);
+    debug("endOfInformation:", endOfInformation);
 
     // In decompress mode the dictionary maps codes to their decoded string sequences.
     /** @type {Record<number|string, string>} */
@@ -205,10 +210,10 @@ class GIFLZW {
     /** @type {number} */
     let codeLength = 0;
     /** @type {string} */
-    let sequence = '';
+    let sequence = "";
     // An empty string represents "no previous sequence" (e.g. immediately after a clear code).
     /** @type {string} */
-    let prevSequence = '';
+    let prevSequence = "";
 
     /** @type {string[]} */
     const output = [];
@@ -220,21 +225,23 @@ class GIFLZW {
       throw new Error(`First code should be a clear code (${clearCode}), got: ${code}`);
     }
 
-    debug('code:', code);
+    debug("code:", code);
     while (code !== endOfInformation) {
       // Initialize our code table.
       if (code === clearCode) {
         codeLength = codeSize + 1;
-        debug('codeLength:', codeLength);
+        debug("codeLength:", codeLength);
         // To do this we must know how many colors are in our color table.
         dictionarySize = (1 << codeSize) + 2;
-        debug('dictionarySize:', dictionarySize);
-        dict = /** @type {Record<number|string, string>} */ (this.buildDictionary(dictionarySize, false));
-        debug('dict:', Object.keys(dict).length);
+        debug("dictionarySize:", dictionarySize);
+        dict = /** @type {Record<number|string, string>} */ (
+          this.buildDictionary(dictionarySize, false)
+        );
+        debug("dict:", Object.keys(dict).length);
         // Read the first color code.
         code = this.unpack(codeLength, useInput);
-        debug('code:', code);
-        prevSequence = '';
+        debug("code:", code);
+        prevSequence = "";
         continue;
       }
 
@@ -264,11 +271,11 @@ class GIFLZW {
 
       // Start the loop again by reading the next code.
       code = this.unpack(codeLength, useInput);
-      debug('code:', code);
+      debug("code:", code);
     }
 
-    debug('output:', output);
-    return output.join('');
+    debug("output:", output);
+    return output.join("");
   }
 }
 

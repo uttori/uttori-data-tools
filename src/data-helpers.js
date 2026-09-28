@@ -37,7 +37,7 @@ export const float48 = (uint8) => {
     mantissa += uint8[i];
     mantissa /= 256;
   }
-  mantissa += (uint8[5] & 0x7F);
+  mantissa += uint8[5] & 0x7f;
   mantissa /= 128;
   mantissa += 1;
 
@@ -46,7 +46,7 @@ export const float48 = (uint8) => {
     mantissa = -mantissa;
   }
 
-  const output = mantissa * (2 ** exponent);
+  const output = mantissa * 2 ** exponent;
   return Number.parseFloat(output.toFixed(4));
 };
 
@@ -63,18 +63,18 @@ export const float80 = (uint8) => {
   const a1 = uint8[8];
 
   // 1 bit sign, -1 or +1
-  const sign = 1 - ((a0 >>> 7) * 2);
+  const sign = 1 - (a0 >>> 7) * 2;
   // 15 bit exponent
   // let exponent = (((a0 << 1) & 0xFF) << 7) | a1;
-  let exponent = ((a0 & 0x7F) << 8) | a1;
+  let exponent = ((a0 & 0x7f) << 8) | a1;
 
-  if ((exponent === 0) && (low === 0) && (high === 0)) {
+  if (exponent === 0 && low === 0 && high === 0) {
     return 0;
   }
 
   // 0x7FFF is a reserved value
-  if (exponent === 0x7FFF) {
-    if ((low === 0) && (high === 0)) {
+  if (exponent === 0x7fff) {
+    if (low === 0 && high === 0) {
       return sign * Number.POSITIVE_INFINITY;
     }
 
@@ -82,7 +82,7 @@ export const float80 = (uint8) => {
   }
 
   // Bias is 16383, which is 0x3FFF
-  exponent -= 0x3FFF;
+  exponent -= 0x3fff;
   let out = low * 2 ** (exponent - 31);
   out += high * 2 ** (exponent - 63);
 
@@ -100,19 +100,9 @@ export const convertFromIeeeExtended = (uint8) => {
   const sign = uint8[0] & 0x80 ? -1 : 1;
   const exponent = ((uint8[0] & 0x7f) << 8) | uint8[1];
 
-  const hiMant = (
-    (uint8[2] << 24) |
-    (uint8[3] << 16) |
-    (uint8[4] << 8) |
-    uint8[5]
-  ) >>> 0;
+  const hiMant = ((uint8[2] << 24) | (uint8[3] << 16) | (uint8[4] << 8) | uint8[5]) >>> 0;
 
-  const loMant = (
-    (uint8[6] << 24) |
-    (uint8[7] << 16) |
-    (uint8[8] << 8) |
-    uint8[9]
-  ) >>> 0;
+  const loMant = ((uint8[6] << 24) | (uint8[7] << 16) | (uint8[8] << 8) | uint8[9]) >>> 0;
 
   if (exponent === 0 && hiMant === 0 && loMant === 0) {
     return sign * 0;
@@ -126,10 +116,7 @@ export const convertFromIeeeExtended = (uint8) => {
 
   const adjustedExponent = exponent - 16383;
 
-  return sign * (
-    hiMant * 2 ** (adjustedExponent - 31) +
-    loMant * 2 ** (adjustedExponent - 63)
-  );
+  return sign * (hiMant * 2 ** (adjustedExponent - 31) + loMant * 2 ** (adjustedExponent - 63));
 };
 
 export default {

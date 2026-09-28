@@ -1,4 +1,4 @@
-import { diff, Op } from './diff.js';
+import { diff, Op } from "./diff.js";
 
 export const DEFAULT_CONTEXT = 3;
 
@@ -33,7 +33,7 @@ function splitLines(text) {
   const lines = [];
   let start = 0;
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') {
+    if (text[i] === "\n") {
       lines.push(text.substring(start, i + 1));
       start = i + 1;
     }
@@ -82,9 +82,9 @@ export function textEdits(x, y) {
   return createTextEdits(xlines, ylines, rx, ry);
 }
 
-const PREFIX_MATCH = ' ';
-const PREFIX_DELETE = '-';
-const PREFIX_INSERT = '+';
+const PREFIX_MATCH = " ";
+const PREFIX_DELETE = "-";
+const PREFIX_INSERT = "+";
 
 /**
  * Unified compares the lines in x and y and returns the changes necessary to convert from one to the other in unified format.
@@ -104,7 +104,7 @@ export function unified(x, y, context = DEFAULT_CONTEXT) {
   const hunks = createTextHunks(xlines, ylines, rx, ry, context);
 
   // Format output.
-  let output = '';
+  let output = "";
 
   for (const h of hunks) {
     const xCount = h.endX - h.posX;
@@ -118,22 +118,22 @@ export function unified(x, y, context = DEFAULT_CONTEXT) {
         case Op.Delete:
           output += PREFIX_DELETE;
           output += edit.line;
-          if (!edit.line.endsWith('\n')) {
-            output += '\n';
+          if (!edit.line.endsWith("\n")) {
+            output += "\n";
           }
           break;
         case Op.Insert:
           output += PREFIX_INSERT;
           output += edit.line;
-          if (!edit.line.endsWith('\n')) {
-            output += '\n';
+          if (!edit.line.endsWith("\n")) {
+            output += "\n";
           }
           break;
         case Op.Match:
           output += PREFIX_MATCH;
           output += edit.line;
-          if (!edit.line.endsWith('\n')) {
-            output += '\n';
+          if (!edit.line.endsWith("\n")) {
+            output += "\n";
           }
           break;
       }
@@ -238,9 +238,11 @@ function createTextEditsForRange(x, y, rx, ry, startX, endX, startY, endY) {
   /** @type {TextEdit[]} */
   const edits = [];
 
-  let s = startX, t = startY;
+  let s = startX,
+    t = startY;
   while (s < endX || t < endY) {
-    const oldS = s, oldT = t;
+    const oldS = s,
+      oldT = t;
 
     // Process deletions
     while (s < endX && s < rx.length && rx[s]) {
@@ -296,7 +298,8 @@ function createTextEdits(x, y, rx, ry) {
   const n = rx.length - 1;
   const m = ry.length - 1;
 
-  let s = 0, t = 0;
+  let s = 0,
+    t = 0;
   while (s < n || t < m) {
     // Process deletions
     while (s < n && rx[s]) {
@@ -337,11 +340,11 @@ function createTextEdits(x, y, rx, ry) {
  */
 function escapeHtml(str) {
   return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /**
@@ -376,26 +379,26 @@ export function htmlTable(x, y, context = DEFAULT_CONTEXT) {
       const edit = hunk.edits[i];
       const escapedLine = escapeHtml(edit.line);
 
-      let operation = '';
-      let opSymbol = '';
-      let leftLineNo = '';
-      let rightLineNo = '';
-      let blockAttr = '';
+      let operation = "";
+      let opSymbol = "";
+      let leftLineNo = "";
+      let rightLineNo = "";
+      let blockAttr = "";
 
       switch (edit.op) {
         case Op.Delete: {
-          operation = 'delete';
+          operation = "delete";
           opSymbol = PREFIX_DELETE;
           leftLineNo = `${xLineNo}`;
-          rightLineNo = '';
+          rightLineNo = "";
 
           xLineNo++;
           break;
         }
         case Op.Insert: {
-          operation = 'insert';
+          operation = "insert";
           opSymbol = PREFIX_INSERT;
-          leftLineNo = '';
+          leftLineNo = "";
           rightLineNo = `${yLineNo}`;
 
           yLineNo++;
@@ -407,7 +410,7 @@ export function htmlTable(x, y, context = DEFAULT_CONTEXT) {
           } else if (i === lastMatchIndex) {
             blockAttr = ' data-block-end=""';
           }
-          operation = 'match';
+          operation = "match";
           opSymbol = PREFIX_MATCH;
           leftLineNo = `${xLineNo}`;
           rightLineNo = `${yLineNo}`;
@@ -419,23 +422,28 @@ export function htmlTable(x, y, context = DEFAULT_CONTEXT) {
         /* c8 ignore next 5 */
         default: {
           // oxlint-disable-next-line no-console
-          console.warn('🐛 Unknown Edit Operation:', edit.op);
+          console.warn("🐛 Unknown Edit Operation:", edit.op);
           break;
         }
       }
 
-      let leftNo = leftLineNo ? `<td class="line-no">${leftLineNo}</td>` : '<td class="line-no"></td>';
-      let rightNo = rightLineNo ? `<td class="line-no">${rightLineNo}</td>` : '<td class="line-no"></td>';
+      let leftNo = leftLineNo
+        ? `<td class="line-no">${leftLineNo}</td>`
+        : '<td class="line-no"></td>';
+      let rightNo = rightLineNo
+        ? `<td class="line-no">${rightLineNo}</td>`
+        : '<td class="line-no"></td>';
 
-      html += `<tr class="src ${operation}" data-op="${operation}" ${blockAttr}>` +
+      html +=
+        `<tr class="src ${operation}" data-op="${operation}" ${blockAttr}>` +
         `${leftNo}` +
         `${rightNo}` +
         `<td class="op">${opSymbol}</td>` +
         `<td class="code"><code>${escapedLine}</code></td>` +
-        '</tr>';
+        "</tr>";
     }
   }
 
-  html += '</tbody>\n</table>';
+  html += "</tbody>\n</table>";
   return html;
 }

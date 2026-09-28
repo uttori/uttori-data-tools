@@ -1,7 +1,7 @@
-import { inflate } from 'pako';
+import { inflate } from "pako";
 
-import DataBuffer from '../data-buffer.js';
-import DataBufferList from '../data-buffer-list.js';
+import DataBufferList from "../data-buffer-list.js";
+import DataBuffer from "../data-buffer.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -12,7 +12,12 @@ import DataBufferList from '../data-buffer-list.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (typeof process !== 'undefined' && process.env.UTTORI_AUDIOWAV_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.AudioWAV'); } catch {} }
+if (typeof process !== "undefined" && process.env.UTTORI_AUDIOWAV_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("Uttori.AudioWAV");
+  } catch {}
+}
 
 /**
  * A decoded WAV / AIFF file header.
@@ -336,248 +341,248 @@ if (typeof process !== 'undefined' && process.env.UTTORI_AUDIOWAV_DEBUG) { try {
  * @see {@link https://www.recordingblogs.com/wiki/format-chunk-of-a-wave-file|WAVE Format Tags}
  */
 const WAVE_FORMAT_TAGS = {
-  0x0001: 'Microsoft Pulse Code Modulation (PCM) / Uncompressed',
-  0x0002: 'Microsoft ADPCM',
-  0x0003: 'Microsoft IEEE Float LPCM',
-  0x0004: 'Compaq VSELP',
-  0x0005: 'IBM CVSD',
-  0x0006: 'Microsoft ITU G.711 a-law',
-  0x0007: 'Microsoft ITU G.711 µ-law',
-  0x0008: 'Microsoft DTS',
-  0x0009: 'DRM',
-  0x000A: 'WMA 9 Speech',
-  0x000B: 'Microsoft Windows Media RT Voice',
-  0x0010: 'OKI-ADPCM',
-  0x0011: 'Intel IMA / DVI-ADPCM',
-  0x0012: 'Videologic Mediaspace ADPCM',
-  0x0013: 'Sierra ADPCM',
-  0x0014: 'Antex G.723 ADPCM',
-  0x0015: 'DSP Solutions DIGISTD',
-  0x0016: 'DSP Solutions DIGIFIX / ITU G.723 ADPCM (Yamaha)',
-  0x0017: 'Dialoic OKI ADPCM',
-  0x0018: 'Media Vision ADPCM',
-  0x0019: 'HP CU',
-  0x001A: 'HP Dynamic Voice',
-  0x0020: 'Yamaha ADPCM',
-  0x0021: 'SONARC Speech Compression',
-  0x0022: 'DSP Group True Speech',
-  0x0023: 'Echo Speech Corp.',
-  0x0024: 'Virtual Music Audiofile AF36',
-  0x0025: 'Audio Processing Tech.',
-  0x0026: 'Virtual Music Audiofile AF10',
-  0x0027: 'Aculab Prosody 1612',
-  0x0028: 'Merging Tech. LRC',
-  0x0030: 'Dolby AC2',
-  0x0031: 'Microsoft 6.10',
-  0x0032: 'MSN Audio',
-  0x0033: 'Antex ADPCME',
-  0x0034: 'Control Resources VQLPC',
-  0x0035: 'DSP Solutions DIGIREAL',
-  0x0036: 'DSP Solutions DIGIADPCM',
-  0x0037: 'Control Resources CR10',
-  0x0038: 'Natural MicroSystems VBX ADPCM',
-  0x0039: 'Crystal Semiconductor IMA ADPCM',
-  0x003A: 'Echo Speech ECHOSC3',
-  0x003B: 'Rockwell ADPCM',
-  0x003C: 'Rockwell DIGITALK',
-  0x003D: 'Xebec Multimedia',
-  0x0040: 'Antex ITU G.721 ADPCM',
-  0x0041: 'Antex G.728 CELP',
-  0x0042: 'Microsoft MSG723',
-  0x0043: 'IBM AVC ADPCM',
-  0x0045: 'ITU-T G.726',
-  0x0050: 'Microsoft MPEG',
-  0x0051: 'RT23 or PAC',
-  0x0052: 'InSoft RT24',
-  0x0053: 'InSoft PAC',
-  0x0055: 'MP3',
-  0x0059: 'Cirrus',
-  0x0060: 'Cirrus Logic',
-  0x0061: 'ESS Tech. PCM',
-  0x0062: 'Voxware Inc.',
-  0x0063: 'Canopus ATRAC',
-  0x0064: 'APICOM G.726 ADPCM',
-  0x0065: 'APICOM G.722 ADPCM',
-  0x0066: 'Microsoft DSAT',
-  0x0067: 'Microsoft DSAT DISPLAY',
-  0x0069: 'Voxware Byte Aligned',
-  0x0070: 'Voxware AC8',
-  0x0071: 'Voxware AC10',
-  0x0072: 'Voxware AC16',
-  0x0073: 'Voxware AC20',
-  0x0074: 'Voxware MetaVoice',
-  0x0075: 'Voxware MetaSound',
-  0x0076: 'Voxware RT29HW',
-  0x0077: 'Voxware VR12',
-  0x0078: 'Voxware VR18',
-  0x0079: 'Voxware TQ40',
-  0x007A: 'Voxware SC3',
-  0x007B: 'Voxware SC3',
-  0x0080: 'Soundsoft',
-  0x0081: 'Voxware TQ60',
-  0x0082: 'Microsoft MSRT24',
-  0x0083: 'AT&T G.729A',
-  0x0084: 'Motion Pixels MVI MV12',
-  0x0085: 'DataFusion G.726',
-  0x0086: 'DataFusion GSM610',
-  0x0088: 'Iterated Systems Audio',
-  0x0089: 'Onlive',
-  0x008A: 'Multitude, Inc. FT SX20',
-  0x008B: 'Infocom ITS A/S G.721 ADPCM',
-  0x008C: 'Convedia G729',
-  0x008D: 'Not specified congruency, Inc.',
-  0x0091: 'Siemens SBC24',
-  0x0092: 'Sonic Foundry Dolby AC3 APDIF',
-  0x0093: 'MediaSonic G.723',
-  0x0094: 'Aculab Prosody 8kbps',
-  0x0097: 'ZyXEL ADPCM',
-  0x0098: 'Philips LPCBB',
-  0x0099: 'Studer Professional Audio Packed',
-  0x00A0: 'Malden PhonyTalk',
-  0x00A1: 'Racal Recorder GSM',
-  0x00A2: 'Racal Recorder G720.a',
-  0x00A3: 'Racal G723.1',
-  0x00A4: 'Racal Tetra ACELP',
-  0x00B0: 'NEC AAC NEC Corporation',
-  0x00FF: 'AAC',
-  0x0100: 'Rhetorex ADPCM',
-  0x0101: 'IBM u-Law',
-  0x0102: 'IBM a-Law',
-  0x0103: 'IBM ADPCM',
-  0x0111: 'Vivo G.723',
-  0x0112: 'Vivo Siren',
-  0x0120: 'Philips Speech Processing CELP',
-  0x0121: 'Philips Speech Processing GRUNDIG',
-  0x0123: 'Digital G.723',
-  0x0125: 'Sanyo LD ADPCM',
-  0x0130: 'Sipro Lab ACEPLNET',
-  0x0131: 'Sipro Lab ACELP4800',
-  0x0132: 'Sipro Lab ACELP8V3',
-  0x0133: 'Sipro Lab G.729',
-  0x0134: 'Sipro Lab G.729A',
-  0x0135: 'Sipro Lab Kelvin',
-  0x0136: 'VoiceAge AMR',
-  0x0140: 'Dictaphone G.726 ADPCM',
-  0x0150: 'Qualcomm PureVoice',
-  0x0151: 'Qualcomm HalfRate',
-  0x0155: 'Ring Zero Systems TUBGSM',
-  0x0160: 'Microsoft Audio1',
-  0x0161: 'Windows Media Audio V2 V7 V8 V9 / DivX audio (WMA) / Alex AC3 Audio',
-  0x0162: 'Windows Media Audio Professional V9',
-  0x0163: 'Windows Media Audio Lossless V9',
-  0x0164: 'WMA Pro over S/PDIF',
-  0x0170: 'UNISYS NAP ADPCM',
-  0x0171: 'UNISYS NAP ULAW',
-  0x0172: 'UNISYS NAP ALAW',
-  0x0173: 'UNISYS NAP 16K',
-  0x0174: 'MM SYCOM ACM SYC008 SyCom Technologies',
-  0x0175: 'MM SYCOM ACM SYC701 G726L SyCom Technologies',
-  0x0176: 'MM SYCOM ACM SYC701 CELP54 SyCom Technologies',
-  0x0177: 'MM SYCOM ACM SYC701 CELP68 SyCom Technologies',
-  0x0178: 'Knowledge Adventure ADPCM',
-  0x0180: 'Fraunhofer IIS MPEG2AAC',
-  0x0190: 'Digital Theater Systems DTS DS',
-  0x0200: 'Creative Labs ADPCM',
-  0x0202: 'Creative Labs FASTSPEECH8',
-  0x0203: 'Creative Labs FASTSPEECH10',
-  0x0210: 'UHER ADPCM',
-  0x0215: 'Ulead DV ACM',
-  0x0216: 'Ulead DV ACM',
-  0x0220: 'Quarterdeck Corp.',
-  0x0230: 'I-Link VC',
-  0x0240: 'Aureal Semiconductor Raw Sport',
-  0x0241: 'ESST AC3',
-  0x0250: 'Interactive Products HSX',
-  0x0251: 'Interactive Products RPELP',
-  0x0260: 'Consistent CS2',
-  0x0270: 'Sony SCX',
-  0x0271: 'Sony SCY',
-  0x0272: 'Sony ATRAC3',
-  0x0273: 'Sony SPC',
-  0x0280: 'TELUM Telum Inc.',
-  0x0281: 'TELUMIA Telum Inc.',
-  0x0285: 'Norcom Voice Systems ADPCM',
-  0x0300: 'Fujitsu FM TOWNS SND',
-  0x0301: 'Fujitsu (not specified)',
-  0x0302: 'Fujitsu (not specified)',
-  0x0303: 'Fujitsu (not specified)',
-  0x0304: 'Fujitsu (not specified)',
-  0x0305: 'Fujitsu (not specified)',
-  0x0306: 'Fujitsu (not specified)',
-  0x0307: 'Fujitsu (not specified)',
-  0x0308: 'Fujitsu (not specified)',
-  0x0350: 'Micronas Semiconductors, Inc. Development',
-  0x0351: 'Micronas Semiconductors, Inc. CELP833',
-  0x0400: 'Brooktree Digital',
-  0x0401: 'Intel Music Coder (IMC)',
-  0x0402: 'Ligos Indeo Audio',
-  0x0450: 'QDesign Music',
-  0x0500: 'On2 VP7 On2 Technologies',
-  0x0501: 'On2 VP6 On2 Technologies',
-  0x0680: 'AT&T VME VMPCM',
-  0x0681: 'AT&T TCP',
-  0x0700: 'YMPEG Alpha (dummy for MPEG-2 compressor)',
-  0x08AE: 'ClearJump LiteWave (lossless)',
-  0x1000: 'Olivetti GSM',
-  0x1001: 'Olivetti ADPCM',
-  0x1002: 'Olivetti CELP',
-  0x1003: 'Olivetti SBC',
-  0x1004: 'Olivetti OPR',
-  0x1100: 'Lernout & Hauspie',
-  0x1101: 'Lernout & Hauspie CELP codec',
-  0x1102: 'Lernout & Hauspie SBC codec',
-  0x1103: 'Lernout & Hauspie SBC codec',
-  0x1104: 'Lernout & Hauspie SBC codec',
-  0x1400: 'Norris Comm. Inc.',
-  0x1401: 'ISIAudio',
-  0x1500: 'AT&T Soundspace Music Compression',
-  0x181C: 'VoxWare RT24 speech codec',
-  0x181E: 'Lucent elemedia AX24000P Music codec',
-  0x1971: 'Sonic Foundry LOSSLESS',
-  0x1979: 'Innings Telecom Inc. ADPCM',
-  0x1C07: 'Lucent SX8300P speech codec',
-  0x1C0C: 'Lucent SX5363S G.723 compliant codec',
-  0x1F03: 'CUseeMe DigiTalk (ex-Rocwell)',
-  0x1FC4: 'NCT Soft ALF2CD ACM',
-  0x2000: 'FAST Multimedia DVM',
-  0x2001: 'Dolby DTS (Digital Theater System)',
-  0x2002: 'RealAudio 1 / 2 14.4',
-  0x2003: 'RealAudio 1 / 2 28.8',
-  0x2004: 'RealAudio G2 / 8 Cook (low bitrate)',
-  0x2005: 'RealAudio 3 / 4 / 5 Music (DNET)',
-  0x2006: 'RealAudio 10 AAC (RAAC)',
-  0x2007: 'RealAudio 10 AAC+ (RACP)',
-  0x2500: 'Reserved range to 0x2600 Microsoft',
-  0x3313: 'makeAVIS (ffvfw fake AVI sound from AviSynth scripts)',
-  0x4143: 'Divio MPEG-4 AAC audio',
-  0x4201: 'Nokia adaptive multirate',
-  0x4243: 'Divio G726 Divio, Inc.',
-  0x434C: 'LEAD Speech',
-  0x564C: 'LEAD Vorbis',
-  0x5756: 'WavPack Audio',
-  0x674F: 'Ogg Vorbis (mode 1)',
-  0x6750: 'Ogg Vorbis (mode 2)',
-  0x6751: 'Ogg Vorbis (mode 3)',
-  0x676F: 'Ogg Vorbis (mode 1+)',
-  0x6770: 'Ogg Vorbis (mode 2+)',
-  0x6771: 'Ogg Vorbis (mode 3+)',
-  0x7000: '3COM NBX 3Com Corporation',
-  0x706D: 'FAAD AAC',
-  0x7A21: 'GSM-AMR (CBR, no SID)',
-  0x7A22: 'GSM-AMR (VBR, including SID)',
-  0xA100: 'Comverse Infosys Ltd. G723 1',
-  0xA101: 'Comverse Infosys Ltd. AVQSBC',
-  0xA102: 'Comverse Infosys Ltd. OLDSBC',
-  0xA103: 'Symbol Technologies G729A',
-  0xA104: 'VoiceAge AMR WB VoiceAge Corporation',
-  0xA105: 'Ingenient Technologies Inc. G726',
-  0xA106: 'ISO/MPEG-4 advanced audio Coding',
-  0xA107: 'Encore Software Ltd G726',
-  0xA109: 'Speex ACM Codec xiph.org',
-  0xDFAC: 'DebugMode SonicFoundry Vegas FrameServer ACM Codec',
-  0xF1AC: 'Free Lossless Audio Codec FLAC',
-  0xFFFE: 'Extensible',
-  0xFFFF: 'Development',
+  0x0001: "Microsoft Pulse Code Modulation (PCM) / Uncompressed",
+  0x0002: "Microsoft ADPCM",
+  0x0003: "Microsoft IEEE Float LPCM",
+  0x0004: "Compaq VSELP",
+  0x0005: "IBM CVSD",
+  0x0006: "Microsoft ITU G.711 a-law",
+  0x0007: "Microsoft ITU G.711 µ-law",
+  0x0008: "Microsoft DTS",
+  0x0009: "DRM",
+  0x000a: "WMA 9 Speech",
+  0x000b: "Microsoft Windows Media RT Voice",
+  0x0010: "OKI-ADPCM",
+  0x0011: "Intel IMA / DVI-ADPCM",
+  0x0012: "Videologic Mediaspace ADPCM",
+  0x0013: "Sierra ADPCM",
+  0x0014: "Antex G.723 ADPCM",
+  0x0015: "DSP Solutions DIGISTD",
+  0x0016: "DSP Solutions DIGIFIX / ITU G.723 ADPCM (Yamaha)",
+  0x0017: "Dialoic OKI ADPCM",
+  0x0018: "Media Vision ADPCM",
+  0x0019: "HP CU",
+  0x001a: "HP Dynamic Voice",
+  0x0020: "Yamaha ADPCM",
+  0x0021: "SONARC Speech Compression",
+  0x0022: "DSP Group True Speech",
+  0x0023: "Echo Speech Corp.",
+  0x0024: "Virtual Music Audiofile AF36",
+  0x0025: "Audio Processing Tech.",
+  0x0026: "Virtual Music Audiofile AF10",
+  0x0027: "Aculab Prosody 1612",
+  0x0028: "Merging Tech. LRC",
+  0x0030: "Dolby AC2",
+  0x0031: "Microsoft 6.10",
+  0x0032: "MSN Audio",
+  0x0033: "Antex ADPCME",
+  0x0034: "Control Resources VQLPC",
+  0x0035: "DSP Solutions DIGIREAL",
+  0x0036: "DSP Solutions DIGIADPCM",
+  0x0037: "Control Resources CR10",
+  0x0038: "Natural MicroSystems VBX ADPCM",
+  0x0039: "Crystal Semiconductor IMA ADPCM",
+  0x003a: "Echo Speech ECHOSC3",
+  0x003b: "Rockwell ADPCM",
+  0x003c: "Rockwell DIGITALK",
+  0x003d: "Xebec Multimedia",
+  0x0040: "Antex ITU G.721 ADPCM",
+  0x0041: "Antex G.728 CELP",
+  0x0042: "Microsoft MSG723",
+  0x0043: "IBM AVC ADPCM",
+  0x0045: "ITU-T G.726",
+  0x0050: "Microsoft MPEG",
+  0x0051: "RT23 or PAC",
+  0x0052: "InSoft RT24",
+  0x0053: "InSoft PAC",
+  0x0055: "MP3",
+  0x0059: "Cirrus",
+  0x0060: "Cirrus Logic",
+  0x0061: "ESS Tech. PCM",
+  0x0062: "Voxware Inc.",
+  0x0063: "Canopus ATRAC",
+  0x0064: "APICOM G.726 ADPCM",
+  0x0065: "APICOM G.722 ADPCM",
+  0x0066: "Microsoft DSAT",
+  0x0067: "Microsoft DSAT DISPLAY",
+  0x0069: "Voxware Byte Aligned",
+  0x0070: "Voxware AC8",
+  0x0071: "Voxware AC10",
+  0x0072: "Voxware AC16",
+  0x0073: "Voxware AC20",
+  0x0074: "Voxware MetaVoice",
+  0x0075: "Voxware MetaSound",
+  0x0076: "Voxware RT29HW",
+  0x0077: "Voxware VR12",
+  0x0078: "Voxware VR18",
+  0x0079: "Voxware TQ40",
+  0x007a: "Voxware SC3",
+  0x007b: "Voxware SC3",
+  0x0080: "Soundsoft",
+  0x0081: "Voxware TQ60",
+  0x0082: "Microsoft MSRT24",
+  0x0083: "AT&T G.729A",
+  0x0084: "Motion Pixels MVI MV12",
+  0x0085: "DataFusion G.726",
+  0x0086: "DataFusion GSM610",
+  0x0088: "Iterated Systems Audio",
+  0x0089: "Onlive",
+  0x008a: "Multitude, Inc. FT SX20",
+  0x008b: "Infocom ITS A/S G.721 ADPCM",
+  0x008c: "Convedia G729",
+  0x008d: "Not specified congruency, Inc.",
+  0x0091: "Siemens SBC24",
+  0x0092: "Sonic Foundry Dolby AC3 APDIF",
+  0x0093: "MediaSonic G.723",
+  0x0094: "Aculab Prosody 8kbps",
+  0x0097: "ZyXEL ADPCM",
+  0x0098: "Philips LPCBB",
+  0x0099: "Studer Professional Audio Packed",
+  0x00a0: "Malden PhonyTalk",
+  0x00a1: "Racal Recorder GSM",
+  0x00a2: "Racal Recorder G720.a",
+  0x00a3: "Racal G723.1",
+  0x00a4: "Racal Tetra ACELP",
+  0x00b0: "NEC AAC NEC Corporation",
+  0x00ff: "AAC",
+  0x0100: "Rhetorex ADPCM",
+  0x0101: "IBM u-Law",
+  0x0102: "IBM a-Law",
+  0x0103: "IBM ADPCM",
+  0x0111: "Vivo G.723",
+  0x0112: "Vivo Siren",
+  0x0120: "Philips Speech Processing CELP",
+  0x0121: "Philips Speech Processing GRUNDIG",
+  0x0123: "Digital G.723",
+  0x0125: "Sanyo LD ADPCM",
+  0x0130: "Sipro Lab ACEPLNET",
+  0x0131: "Sipro Lab ACELP4800",
+  0x0132: "Sipro Lab ACELP8V3",
+  0x0133: "Sipro Lab G.729",
+  0x0134: "Sipro Lab G.729A",
+  0x0135: "Sipro Lab Kelvin",
+  0x0136: "VoiceAge AMR",
+  0x0140: "Dictaphone G.726 ADPCM",
+  0x0150: "Qualcomm PureVoice",
+  0x0151: "Qualcomm HalfRate",
+  0x0155: "Ring Zero Systems TUBGSM",
+  0x0160: "Microsoft Audio1",
+  0x0161: "Windows Media Audio V2 V7 V8 V9 / DivX audio (WMA) / Alex AC3 Audio",
+  0x0162: "Windows Media Audio Professional V9",
+  0x0163: "Windows Media Audio Lossless V9",
+  0x0164: "WMA Pro over S/PDIF",
+  0x0170: "UNISYS NAP ADPCM",
+  0x0171: "UNISYS NAP ULAW",
+  0x0172: "UNISYS NAP ALAW",
+  0x0173: "UNISYS NAP 16K",
+  0x0174: "MM SYCOM ACM SYC008 SyCom Technologies",
+  0x0175: "MM SYCOM ACM SYC701 G726L SyCom Technologies",
+  0x0176: "MM SYCOM ACM SYC701 CELP54 SyCom Technologies",
+  0x0177: "MM SYCOM ACM SYC701 CELP68 SyCom Technologies",
+  0x0178: "Knowledge Adventure ADPCM",
+  0x0180: "Fraunhofer IIS MPEG2AAC",
+  0x0190: "Digital Theater Systems DTS DS",
+  0x0200: "Creative Labs ADPCM",
+  0x0202: "Creative Labs FASTSPEECH8",
+  0x0203: "Creative Labs FASTSPEECH10",
+  0x0210: "UHER ADPCM",
+  0x0215: "Ulead DV ACM",
+  0x0216: "Ulead DV ACM",
+  0x0220: "Quarterdeck Corp.",
+  0x0230: "I-Link VC",
+  0x0240: "Aureal Semiconductor Raw Sport",
+  0x0241: "ESST AC3",
+  0x0250: "Interactive Products HSX",
+  0x0251: "Interactive Products RPELP",
+  0x0260: "Consistent CS2",
+  0x0270: "Sony SCX",
+  0x0271: "Sony SCY",
+  0x0272: "Sony ATRAC3",
+  0x0273: "Sony SPC",
+  0x0280: "TELUM Telum Inc.",
+  0x0281: "TELUMIA Telum Inc.",
+  0x0285: "Norcom Voice Systems ADPCM",
+  0x0300: "Fujitsu FM TOWNS SND",
+  0x0301: "Fujitsu (not specified)",
+  0x0302: "Fujitsu (not specified)",
+  0x0303: "Fujitsu (not specified)",
+  0x0304: "Fujitsu (not specified)",
+  0x0305: "Fujitsu (not specified)",
+  0x0306: "Fujitsu (not specified)",
+  0x0307: "Fujitsu (not specified)",
+  0x0308: "Fujitsu (not specified)",
+  0x0350: "Micronas Semiconductors, Inc. Development",
+  0x0351: "Micronas Semiconductors, Inc. CELP833",
+  0x0400: "Brooktree Digital",
+  0x0401: "Intel Music Coder (IMC)",
+  0x0402: "Ligos Indeo Audio",
+  0x0450: "QDesign Music",
+  0x0500: "On2 VP7 On2 Technologies",
+  0x0501: "On2 VP6 On2 Technologies",
+  0x0680: "AT&T VME VMPCM",
+  0x0681: "AT&T TCP",
+  0x0700: "YMPEG Alpha (dummy for MPEG-2 compressor)",
+  0x08ae: "ClearJump LiteWave (lossless)",
+  0x1000: "Olivetti GSM",
+  0x1001: "Olivetti ADPCM",
+  0x1002: "Olivetti CELP",
+  0x1003: "Olivetti SBC",
+  0x1004: "Olivetti OPR",
+  0x1100: "Lernout & Hauspie",
+  0x1101: "Lernout & Hauspie CELP codec",
+  0x1102: "Lernout & Hauspie SBC codec",
+  0x1103: "Lernout & Hauspie SBC codec",
+  0x1104: "Lernout & Hauspie SBC codec",
+  0x1400: "Norris Comm. Inc.",
+  0x1401: "ISIAudio",
+  0x1500: "AT&T Soundspace Music Compression",
+  0x181c: "VoxWare RT24 speech codec",
+  0x181e: "Lucent elemedia AX24000P Music codec",
+  0x1971: "Sonic Foundry LOSSLESS",
+  0x1979: "Innings Telecom Inc. ADPCM",
+  0x1c07: "Lucent SX8300P speech codec",
+  0x1c0c: "Lucent SX5363S G.723 compliant codec",
+  0x1f03: "CUseeMe DigiTalk (ex-Rocwell)",
+  0x1fc4: "NCT Soft ALF2CD ACM",
+  0x2000: "FAST Multimedia DVM",
+  0x2001: "Dolby DTS (Digital Theater System)",
+  0x2002: "RealAudio 1 / 2 14.4",
+  0x2003: "RealAudio 1 / 2 28.8",
+  0x2004: "RealAudio G2 / 8 Cook (low bitrate)",
+  0x2005: "RealAudio 3 / 4 / 5 Music (DNET)",
+  0x2006: "RealAudio 10 AAC (RAAC)",
+  0x2007: "RealAudio 10 AAC+ (RACP)",
+  0x2500: "Reserved range to 0x2600 Microsoft",
+  0x3313: "makeAVIS (ffvfw fake AVI sound from AviSynth scripts)",
+  0x4143: "Divio MPEG-4 AAC audio",
+  0x4201: "Nokia adaptive multirate",
+  0x4243: "Divio G726 Divio, Inc.",
+  0x434c: "LEAD Speech",
+  0x564c: "LEAD Vorbis",
+  0x5756: "WavPack Audio",
+  0x674f: "Ogg Vorbis (mode 1)",
+  0x6750: "Ogg Vorbis (mode 2)",
+  0x6751: "Ogg Vorbis (mode 3)",
+  0x676f: "Ogg Vorbis (mode 1+)",
+  0x6770: "Ogg Vorbis (mode 2+)",
+  0x6771: "Ogg Vorbis (mode 3+)",
+  0x7000: "3COM NBX 3Com Corporation",
+  0x706d: "FAAD AAC",
+  0x7a21: "GSM-AMR (CBR, no SID)",
+  0x7a22: "GSM-AMR (VBR, including SID)",
+  0xa100: "Comverse Infosys Ltd. G723 1",
+  0xa101: "Comverse Infosys Ltd. AVQSBC",
+  0xa102: "Comverse Infosys Ltd. OLDSBC",
+  0xa103: "Symbol Technologies G729A",
+  0xa104: "VoiceAge AMR WB VoiceAge Corporation",
+  0xa105: "Ingenient Technologies Inc. G726",
+  0xa106: "ISO/MPEG-4 advanced audio Coding",
+  0xa107: "Encore Software Ltd G726",
+  0xa109: "Speex ACM Codec xiph.org",
+  0xdfac: "DebugMode SonicFoundry Vegas FrameServer ACM Codec",
+  0xf1ac: "Free Lossless Audio Codec FLAC",
+  0xfffe: "Extensible",
+  0xffff: "Development",
 };
 
 /**
@@ -586,25 +591,25 @@ const WAVE_FORMAT_TAGS = {
  * @see {@link https://learn.microsoft.com/en-us/windows-hardware/drivers/audio/extensible-wave-format-descriptors|Extensible Wave Format Descriptors}
  */
 const WAVE_CHANNEL_MASK_LABELS = {
-  0x00000001: 'speaker_front_left',
-  0x00000002: 'speaker_front_right',
-  0x00000004: 'speaker_front_center',
-  0x00000008: 'speaker_low_frequency',
-  0x00000010: 'speaker_back_left',
-  0x00000020: 'speaker_back_right',
-  0x00000040: 'speaker_front_left_of_center',
-  0x00000080: 'speaker_front_right_of_center',
-  0x00000100: 'speaker_back_center',
-  0x00000200: 'speaker_side_left',
-  0x00000400: 'speaker_side_right',
-  0x00000800: 'speaker_top_center',
-  0x00001000: 'speaker_top_front_left',
-  0x00002000: 'speaker_top_front_center',
-  0x00004000: 'speaker_top_front_right',
-  0x00008000: 'speaker_top_back_left',
-  0x00010000: 'speaker_top_back_center',
-  0x00020000: 'speaker_top_back_right',
-  0x80000000: 'speaker_all',
+  0x00000001: "speaker_front_left",
+  0x00000002: "speaker_front_right",
+  0x00000004: "speaker_front_center",
+  0x00000008: "speaker_low_frequency",
+  0x00000010: "speaker_back_left",
+  0x00000020: "speaker_back_right",
+  0x00000040: "speaker_front_left_of_center",
+  0x00000080: "speaker_front_right_of_center",
+  0x00000100: "speaker_back_center",
+  0x00000200: "speaker_side_left",
+  0x00000400: "speaker_side_right",
+  0x00000800: "speaker_top_center",
+  0x00001000: "speaker_top_front_left",
+  0x00002000: "speaker_top_front_center",
+  0x00004000: "speaker_top_front_right",
+  0x00008000: "speaker_top_back_left",
+  0x00010000: "speaker_top_back_center",
+  0x00020000: "speaker_top_back_right",
+  0x80000000: "speaker_all",
 };
 
 /**
@@ -612,8 +617,9 @@ const WAVE_CHANNEL_MASK_LABELS = {
  * The array index is the sample index (`0`–`119`) and the value is the pad label, so it serves both decode (index to label) and encode (label to index via `indexOf`).
  * @type {string[]}
  */
-const ROLAND_SP404SX_PADS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-  .flatMap((bank) => Array.from({ length: 12 }, (_value, pad) => `${bank}${pad + 1}`));
+const ROLAND_SP404SX_PADS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].flatMap((bank) =>
+  Array.from({ length: 12 }, (_value, pad) => `${bank}${pad + 1}`),
+);
 
 /**
  * AudioWAV - WAVE Audio Utility
@@ -637,8 +643,8 @@ class AudioWAV extends DataBuffer {
   constructor(input, opts = {}) {
     super(input);
 
-    this.container = '';
-    this.type = '';
+    this.container = "";
+    this.type = "";
     /** @type {WavChunk[]} */
     this.chunks = [];
 
@@ -659,7 +665,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static fromFile(data, options) {
-    debug('fromFile:', data.length, data.byteLength);
+    debug("fromFile:", data.length, data.byteLength);
     const buffer = new DataBuffer(data);
     const list = new DataBufferList();
     list.append(buffer);
@@ -674,7 +680,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static fromBuffer(buffer, options) {
-    debug('fromBuffer:', buffer.length);
+    debug("fromBuffer:", buffer.length);
     const list = new DataBufferList();
     list.append(buffer);
     return new AudioWAV(buffer, options);
@@ -684,17 +690,17 @@ class AudioWAV extends DataBuffer {
    * Parse the WAV file, decoding the supported chunks.
    */
   parse() {
-    debug('parse');
+    debug("parse");
     const chunk = this.read(12, false);
     const value = AudioWAV.decodeHeader(chunk);
-    this.chunks.push({ type: 'header', value });
+    this.chunks.push({ type: "header", value });
     this.type = value.type;
 
     while (this.remainingBytes()) {
       try {
         this.decodeChunk();
       } catch (error) {
-        debug('Error Parsing:', error);
+        debug("Error Parsing:", error);
         // eslint-disable-next-line no-console
         console.error(error);
       }
@@ -714,16 +720,16 @@ class AudioWAV extends DataBuffer {
    * @throws {Error} Invalid WAV header
    */
   static decodeHeader(chunk) {
-    debug('decodeHeader');
+    debug("decodeHeader");
     const header = new DataBuffer(chunk);
 
     const chunkID = header.readString(4);
-    let type = '';
+    let type = "";
     // WAVE: Contains the letters `RIFF`, `RF64`, or `BW64` in ASCII form.
-    if (['RIFF', 'RF64', 'BW64'].includes(chunkID)) {
-      type = 'WAVE';
-    } else if (['FORM', 'AIFF', 'AIFC'].includes(chunkID)) {
-      type = 'AIFF';
+    if (["RIFF", "RF64", "BW64"].includes(chunkID)) {
+      type = "WAVE";
+    } else if (["FORM", "AIFF", "AIFC"].includes(chunkID)) {
+      type = "AIFF";
     }
 
     if (!type) {
@@ -741,16 +747,16 @@ class AudioWAV extends DataBuffer {
      * For AIFF:
      * This is the size of the data portion of the chunk minus 8 bytes for the 2 fields not included in this count: ChunkID and ChunkSize.
      */
-    const size = header.readUInt32(type !== 'AIFF');
+    const size = header.readUInt32(type !== "AIFF");
 
     // For WAVE, contains the letters `WAVE` in ASCII form.
     const format = header.readString(4);
-    if (type === 'WAVE' && format !== 'WAVE') {
+    if (type === "WAVE" && format !== "WAVE") {
       throw new Error(`Invalid WAVE header, expected 'WAVE' and got '${format}'`);
     }
 
     // For AIFF, contains the letters `AIFF` in ASCII form, or `AIFC` for compressed files.
-    if (type === 'AIFF' && !['AIFF', 'AIFC'].includes(format)) {
+    if (type === "AIFF" && !["AIFF", "AIFC"].includes(format)) {
       throw new Error(`Invalid AIFF header, expected 'AIFF' or 'AIFC' and got '${format}'`);
     }
 
@@ -771,8 +777,8 @@ class AudioWAV extends DataBuffer {
    * @returns {Buffer} The newley encoded header chunk.
    * @static
    */
-  static encodeHeader({ riff = 'RIFF', size, format = 'WAVE' }) {
-    debug('encodeHeader:', { riff, size, format });
+  static encodeHeader({ riff = "RIFF", size, format = "WAVE" }) {
+    debug("encodeHeader:", { riff, size, format });
 
     const header = Buffer.alloc(12);
     header.write(riff, 0);
@@ -794,16 +800,16 @@ class AudioWAV extends DataBuffer {
    * @throws {Error} Invalid Chunk Length when less than 0
    */
   decodeChunk() {
-    debug('decodeChunk at offset', this.offset, 'with', this.remainingBytes(), 'remaining bytes');
+    debug("decodeChunk at offset", this.offset, "with", this.remainingBytes(), "remaining bytes");
     let type = this.readString(4);
-    debug('decodeChunk type', type);
-    let size = this.readUInt32(this.type !== 'AIFF');
-    debug('decodeChunk size', size);
+    debug("decodeChunk type", type);
+    let size = this.readUInt32(this.type !== "AIFF");
+    debug("decodeChunk size", size);
 
     // `readUInt32` always returns an unsigned value, so this guard is defensive only and cannot be reached.
     /* c8 ignore next 3 */
     if (size < 0) {
-      throw new Error(`Invalid SubChunk Size: ${0xFFFFFFFF & size}`);
+      throw new Error(`Invalid SubChunk Size: ${0xffffffff & size}`);
     }
 
     // Size should be even.
@@ -811,202 +817,202 @@ class AudioWAV extends DataBuffer {
       size += 1;
     }
     if (size > this.remainingBytes()) {
-      debug('decodeChunk size', size, 'too large, using remaining bytes', this.remainingBytes());
+      debug("decodeChunk size", size, "too large, using remaining bytes", this.remainingBytes());
       size = this.remainingBytes();
     }
 
     // Check for really broken cases to avoid infinte loops.
     if (!type || size === 0) {
-      debug('decodeChunk something is wrong, ending');
-      type = '(broken)';
+      debug("decodeChunk something is wrong, ending");
+      type = "(broken)";
       size = this.remainingBytes();
     }
 
     switch (type) {
-      case 'fmt ': {
+      case "fmt ": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeFMT(chunk);
-        this.chunks.push({ type: 'format', value, chunk });
+        this.chunks.push({ type: "format", value, chunk });
         break;
       }
-      case 'fact': {
+      case "fact": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeFACT(chunk);
-        this.chunks.push({ type: 'fact', value, chunk });
+        this.chunks.push({ type: "fact", value, chunk });
         break;
       }
-      case 'inst': {
+      case "inst": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeINST(chunk);
-        this.chunks.push({ type: 'instrument', value, chunk });
+        this.chunks.push({ type: "instrument", value, chunk });
         break;
       }
-      case 'DISP': {
+      case "DISP": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeDISP(chunk);
-        this.chunks.push({ type: 'display', value, chunk });
+        this.chunks.push({ type: "display", value, chunk });
         break;
       }
-      case 'smpl': {
+      case "smpl": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeSMPL(chunk);
-        this.chunks.push({ type: 'sample', value, chunk });
+        this.chunks.push({ type: "sample", value, chunk });
         break;
       }
-      case 'tlst': {
+      case "tlst": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeTLST(chunk);
-        this.chunks.push({ type: 'trigger_list', value, chunk });
+        this.chunks.push({ type: "trigger_list", value, chunk });
         break;
       }
-      case 'data': {
+      case "data": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         AudioWAV.decodeDATA(chunk);
 
         // Calculate the duration: ((chunk_size) / (sample_rate * channels * (bits_per_sample / 8)))
-        const format = this.chunks.find((c) => c.type === 'format');
+        const format = this.chunks.find((c) => c.type === "format");
         const formatValue = /** @type {WavFormat} */ (format?.value);
         const duration = size / formatValue.byteRate;
-        this.chunks.push({ type: 'data', chunk, value: { duration } });
+        this.chunks.push({ type: "data", chunk, value: { duration } });
         break;
       }
-      case 'LIST': {
+      case "LIST": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeLIST(chunk);
-        this.chunks.push({ type: 'list', value, chunk });
+        this.chunks.push({ type: "list", value, chunk });
         break;
       }
-      case 'RLND': {
+      case "RLND": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeRLND(chunk);
-        this.chunks.push({ type: 'roland', value, chunk });
+        this.chunks.push({ type: "roland", value, chunk });
         break;
       }
-      case 'JUNK': {
+      case "JUNK": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         AudioWAV.decodeJUNK(chunk, this.options);
-        this.chunks.push({ type: 'junk', chunk });
+        this.chunks.push({ type: "junk", chunk });
         break;
       }
-      case 'PAD ': {
+      case "PAD ": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         AudioWAV.decodePAD(chunk);
-        this.chunks.push({ type: 'padding', chunk });
+        this.chunks.push({ type: "padding", chunk });
         break;
       }
-      case 'PEAK': {
+      case "PEAK": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodePEAK(chunk);
-        this.chunks.push({ type: 'peak', value, chunk });
+        this.chunks.push({ type: "peak", value, chunk });
         break;
       }
-      case 'acid': {
+      case "acid": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeACID(chunk);
-        this.chunks.push({ type: 'acid', value, chunk });
+        this.chunks.push({ type: "acid", value, chunk });
         break;
       }
-      case 'strc': {
+      case "strc": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeSTRC(chunk);
-        this.chunks.push({ type: 'strc', value, chunk });
+        this.chunks.push({ type: "strc", value, chunk });
         break;
       }
-      case 'cue ': {
+      case "cue ": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeCue(chunk);
-        this.chunks.push({ type: 'cue_points', value, chunk });
+        this.chunks.push({ type: "cue_points", value, chunk });
         break;
       }
-      case 'bext': {
+      case "bext": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeBEXT(chunk, this.options);
-        this.chunks.push({ type: 'broadcast_extension', value, chunk });
+        this.chunks.push({ type: "broadcast_extension", value, chunk });
         break;
       }
-      case 'ResU': {
+      case "ResU": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeResU(chunk);
-        this.chunks.push({ type: 'logic_resu', value, chunk });
+        this.chunks.push({ type: "logic_resu", value, chunk });
         break;
       }
-      case 'ds64': {
+      case "ds64": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeDS64(chunk);
-        this.chunks.push({ type: 'data_size_64', value, chunk });
+        this.chunks.push({ type: "data_size_64", value, chunk });
         break;
       }
-      case 'cart': {
+      case "cart": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
-        this.chunks.push({ type: 'cart', chunk, unknown: true });
+        this.chunks.push({ type: "cart", chunk, unknown: true });
         break;
       }
-      case 'AFAn':
-      case 'AFmd': {
+      case "AFAn":
+      case "AFmd": {
         // Seems to be the result of a NSKeyedArchiver.
         debug(`macOS Special Binary Chunk: '${type}' with ${size} bytes`);
         this.rewind(8);
         const chunk = this.read(8 + size, false);
-        this.chunks.push({ type, chunk, description: 'macOS Special Binary Chunk' });
+        this.chunks.push({ type, chunk, description: "macOS Special Binary Chunk" });
         break;
       }
-      case 'minf':
-      case 'elm1':
-      case 'regn':
-      case 'ovwf':
-      case 'umid': {
+      case "minf":
+      case "elm1":
+      case "regn":
+      case "ovwf":
+      case "umid": {
         debug(`ProTools Special Chunk: '${type}' with ${size} bytes`);
         this.rewind(8);
         const chunk = this.read(8 + size, false);
-        this.chunks.push({ type, chunk, description: 'ProTools Special Chunk' });
+        this.chunks.push({ type, chunk, description: "ProTools Special Chunk" });
         break;
       }
-      case 'COMM': {
+      case "COMM": {
         // AIFF Common Chunk
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeCOMM(chunk);
-        this.chunks.push({ type: 'common', value, chunk });
+        this.chunks.push({ type: "common", value, chunk });
         break;
       }
-      case 'SSND': {
+      case "SSND": {
         // AIFF Sound Data Chunk
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeSSND(chunk);
-        this.chunks.push({ type: 'common', value, chunk });
+        this.chunks.push({ type: "common", value, chunk });
         break;
       }
-      case 'FVER': {
+      case "FVER": {
         // AIFF Format Version
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const value = AudioWAV.decodeFVER(chunk);
-        this.chunks.push({ type: 'common', value, chunk });
+        this.chunks.push({ type: "common", value, chunk });
         break;
       }
-      case 'ANNO':
-      case 'AUTH':
-      case 'NAME': {
+      case "ANNO":
+      case "AUTH":
+      case "NAME": {
         this.rewind(8);
         const chunk = this.read(8 + size, false);
         const stream = new DataBuffer(chunk);
@@ -1014,7 +1020,7 @@ class AudioWAV extends DataBuffer {
         const nameSize = stream.readUInt32();
         const name = stream.readString(nameSize);
         const value = { chunkID, size: nameSize, name };
-        debug('decodeGenericText =', JSON.stringify(value, null, 2));
+        debug("decodeGenericText =", JSON.stringify(value, null, 2));
         this.chunks.push({ type: chunkID.toLowerCase(), value, chunk });
         break;
       }
@@ -1047,7 +1053,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeFMT(chunk) {
-    debug('decodeFMT');
+    debug("decodeFMT");
     const format = new DataBuffer(chunk);
     const chunkID = format.readString(4);
     const size = format.readUInt32(true);
@@ -1055,7 +1061,8 @@ class AudioWAV extends DataBuffer {
     // Values other than 1 indicate some form of compression.
     const audioFormatValue = format.readUInt16(true);
     // Unknown tags keep the original `Unknown: ` label (with an empty suffix) for backwards compatibility.
-    const audioFormat = WAVE_FORMAT_TAGS[audioFormatValue] ?? `Unknown: ${audioFormatValue.toString(16)}`;
+    const audioFormat =
+      WAVE_FORMAT_TAGS[audioFormatValue] ?? `Unknown: ${audioFormatValue.toString(16)}`;
 
     // Mono = 1, Stereo = 2, etc.
     const channels = format.readUInt16(true);
@@ -1090,7 +1097,7 @@ class AudioWAV extends DataBuffer {
     if (format.remainingBytes()) {
       value.extraParamSize = format.readUInt16(true);
       // RF64 specific fields
-      if (audioFormatValue === 0xFFFE) {
+      if (audioFormatValue === 0xfffe) {
         // Valid bits per sample i.e. 8, 16, 20, 24
         value.validBitsPerSample = format.readUInt16(true);
         // Channel mask for channel allocation
@@ -1098,7 +1105,7 @@ class AudioWAV extends DataBuffer {
 
         value.channelMaskLabel = WAVE_CHANNEL_MASK_LABELS[value.channelMask];
         if (value.channelMaskLabel === undefined) {
-          debug('Unknown Channel Mask:', value.channelMask);
+          debug("Unknown Channel Mask:", value.channelMask);
           value.channelMaskLabel = `unknown_${value.channelMask}`;
         }
 
@@ -1115,7 +1122,7 @@ class AudioWAV extends DataBuffer {
       }
     }
 
-    debug('decodeFMT =', JSON.stringify(value, null, 2));
+    debug("decodeFMT =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1138,7 +1145,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static encodeFMT(data = {}) {
-    debug('encodeFMT:', data);
+    debug("encodeFMT:", data);
     const {
       audioFormatValue = 1,
       channels = 2,
@@ -1154,7 +1161,7 @@ class AudioWAV extends DataBuffer {
     const buffer = Buffer.alloc(26 + extraParamSize, 0);
 
     // Chunk ID
-    buffer.write('fmt ', 0);
+    buffer.write("fmt ", 0);
 
     // Chunk Size
     buffer.writeUInt32LE(26 - 8 + extraParamSize, 4);
@@ -1187,7 +1194,7 @@ class AudioWAV extends DataBuffer {
       buffer.write(String(extraParams), 26);
     }
 
-    debug('Buffer:', buffer.toString('hex'));
+    debug("Buffer:", buffer.toString("hex"));
     return buffer;
   }
 
@@ -1200,7 +1207,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeLIST(chunk) {
-    debug('decodeLIST');
+    debug("decodeLIST");
     const list = new DataBuffer(chunk);
     const chunkID = list.readString(4);
     const size = list.readUInt32(true);
@@ -1213,11 +1220,11 @@ class AudioWAV extends DataBuffer {
     };
 
     switch (type) {
-      case 'INFO': {
+      case "INFO": {
         value.data = AudioWAV.decodeLISTINFO(list);
         break;
       }
-      case 'adtl': {
+      case "adtl": {
         value.data = AudioWAV.decodeLISTadtl(list);
         break;
       }
@@ -1226,7 +1233,7 @@ class AudioWAV extends DataBuffer {
       }
     }
 
-    debug('decodeLIST =', JSON.stringify(value, null, 2));
+    debug("decodeLIST =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1236,18 +1243,18 @@ class AudioWAV extends DataBuffer {
    * @returns {WavListInfo[]} The parsed list.
    */
   static decodeLISTINFO(buffer) {
-    debug('decodeLISTINFO');
+    debug("decodeLISTINFO");
     /** @type {WavListInfo[]} */
     const value = [];
     while (buffer.remainingBytes()) {
       const info = /** @type {WavListInfo} */ ({});
       // TODO: Switch for listID to have nice human labels for IDs
       info.id = buffer.readString(4);
-      debug('decodeLISTINFO chunk id:', info.id);
+      debug("decodeLISTINFO chunk id:", info.id);
       info.size = buffer.readUInt32(true);
-      debug('decodeLISTINFO chunk size:', info.size);
+      debug("decodeLISTINFO chunk size:", info.size);
       info.text = buffer.readString(info.size);
-      debug('decodeLISTINFO chunk text:', info.text);
+      debug("decodeLISTINFO chunk text:", info.text);
       // All blocks must begin on an EVEN boundary and the block size MUST NOT include the padding byte, if required.
       if (info.size % 2 !== 0) {
         buffer.advance(1);
@@ -1263,7 +1270,7 @@ class AudioWAV extends DataBuffer {
    * @returns {WavListAdtl[]} The parsed list.
    */
   static decodeLISTadtl(buffer) {
-    debug('decodeLISTadtl');
+    debug("decodeLISTadtl");
     /** @type {WavListAdtl[]} */
     const value = [];
     while (buffer.remainingBytes()) {
@@ -1272,11 +1279,11 @@ class AudioWAV extends DataBuffer {
       adtl.size = buffer.readUInt32(true);
 
       switch (adtl.id) {
-        case 'labl': {
+        case "labl": {
           adtl.label = buffer.readString(adtl.size).trim();
           break;
         }
-        case 'ltxt': {
+        case "ltxt": {
           adtl.ltxt = buffer.readString(adtl.size).trim();
           break;
         }
@@ -1312,11 +1319,11 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeTLST(chunk) {
-    debug('decodeTLST');
+    debug("decodeTLST");
     const tlst = new DataBuffer(chunk);
     const _chunkID = tlst.readString(4);
     const size = tlst.readUInt32(true);
-    debug('decodeTLST size', size);
+    debug("decodeTLST size", size);
 
     // Specifies the list which this list entry references.
     // References either `cue` or `playlist`.
@@ -1367,7 +1374,7 @@ class AudioWAV extends DataBuffer {
       extraData,
       function: func,
     };
-    debug('decodeTLST =', JSON.stringify(value, null, 2));
+    debug("decodeTLST =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1386,18 +1393,18 @@ class AudioWAV extends DataBuffer {
    * @see {@link http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html | Audio File Format Specifications}
    */
   static decodeFACT(chunk) {
-    debug('decodeFACT');
+    debug("decodeFACT");
     const fact = new DataBuffer(chunk);
     const _chunkID = fact.readString(4);
     const size = fact.readUInt32(true);
-    debug('decodeFACT size', size);
+    debug("decodeFACT size", size);
 
     // Various information about the contents of the file, depending on the compression code.
     // For Non-PCM, Number of samples (per channel)
     const numberOfSamples = fact.readUInt32(true);
     /** @type {WavFact} */
     const value = { numberOfSamples };
-    debug('decodeFACT =', JSON.stringify(value, null, 2));
+    debug("decodeFACT =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1410,11 +1417,11 @@ class AudioWAV extends DataBuffer {
    * @see {@link https://code.google.com/archive/p/awesome-wav/wikis/WAVFormat.wiki|awesome-wav - WAVFormat.wiki}
    */
   static decodePEAK(chunk) {
-    debug('decodePEAK');
+    debug("decodePEAK");
     const peak = new DataBuffer(chunk);
     const _chunkID = peak.readString(4);
     const size = peak.readUInt32(true);
-    debug('decodePEAK size', size);
+    debug("decodePEAK size", size);
 
     // Peak Chunk Version
     const version = peak.readUInt32(true);
@@ -1436,7 +1443,7 @@ class AudioWAV extends DataBuffer {
       bitAlign,
     };
 
-    debug('decodePEAK =', JSON.stringify(value, null, 2));
+    debug("decodePEAK =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1459,11 +1466,11 @@ class AudioWAV extends DataBuffer {
    * @see {@link https://docs.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats|Standard Clipboard Formats}
    */
   static decodeDISP(chunk) {
-    debug('decodeDISP');
+    debug("decodeDISP");
     const disp = new DataBuffer(chunk);
     const _chunkID = disp.readString(4);
     const size = disp.readUInt32(true);
-    debug('decodeDISP size', size);
+    debug("decodeDISP size", size);
 
     // Identifies the data as one of the standard Windows clipboard formats:
     // CF_METAFILE, CF_DIB, CF_TEXT, etc. as defined in windows.h.
@@ -1472,7 +1479,7 @@ class AudioWAV extends DataBuffer {
 
     /** @type {WavDisplay} */
     const value = { type, data };
-    debug('decodeDISP =', JSON.stringify(value, null, 2));
+    debug("decodeDISP =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1490,11 +1497,11 @@ class AudioWAV extends DataBuffer {
    * @memberof AudioWAV
    */
   static decodeACID(chunk) {
-    debug('decodeACID');
+    debug("decodeACID");
     const acid = new DataBuffer(chunk);
     const _chunkID = acid.readString(4);
     const size = acid.readUInt32(true);
-    debug('decodeACID size', size);
+    debug("decodeACID size", size);
 
     // Type of file, appears to be a bit mask, however some combinations are probably impossible and/or qualified as "errors"
     // 0x01 On: One Shot         Off: Loop
@@ -1535,7 +1542,7 @@ class AudioWAV extends DataBuffer {
       meterNumerator,
       tempo,
     };
-    debug('decodeACID =', JSON.stringify(value, null, 2));
+    debug("decodeACID =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1549,11 +1556,11 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeINST(chunk) {
-    debug('decodeINST');
+    debug("decodeINST");
     const inst = new DataBuffer(chunk);
     const _chunkID = inst.readString(4);
     const size = inst.readUInt32(true);
-    debug('decodeINST size', size);
+    debug("decodeINST size", size);
 
     // The MIDI note that corresponds to the original (unshifted) pitch of the sample.
     // This value is between 0 to 127.
@@ -1587,7 +1594,7 @@ class AudioWAV extends DataBuffer {
       lowVelocity,
       highVelocity,
     };
-    debug('decodeINST =', JSON.stringify(value, null, 2));
+    debug("decodeINST =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1600,11 +1607,11 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeSMPL(chunk) {
-    debug('decodeSMPL');
+    debug("decodeSMPL");
     const smpl = new DataBuffer(chunk);
     const _chunkID = smpl.readString(4);
     const size = smpl.readUInt32(true);
-    debug('decodeSMPL size', size);
+    debug("decodeSMPL size", size);
 
     // The MIDI Manufacturers Association manufacturer code (see MIDI System Exclusive message).
     // A value of zero implies that there is no specific manufacturer.
@@ -1655,7 +1662,7 @@ class AudioWAV extends DataBuffer {
     /** @type {WavSampleLoop[]} */
     const sampleLoops = [];
     if (sampleLoopsCount > 0) {
-      debug('decodeSMPL sampleLoopsCount', sampleLoopsCount);
+      debug("decodeSMPL sampleLoopsCount", sampleLoopsCount);
       for (let i = 0; i < sampleLoopsCount; i++) {
         // A unique ID of the loop, which could be a cue point.
         const ID = smpl.readUInt32(true);
@@ -1726,7 +1733,7 @@ class AudioWAV extends DataBuffer {
       sampleLoops,
       sampleData,
     };
-    debug('decodeSMPL =', JSON.stringify(value, null, 2));
+    debug("decodeSMPL =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1741,7 +1748,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeRLND(chunk) {
-    debug('decodeRLND');
+    debug("decodeRLND");
     const roland = new DataBuffer(chunk);
     const chunkID = roland.readString(4);
     const size = roland.readUInt32(true);
@@ -1760,11 +1767,11 @@ class AudioWAV extends DataBuffer {
 
     // Sample Index starts at 0 for A1 and increases by 12 for each bank, i.e. A1 = 0x00 / 0, A5 = 0x04 / 4, B5 = 0x10 / 16, ..., J12 = 0x77 / 119.
     const sampleIndex = roland.readUInt8();
-    let sampleLabel = '';
-    if (device === 'roifspsx') {
+    let sampleLabel = "";
+    if (device === "roifspsx") {
       const label = ROLAND_SP404SX_PADS[sampleIndex];
       if (label === undefined) {
-        debug('Unknown Pad:', sampleIndex);
+        debug("Unknown Pad:", sampleIndex);
       } else {
         sampleLabel = label;
       }
@@ -1783,7 +1790,7 @@ class AudioWAV extends DataBuffer {
       sampleLabel,
     };
 
-    debug('decodeRLND =', JSON.stringify(value, null, 2));
+    debug("decodeRLND =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1808,20 +1815,14 @@ class AudioWAV extends DataBuffer {
    * @see {@link https://www.roland.com/global/support/by_product/sp-404sx/updates_drivers/|SP-404SX Support Page}
    */
   static encodeRLND(data) {
-    const {
-      device,
-      unknown1 = 4,
-      unknown2 = 0,
-      unknown3 = 0,
-      unknown4 = 0,
-    } = data;
+    const { device, unknown1 = 4, unknown2 = 0, unknown3 = 0, unknown4 = 0 } = data;
     let { sampleIndex } = data;
-    debug('encodeRLND:', device, unknown1, unknown2, unknown3, unknown4, sampleIndex);
+    debug("encodeRLND:", device, unknown1, unknown2, unknown3, unknown4, sampleIndex);
     // Padding
     const buffer = Buffer.alloc(466, 0);
 
     // ChunkID
-    buffer.write('RLND', 0);
+    buffer.write("RLND", 0);
 
     // Chunk Size
     buffer.writeUInt32LE(458, 4);
@@ -1836,10 +1837,10 @@ class AudioWAV extends DataBuffer {
     buffer.writeUInt8(unknown4, 19);
 
     // Determine the sample index from the string.
-    if (device === 'roifspsx' && typeof sampleIndex === 'string') {
+    if (device === "roifspsx" && typeof sampleIndex === "string") {
       const index = ROLAND_SP404SX_PADS.indexOf(sampleIndex.toUpperCase());
       if (index === -1) {
-        debug('Unknown Pad:', sampleIndex);
+        debug("Unknown Pad:", sampleIndex);
         sampleIndex = 0;
       } else {
         sampleIndex = index;
@@ -1849,7 +1850,7 @@ class AudioWAV extends DataBuffer {
     // Sample Index
     buffer.writeUInt8(Number(sampleIndex), 20);
 
-    debug('Buffer:', buffer.toString('hex'));
+    debug("Buffer:", buffer.toString("hex"));
     return buffer;
   }
 
@@ -1897,7 +1898,7 @@ class AudioWAV extends DataBuffer {
    * @see {@link https://tech.ebu.ch/docs/tech/tech3285.pdf|Spec}
    */
   static decodeBEXT(chunk, options) {
-    debug('decodeBEXT');
+    debug("decodeBEXT");
     const bext = new DataBuffer(chunk);
     const chunkID = bext.readString(4);
     let size = bext.readUInt32(true);
@@ -1944,7 +1945,7 @@ class AudioWAV extends DataBuffer {
     // History coding
     value.codingHistory = bext.read(bext.remainingBytes(), true);
 
-    debug('decodeBEXT =', JSON.stringify(value, null, 2));
+    debug("decodeBEXT =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -1961,15 +1962,15 @@ class AudioWAV extends DataBuffer {
    * @see {@link https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue|Cue Chunk}
    */
   static decodeCue(chunk) {
-    debug('decodeCue');
+    debug("decodeCue");
     const cue = new DataBuffer(chunk);
     const chunkID = cue.readString(4);
     const size = cue.readUInt32(true);
-    debug('decodeCue size', size);
+    debug("decodeCue size", size);
 
     // This value specifies the number of following cue points in this chunk.
     const numberCuePoints = cue.readUInt32(true);
-    debug('decodeCue numberCuePoints', numberCuePoints);
+    debug("decodeCue numberCuePoints", numberCuePoints);
 
     const value = /** @type {WavCue} */ ({
       chunkID,
@@ -2018,7 +2019,7 @@ class AudioWAV extends DataBuffer {
       debug(`Unexpected ${cue.remainingBytes()} bytes remaining`);
     }
 
-    debug('decodeCue =', JSON.stringify(value, null, 2));
+    debug("decodeCue =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -2029,18 +2030,18 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeResU(chunk) {
-    debug('decodeResU');
+    debug("decodeResU");
     const resu = new DataBuffer(chunk);
     const chunkID = resu.readString(4);
     const size = resu.readUInt32(true);
     const data = resu.read(size, false);
 
-    let decompressed = '';
+    let decompressed = "";
     try {
       decompressed = new TextDecoder().decode(inflate(data));
-      debug('Inflated Size:', decompressed.length);
+      debug("Inflated Size:", decompressed.length);
     } catch (error) {
-      debug('Error Inflating ResU:', error);
+      debug("Error Inflating ResU:", error);
     }
 
     /** @type {WavResU} */
@@ -2051,10 +2052,10 @@ class AudioWAV extends DataBuffer {
     try {
       value.data = /** @type {unknown} */ (JSON.parse(decompressed));
     } catch (error) {
-      debug('Error Parsing ResU JSON:', error);
+      debug("Error Parsing ResU JSON:", error);
     }
 
-    debug('decodeResU =', JSON.stringify(value, null, 2));
+    debug("decodeResU =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -2111,7 +2112,7 @@ class AudioWAV extends DataBuffer {
       table,
     };
 
-    debug('decodeDS64 =', JSON.stringify(value, null, 2));
+    debug("decodeDS64 =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -2125,11 +2126,11 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeSTRC(chunk) {
-    debug('decodeSTRC');
+    debug("decodeSTRC");
     const strc = new DataBuffer(chunk);
     const _chunkID = strc.readString(4);
     const size = strc.readUInt32(true);
-    debug('decodeSTRC size:', size);
+    debug("decodeSTRC size:", size);
 
     const unknown1 = strc.readUInt32(true); // always 28 (0x1C)
     const numberOfSlices = strc.readUInt32(true); // i.e. number of 32 byte blocks following this header
@@ -2141,7 +2142,7 @@ class AudioWAV extends DataBuffer {
 
     /** @type {WavStrcSlice[]} */
     const slices = [];
-    debug('decodeSTRC numberOfSlices:', numberOfSlices);
+    debug("decodeSTRC numberOfSlices:", numberOfSlices);
     for (let i = 0; i < numberOfSlices - 1; i++) {
       const header = strc.readUInt32(true); // either 0 or 2
       const ID1 = strc.readUInt32(true); // Random?
@@ -2171,11 +2172,11 @@ class AudioWAV extends DataBuffer {
         data3,
         ID2,
       };
-      debug('decodeSTRC slice:', i, slice);
-      debug('remaining', strc.remainingBytes());
+      debug("decodeSTRC slice:", i, slice);
+      debug("remaining", strc.remainingBytes());
       slices.push(slice);
     }
-    debug('decodeSTRC remaining', strc.remainingBytes());
+    debug("decodeSTRC remaining", strc.remainingBytes());
 
     /** @type {WavStrc} */
     const value = {
@@ -2188,7 +2189,7 @@ class AudioWAV extends DataBuffer {
       unknown6,
       slices,
     };
-    debug('decodeSTRC =', JSON.stringify(value, null, 2));
+    debug("decodeSTRC =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -2201,7 +2202,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeCOMM(chunk) {
-    debug('decodeCOMM');
+    debug("decodeCOMM");
     const commonChunk = new DataBuffer(chunk);
     const chunkID = commonChunk.readString(4);
     const size = commonChunk.readUInt32();
@@ -2222,8 +2223,8 @@ class AudioWAV extends DataBuffer {
     const sampleRate = commonChunk.readFloatIEEE754(false);
 
     // AIFF-C files have additional fields
-    let compressionType = '';
-    let compressionTypeName = '';
+    let compressionType = "";
+    let compressionTypeName = "";
     if (size !== 18) {
       // Compression Type is used by programs to identify the compression algorithm, if any, used on the sound data.
       compressionType = commonChunk.readString(4);
@@ -2248,7 +2249,7 @@ class AudioWAV extends DataBuffer {
       compressionTypeName,
     };
 
-    debug('decodeCOMM =', JSON.stringify(value, null, 2));
+    debug("decodeCOMM =", JSON.stringify(value, null, 2));
     return value;
   }
 
@@ -2264,7 +2265,7 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeSSND(chunk) {
-    debug('decodeSSND');
+    debug("decodeSSND");
     const ssndChunk = new DataBuffer(chunk);
     const chunkID = ssndChunk.readString(4);
     const size = ssndChunk.readUInt32();
@@ -2291,7 +2292,7 @@ class AudioWAV extends DataBuffer {
       soundData,
     };
 
-    debug('decodeSSND =', JSON.stringify({ chunkID, size, offset, blockSize }, null, 2));
+    debug("decodeSSND =", JSON.stringify({ chunkID, size, offset, blockSize }, null, 2));
     return value;
   }
 
@@ -2307,13 +2308,13 @@ class AudioWAV extends DataBuffer {
    * @static
    */
   static decodeFVER(chunk) {
-    debug('decodeFVER');
+    debug("decodeFVER");
     const formatVersionChunk = new DataBuffer(chunk);
     const chunkID = formatVersionChunk.readString(4);
     const size = formatVersionChunk.readUInt32();
 
     const timestamp = formatVersionChunk.readUInt32();
-    const versionName = timestamp === 2726318400 ? 'AIFCVersion1' : `Unknown: ${timestamp}`;
+    const versionName = timestamp === 2726318400 ? "AIFCVersion1" : `Unknown: ${timestamp}`;
 
     /** @type {AiffFormatVersion} */
     const value = {
@@ -2323,7 +2324,7 @@ class AudioWAV extends DataBuffer {
       versionName,
     };
 
-    debug('decodeFVER =', JSON.stringify(value, null, 2));
+    debug("decodeFVER =", JSON.stringify(value, null, 2));
     return value;
   }
 }

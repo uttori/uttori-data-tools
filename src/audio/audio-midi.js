@@ -1,5 +1,6 @@
 /* eslint-disable no-bitwise */
-import { DataBuffer, DataStream } from './../index.js';
+import DataBuffer from "./../data-buffer.js";
+import DataStream from "./../data-stream.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -10,7 +11,12 @@ import { DataBuffer, DataStream } from './../index.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_AUDIOMIDI_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.AudioMIDI'); } catch {} }
+if (process.env.UTTORI_AUDIOMIDI_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("Uttori.AudioMIDI");
+  } catch {}
+}
 
 /**
  * Constructor options stored on an {@link AudioMIDI} instance.
@@ -237,7 +243,7 @@ class AudioMIDI extends DataBuffer {
     // we handle both single and multi-byte scenarios with minimal code.
     do {
       byte = this.readUInt8();
-      value = (value << 7) + (byte & 0x7F);
+      value = (value << 7) + (byte & 0x7f);
     } while (byte & 0x80 && this.remainingBytes() > 0);
 
     return value;
@@ -250,7 +256,7 @@ class AudioMIDI extends DataBuffer {
    * @see {@link https://midi.org/dls-proprietary-chunk-ids | DLS Proprietary Chunk IDs}
    */
   parse() {
-    debug('parse');
+    debug("parse");
     const chunk = this.read(14);
     const header = AudioMIDI.decodeHeader(chunk);
     this.format = header.format;
@@ -268,9 +274,11 @@ class AudioMIDI extends DataBuffer {
     // Parse the remaining tracks
     debug(`parse: Reading ${header.trackCount} Tracks`);
     for (let t = 0; t < header.trackCount; t++) {
-      debug('parse: Reading Track:', t);
+      debug("parse: Reading Track:", t);
       if (this.remainingBytes() === 0) {
-        debug(`parse: No more data to read, but ony read ${t} of ${header.trackCount} expected tracks.`);
+        debug(
+          `parse: No more data to read, but ony read ${t} of ${header.trackCount} expected tracks.`,
+        );
         break;
       }
       /** @type {Track} */
@@ -279,8 +287,8 @@ class AudioMIDI extends DataBuffer {
         chunkLength: this.readUInt32(),
         events: [],
       };
-      if (track.type !== 'MTrk') {
-        debug('parse: Invalid Track Header:', track.type);
+      if (track.type !== "MTrk") {
+        debug("parse: Invalid Track Header:", track.type);
         break;
       }
 
@@ -313,7 +321,7 @@ class AudioMIDI extends DataBuffer {
         // debug('parse: Event:', { eventType: eventType.toString(16), remainingBytes: this.remainingBytes(), offset: this.offset.toString(16) });
         switch (eventType) {
           // System Exclusive Events
-          case 0xF0: {
+          case 0xf0: {
             const manufacturerId = this.readUInt8();
 
             // Get the manufacturer's label using the static method
@@ -325,7 +333,7 @@ class AudioMIDI extends DataBuffer {
             // Initialize the first byte
             let byte = this.readUInt8();
             // Read all data bytes until the End of Exclusive (EOX) marker (0xF7)
-            while (byte !== 0xF7) {
+            while (byte !== 0xf7) {
               data.push(byte);
               byte = this.readUInt8(); // Read the next byte
             }
@@ -342,11 +350,11 @@ class AudioMIDI extends DataBuffer {
           }
 
           // Song Position Pointer
-          case 0xF2: {
+          case 0xf2: {
             const msb = this.readUInt8();
             const lsb = this.readUInt8();
             event.data = { msb, lsb };
-            event.label = 'Song Position Pointer';
+            event.label = "Song Position Pointer";
             break;
           }
           // System Common Messages - Song Select
@@ -354,105 +362,105 @@ class AudioMIDI extends DataBuffer {
           // The Song Position Pointer is used to set a sequencer to start playback of a song at some point other than at the beginning.
           // The Song Position Pointer value is related to the number of MIDI clocks which would have elapsed between the beginning of the song and the desired point in the song.
           // This message can only be used with equipment which recognizes MIDI System Real Time Messages (MIDI Sync).
-          case 0xF3: {
+          case 0xf3: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Common Messages - Song Select';
+            event.label = "System Common Messages - Song Select";
             break;
           }
           // System Real Time Messages - Undefined (Reserved)
-          case 0xF4: {
-            debug('⚠️ System Real Time Messages - Undefined 0xF4 (Reserved)');
+          case 0xf4: {
+            debug("⚠️ System Real Time Messages - Undefined 0xF4 (Reserved)");
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Undefined 0xF4 (Reserved)';
+            event.label = "System Real Time Messages - Undefined 0xF4 (Reserved)";
             break;
           }
           // System Real Time Messages - Undefined (Reserved)
-          case 0xF5: {
-            debug('⚠️ System Real Time Messages - Undefined 0xF5 (Reserved)');
+          case 0xf5: {
+            debug("⚠️ System Real Time Messages - Undefined 0xF5 (Reserved)");
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Undefined 0xF5 (Reserved)';
+            event.label = "System Real Time Messages - Undefined 0xF5 (Reserved)";
             break;
           }
           // System Common Messages - Tune Request
           // The Tune Request message is generally used to request an analog synthesizer to retune its' internal oscillators.
           // This message is generally not needed with digital synthesizers.
-          case 0xF6: {
+          case 0xf6: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Common Messages - Tune Request';
+            event.label = "System Common Messages - Tune Request";
             break;
           }
           // System Common Messages - EOX
           // The EOX message is used to flag the end of a System Exclusive message, which can include a variable number of data bytes.
-          case 0xF7: {
+          case 0xf7: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Common Messages - EOX';
+            event.label = "System Common Messages - EOX";
             break;
           }
           // System Real Time Messages - MIDI Clock / Timing Clock
           // The Timing Clock message is the master clock which sets the tempo for playback of a sequence.
           // The Timing Clock message is sent 24 times per quarter note.
           // The Start, Continue, and Stop messages are used to control playback of the sequence.
-          case 0xF8: {
+          case 0xf8: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - MIDI Clock';
+            event.label = "System Real Time Messages - MIDI Clock";
             break;
           }
           // System Real Time Messages - Undefined (Reserved)
-          case 0xF9: {
-            debug('⚠️ System Real Time Messages - Undefined 0xF9 (Reserved)');
+          case 0xf9: {
+            debug("⚠️ System Real Time Messages - Undefined 0xF9 (Reserved)");
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Undefined 0xF9 (Reserved)';
+            event.label = "System Real Time Messages - Undefined 0xF9 (Reserved)";
             break;
           }
           // System Real Time Messages - Start
-          case 0xFA: {
+          case 0xfa: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Start';
+            event.label = "System Real Time Messages - Start";
             break;
           }
           // System Real Time Messages - Continue
-          case 0xFB: {
+          case 0xfb: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Continue';
+            event.label = "System Real Time Messages - Continue";
             break;
           }
           // System Real Time Messages - Stop
-          case 0xFC: {
+          case 0xfc: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Stop';
+            event.label = "System Real Time Messages - Stop";
             break;
           }
           // System Real Time Messages - Undefined (Reserved)
-          case 0xFD: {
-            debug('⚠️ System Real Time Messages - Undefined 0xFD (Reserved)');
+          case 0xfd: {
+            debug("⚠️ System Real Time Messages - Undefined 0xFD (Reserved)");
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Undefined 0xFD (Reserved)';
+            event.label = "System Real Time Messages - Undefined 0xFD (Reserved)";
             break;
           }
           // System Real Time Messages - Active Sensing
           // The Active Sensing signal is used to help eliminate "stuck notes" which may occur if a MIDI cable is disconnected during playback of a MIDI sequence.
           // Without Active Sensing, if a cable is disconnected during playback, then some notes may be left playing indefinitely because they have been activated by a Note On message, but the corresponding Note Off message will never be received.
-          case 0xFE: {
+          case 0xfe: {
             const length = this.readVariableLengthValues();
             event.data = this.read(length);
-            event.label = 'System Real Time Messages - Active Sensing';
+            event.label = "System Real Time Messages - Active Sensing";
             break;
           }
           // Meta Event
-          case 0xFF: {
+          case 0xff: {
             // assign metaEvent code to array
-            event.type = 0xFF;
+            event.type = 0xff;
             event.metaType = this.readUInt8();
             // get the metaEvent length
             event.metaEventLength = this.readVariableLengthValues();
@@ -481,14 +489,18 @@ class AudioMIDI extends DataBuffer {
                   // Combine the two bytes into the sequence number
 
                   sequenceNumber = (byte1 << 8) + byte2;
-                  type = 'Provided';
+                  type = "Provided";
                 } else {
-                  debug('parse: Sequence Number has an invalid length:', event.metaEventLength, this.offset.toString(16));
+                  debug(
+                    "parse: Sequence Number has an invalid length:",
+                    event.metaEventLength,
+                    this.offset.toString(16),
+                  );
                   this.advance(1);
                   // If no sequence number is provided, use the track's location in the file
                   /* c8 ignore next -- defensive fallback; the track loop cannot run when trackCount is 0, so this branch is unreachable */
                   sequenceNumber = this.trackCount || 0; // Assuming `this.trackCount` keeps track of the current track's index
-                  type = 'Next Track Index';
+                  type = "Next Track Index";
                 }
 
                 event.data = {
@@ -496,14 +508,14 @@ class AudioMIDI extends DataBuffer {
                   sequenceNumber,
                   type,
                 };
-                event.label = 'Sequence Number';
+                event.label = "Sequence Number";
                 break;
               }
               // Text Event
               // This meta-event supplies an arbitrary Text string tagged to the Track and Time.
               case 0x01: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Text Event';
+                event.label = "Text Event";
                 break;
               }
               // Copyright Notice
@@ -511,7 +523,7 @@ class AudioMIDI extends DataBuffer {
               // This is usually placed at time 0 of the first track in the sequence.
               case 0x02: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Copyright Notice';
+                event.label = "Copyright Notice";
                 break;
               }
               // Sequence / Track Name
@@ -520,7 +532,7 @@ class AudioMIDI extends DataBuffer {
               // Subsequent Title meta-events in other tracks give the names of those tracks.
               case 0x03: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Sequence / Track Name';
+                event.label = "Sequence / Track Name";
                 break;
               }
               // Instrument Name
@@ -530,7 +542,7 @@ class AudioMIDI extends DataBuffer {
               // This meta-event is particularly useful in sequences prepared for synthesisers which do not conform to the General MIDI patch set, as it documents the intended instrument for the track when the sequence is used on a synthesiser with a different patch set.
               case 0x04: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Instrument Name';
+                event.label = "Instrument Name";
                 break;
               }
               // Lyrics
@@ -538,21 +550,21 @@ class AudioMIDI extends DataBuffer {
               // Lyrics are often broken down into separate syllables to time-align them more precisely with the sequence.
               case 0x05: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Lyrics';
+                event.label = "Lyrics";
                 break;
               }
               // Marker
               // The Text marks a point in the sequence which occurs at the given Time, for example "Third Movement".
               case 0x06: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Marker';
+                event.label = "Marker";
                 break;
               }
               // Cue Point
               // The Text identifies synchronisation point which occurs at the specified Time, for example, "Door slams".
               case 0x07: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Cue Point';
+                event.label = "Cue Point";
                 break;
               }
               // Program Name
@@ -561,7 +573,7 @@ class AudioMIDI extends DataBuffer {
               // For example, maybe the name of your sequence (ie, track) is "Butterfly", but since the track is played upon an electric piano patch, you may also include a Program Name of "ELECTRIC PIANO".
               case 0x08: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Program Name';
+                event.label = "Program Name";
                 break;
               }
               // Device (Port) Name
@@ -576,7 +588,7 @@ class AudioMIDI extends DataBuffer {
               // The Port Name event is useful primarily in format 1 MIDI files, where each track gets routed to one particular port.
               case 0x09: {
                 event.data = this.readString(event.metaEventLength);
-                event.label = 'Device (Port) Name';
+                event.label = "Device (Port) Name";
                 break;
               }
               // Channel Prefix
@@ -586,7 +598,7 @@ class AudioMIDI extends DataBuffer {
               // If MIDI channels refer to "tracks", this message may be put into a format 0 file, keeping their non-MIDI data associated with a track.
               case 0x20: {
                 event.data = this.readUInt8();
-                event.label = 'Channel Prefix';
+                event.label = "Channel Prefix";
                 break;
               }
               // MIDI Port
@@ -603,7 +615,7 @@ class AudioMIDI extends DataBuffer {
               // The MIDI events following a MIDI Port MetaEvent get sent out that specified port.
               case 0x21: {
                 event.data = this.readUInt8();
-                event.label = 'MIDI Port';
+                event.label = "MIDI Port";
                 break;
               }
               // End of Track
@@ -611,40 +623,55 @@ class AudioMIDI extends DataBuffer {
               // It must be the last event in every track.
               // It's used as a definitive marking of the end of a track.
               // Only 1 per track.
-              case 0x2F: {
+              case 0x2f: {
                 if (event.metaEventLength !== 0) {
-                  debug('parse: End of Track has an invalid length:', event.metaEventLength, this.offset.toString(16));
+                  debug(
+                    "parse: End of Track has an invalid length:",
+                    event.metaEventLength,
+                    this.offset.toString(16),
+                  );
                 }
-                event.data = '';
-                event.label = 'End of Track';
+                event.data = "";
+                event.label = "End of Track";
                 break;
               }
               // M-Live Tag (non-standard)
               // The text specifies meta tag information for the sequence. This is usually placed at time 0 of the first track in the sequence. The data byte tt specifies the tag:
-              case 0x4B: {
+              case 0x4b: {
                 const tag = this.readUInt8();
-                let tagLabel = '';
+                let tagLabel = "";
                 switch (tag) {
-                  case 0x01: tagLabel = 'Genre'; break;
-                  case 0x02: tagLabel = 'Artist'; break;
-                  case 0x03: tagLabel = 'Composer'; break;
-                  case 0x04: tagLabel = 'Duration (seconds)'; break;
-                  case 0x05: tagLabel = 'BPM (Tempo)'; break;
-                  default: tagLabel = `Unknown Tag: ${tag}`;
+                  case 0x01:
+                    tagLabel = "Genre";
+                    break;
+                  case 0x02:
+                    tagLabel = "Artist";
+                    break;
+                  case 0x03:
+                    tagLabel = "Composer";
+                    break;
+                  case 0x04:
+                    tagLabel = "Duration (seconds)";
+                    break;
+                  case 0x05:
+                    tagLabel = "BPM (Tempo)";
+                    break;
+                  default:
+                    tagLabel = `Unknown Tag: ${tag}`;
                 }
                 const tagValue = this.read(event.metaEventLength);
                 event.data = {
                   tag,
                   tagLabel,
                   tagValue,
-                }
-                event.label = 'M-Live Tag';
+                };
+                event.label = "M-Live Tag";
                 break;
               }
               // Tempo
               case 0x51: {
                 if (event.metaEventLength !== 3) {
-                  debug('parse: Tempo has an invalid length:', event.metaEventLength);
+                  debug("parse: Tempo has an invalid length:", event.metaEventLength);
                   event.data = this.read(event.metaEventLength);
                   break;
                 }
@@ -667,7 +694,7 @@ class AudioMIDI extends DataBuffer {
                   // Beats Per Minute
                   bpm,
                 };
-                event.label = 'Set Tempo';
+                event.label = "Set Tempo";
                 break;
               }
               // SMPTE Offset
@@ -697,10 +724,11 @@ class AudioMIDI extends DataBuffer {
                   3: 30, // 11 = 30 fps
                 };
                 /* c8 ignore next -- defensive fallback; frameRateBits is masked to 0-3 so a frame rate is always found */
-                const frameRate = frameRates[frameRateBits] || `Unknown Frame Rate: ${frameRateBits}`;
+                const frameRate =
+                  frameRates[frameRateBits] || `Unknown Frame Rate: ${frameRateBits}`;
 
                 // Extract the hour from the remaining 5 bits (bits 0 to 4)
-                const hour = hourByte & 0x1F; // 0rrhhhhh -> hhhhh = hr & 0x1F
+                const hour = hourByte & 0x1f; // 0rrhhhhh -> hhhhh = hr & 0x1F
 
                 // Event data
                 event.data = {
@@ -719,7 +747,7 @@ class AudioMIDI extends DataBuffer {
                   // Frame rate (24, 25, 29.97, 30)
                   frameRate,
                 };
-                event.label = 'SMPTE Offset';
+                event.label = "SMPTE Offset";
                 break;
               }
               // Time Signature
@@ -736,7 +764,7 @@ class AudioMIDI extends DataBuffer {
                   // This event allows a program to relate what MIDI thinks of as a quarter, to something entirely different.
                   thirtySecondNotes: this.readUInt8(),
                 };
-                event.label = 'Time Signature';
+                event.label = "Time Signature";
                 break;
               }
               // Key Signature
@@ -744,7 +772,7 @@ class AudioMIDI extends DataBuffer {
               // The Major/Minor 2nd byte is a number value which will be 0 for a major key and 1 for a minor key.
               case 0x59: {
                 if (event.metaEventLength !== 2) {
-                  debug('parse: Key Signature has an invalid length:', event.metaEventLength);
+                  debug("parse: Key Signature has an invalid length:", event.metaEventLength);
                   event.data = this.read(event.metaEventLength);
                   break;
                 }
@@ -756,21 +784,21 @@ class AudioMIDI extends DataBuffer {
                 // Map the keySignature values to their respective key signatures
                 /** @type {Record<string | number, string>} */
                 const keys = {
-                  '-7': 'C♭',
-                  '-6': 'G♭',
-                  '-5': 'D♭',
-                  '-4': 'A♭',
-                  '-3': 'E♭',
-                  '-2': 'B♭',
-                  '-1': 'F',
-                  0: 'C',
-                  1: 'G',
-                  2: 'D',
-                  3: 'A',
-                  4: 'E',
-                  5: 'B',
-                  6: 'F♯',
-                  7: 'C♯',
+                  "-7": "C♭",
+                  "-6": "G♭",
+                  "-5": "D♭",
+                  "-4": "A♭",
+                  "-3": "E♭",
+                  "-2": "B♭",
+                  "-1": "F",
+                  0: "C",
+                  1: "G",
+                  2: "D",
+                  3: "A",
+                  4: "E",
+                  5: "B",
+                  6: "F♯",
+                  7: "C♯",
                 };
 
                 event.data = {
@@ -779,22 +807,26 @@ class AudioMIDI extends DataBuffer {
                   // The raw majorOrMinor byte
                   majorOrMinor,
                   // The name of the key (e.g., "C♯")
-                  keyName: keys[`${keySignature}`] || 'Unknown Key',
+                  keyName: keys[`${keySignature}`] || "Unknown Key",
                   // The mode (Major or Minor)
-                  mode: majorOrMinor === 0 ? 'Major' : 'Minor',
+                  mode: majorOrMinor === 0 ? "Major" : "Minor",
                 };
-                event.label = 'Key Signature';
+                event.label = "Key Signature";
                 break;
               }
               // Sequencer Specific
-              case 0x7F: {
-                debug('Sequencer Specific is unimplemented');
+              case 0x7f: {
+                debug("Sequencer Specific is unimplemented");
                 event.data = this.read(event.metaEventLength);
-                event.label = 'Sequencer Specific';
+                event.label = "Sequencer Specific";
                 break;
               }
               default: {
-                debug('Unimplemented 0xFF Meta Event', event.metaType.toString(16).toUpperCase(), this.offset.toString(16).toUpperCase());
+                debug(
+                  "Unimplemented 0xFF Meta Event",
+                  event.metaType.toString(16).toUpperCase(),
+                  this.offset.toString(16).toUpperCase(),
+                );
                 event.data = this.read(event.metaEventLength);
               }
             }
@@ -809,9 +841,9 @@ class AudioMIDI extends DataBuffer {
             const statusByte = eventType ?? 0;
 
             // Extract the channel (lower 4 bits)
-            event.channel = statusByte & 0x0F;
+            event.channel = statusByte & 0x0f;
 
-            const type = (statusByte >> 4) & 0x0F;
+            const type = (statusByte >> 4) & 0x0f;
             switch (type) {
               // Note Off
               // The Note Off Event is used to signal when a MIDI key is released.
@@ -844,9 +876,9 @@ class AudioMIDI extends DataBuffer {
                     velocity,
                     length: 0,
                   };
-                  debug('Missing Note On Event for:', note)
+                  debug("Missing Note On Event for:", note);
                 }
-                event.label = 'Note Off';
+                event.label = "Note Off";
                 break;
               }
               // Note On
@@ -862,7 +894,7 @@ class AudioMIDI extends DataBuffer {
                   note,
                   velocity,
                 };
-                event.label = 'Note On';
+                event.label = "Note On";
 
                 // Track the note start time and velocity in the activeNotes map
                 activeNotes.set(note, { startTime: currentTime, velocity, noteOnEvent: event });
@@ -873,12 +905,12 @@ class AudioMIDI extends DataBuffer {
               // It has two parameters.
               // The note number of which key's pressure is changing and the aftertouch value which specifies amount of pressure being applied (0 = no pressure, 127 = full pressure).
               // Note Aftertouch is used for extra expression of particular notes, often introducing or increasing some type of modulation during the instrument's sustain phase
-              case 0xA: {
+              case 0xa: {
                 event.data = {
                   note: this.readUInt8(),
                   velocity: this.readUInt8(),
                 };
-                event.label = 'Note Aftertouch';
+                event.label = "Note Aftertouch";
                 break;
               }
               // Controller
@@ -886,7 +918,7 @@ class AudioMIDI extends DataBuffer {
               // There are 128 controllers which define different attributes of the channel including volume, pan, modulation, effects, and more.
               // This event type has two parameters.
               // The controller number specifies which control is changing and the controller value defines it's new setting.
-              case 0xB: {
+              case 0xb: {
                 const controller = this.readUInt8();
                 const value = this.readUInt8();
                 event.data = {
@@ -894,23 +926,23 @@ class AudioMIDI extends DataBuffer {
                   value,
                   label: AudioMIDI.getControllerLabel(controller),
                 };
-                event.label = 'Controller';
+                event.label = "Controller";
                 break;
               }
               // Program Change
               // The Program Change Event is used to change which program (instrument/patch) should be played on the MIDI channel.
               // This type of event takes only one parameter, the program number of the new instrument / patch.
-              case 0xC: {
+              case 0xc: {
                 event.data = this.readUInt8();
-                event.label = 'Program Change';
+                event.label = "Program Change";
                 break;
               }
               // Channel Aftertouch
               // The Channel Aftertouch Event is similar to the Note Aftertouch message, except it effects all keys currently pressed on the specific MIDI channel.
               // This type of event takes only one parameter, the aftertouch amount (0 = no pressure, 127 = full pressure).
-              case 0xD: {
+              case 0xd: {
                 event.data = this.readUInt8();
-                event.label = 'Channel Aftertouch';
+                event.label = "Channel Aftertouch";
                 break;
               }
               // Pitch Bend
@@ -920,7 +952,7 @@ class AudioMIDI extends DataBuffer {
               // The pitch value affects all playing notes on the current channel.
               // Values below 8192 decrease the pitch, while values above 8192 increase the pitch.
               // The pitch range may vary from instrument to instrument, but is usually +/-2 semi-tones.
-              case 0xE: {
+              case 0xe: {
                 // Read the first parameter byte (xxxxxxx)
                 const firstByte = this.readUInt8();
                 // Read the second parameter byte (yyyyyyy)
@@ -935,18 +967,21 @@ class AudioMIDI extends DataBuffer {
                   // The raw second parameter byte
                   secondByte,
                 };
-                event.label = 'Pitch Bend Event';
+                event.label = "Pitch Bend Event";
                 break;
               }
               // System Exclusive Events
-              case 0xF: {
-                debug('Unimplemented 0xFx Exclusive Events:', /** @type {number} */ (event.type).toString(16));
+              case 0xf: {
+                debug(
+                  "Unimplemented 0xFx Exclusive Events:",
+                  /** @type {number} */ (event.type).toString(16),
+                );
                 const length = this.readVariableLengthValues();
                 event.data = this.read(length);
                 break;
               }
               default: {
-                debug('Unknown Exclusive Events:', event.type);
+                debug("Unknown Exclusive Events:", event.type);
                 break;
               }
             }
@@ -958,10 +993,10 @@ class AudioMIDI extends DataBuffer {
         // }
         track.events.push(event);
       }
-      debug('Track Events:', track.events.length);
+      debug("Track Events:", track.events.length);
       this.chunks.push(track);
     }
-    debug('Chunks:', this.chunks);
+    debug("Chunks:", this.chunks);
   }
 
   /**
@@ -971,7 +1006,7 @@ class AudioMIDI extends DataBuffer {
    */
   addTrack() {
     const track = {
-      type: 'MTrk',
+      type: "MTrk",
       chunkLength: 0,
       events: [],
     };
@@ -987,7 +1022,7 @@ class AudioMIDI extends DataBuffer {
    */
   addEvent(track, event) {
     if (Array.isArray(event)) {
-      track.events = [...track.events, ...event]
+      track.events = [...track.events, ...event];
     } else {
       track.events.push(event);
     }
@@ -998,12 +1033,12 @@ class AudioMIDI extends DataBuffer {
    * @returns {DataBuffer} The binary data buffer.
    */
   saveToDataBuffer() {
-    debug('saveToDataBuffer: chunks', this.chunks.length);
+    debug("saveToDataBuffer: chunks", this.chunks.length);
     const dataBuffer = new DataBuffer();
 
     // Write the header
-    dataBuffer.writeString('MThd');
-     // Header length is always 6
+    dataBuffer.writeString("MThd");
+    // Header length is always 6
     dataBuffer.writeUInt32(6);
     dataBuffer.writeUInt16(this.format);
     dataBuffer.writeUInt16(this.trackCount);
@@ -1024,9 +1059,9 @@ class AudioMIDI extends DataBuffer {
    */
   writeChunk(dataBuffer, chunk) {
     // Convert the chunk into binary data and write it to the buffer
-    if (chunk.type === 'MTrk') {
+    if (chunk.type === "MTrk") {
       // Write the track chunk (MTrk)
-      dataBuffer.writeString('MTrk');
+      dataBuffer.writeString("MTrk");
 
       // Placeholder for chunk length
       const chunkLengthPosition = dataBuffer.offset;
@@ -1044,7 +1079,7 @@ class AudioMIDI extends DataBuffer {
       const endPosition = dataBuffer.offset;
       const chunkLength = endPosition - startPosition;
 
-      debug('writeChunk: track size', chunkLength);
+      debug("writeChunk: track size", chunkLength);
 
       // Move back to where the chunk length was initially written
       dataBuffer.seek(chunkLengthPosition);
@@ -1057,7 +1092,7 @@ class AudioMIDI extends DataBuffer {
       // Move back to the end of the buffer to continue writing
       dataBuffer.seek(endPosition);
     } else {
-      debug('skipping unknown chunk type:', chunk.type)
+      debug("skipping unknown chunk type:", chunk.type);
     }
   }
 
@@ -1072,11 +1107,11 @@ class AudioMIDI extends DataBuffer {
 
     // Channel Voice messages (0x80 - 0xEF) carry the channel in the low nibble.
     // `parse()` stores the full status byte in `type` (e.g. 0x91), so normalize to the base type (0x90) and re-apply the channel for a clean round-trip.
-    const isChannelVoice = type >= 0x80 && type <= 0xEF;
-    const baseType = isChannelVoice ? (type & 0xF0) : type;
+    const isChannelVoice = type >= 0x80 && type <= 0xef;
+    const baseType = isChannelVoice ? type & 0xf0 : type;
 
     // Calculate the status byte for channel-specific events
-    const statusByte = isChannelVoice ? (baseType | ((channel ?? 0) & 0x0F)) : type;
+    const statusByte = isChannelVoice ? baseType | ((channel ?? 0) & 0x0f) : type;
 
     if (!statusByte) {
       throw new Error(`Invalid status byte ${statusByte} for event: ${JSON.stringify(event)}`);
@@ -1097,7 +1132,7 @@ class AudioMIDI extends DataBuffer {
       // Note On
       case 0x90:
       // Polyphonic Key Pressure
-      case 0xA0: {
+      case 0xa0: {
         // These events have two data bytes: key and velocity / pressure
         const note = /** @type {NoteData | undefined} */ (data);
         if (note?.note === undefined) {
@@ -1109,7 +1144,8 @@ class AudioMIDI extends DataBuffer {
         AudioMIDI.writeEventData(dataBuffer, [note.note, note.velocity]);
         break;
       }
-      case 0xB0: { // Control Change
+      case 0xb0: {
+        // Control Change
         // Control Change events have two data bytes: controller number and value.
         // Matches the `{ controller, value }` shape produced by `parse()`; `0` is valid for both.
         const cc = /** @type {ControllerData | undefined} */ (data);
@@ -1119,72 +1155,89 @@ class AudioMIDI extends DataBuffer {
         AudioMIDI.writeEventData(dataBuffer, [cc.controller, cc.value]);
         break;
       }
-      case 0xC0: { // Program Change
+      case 0xc0: {
+        // Program Change
         // `parse()` stores the program number directly as `event.data` (a number); `0` is a valid program.
-        if (typeof data !== 'number') {
-          throw new Error(`Invalid programNumber ${JSON.stringify(data)} for event ${JSON.stringify(event)}`);
+        if (typeof data !== "number") {
+          throw new Error(
+            `Invalid programNumber ${JSON.stringify(data)} for event ${JSON.stringify(event)}`,
+          );
         }
         // Program Change events have one data byte: the program number
         AudioMIDI.writeEventData(dataBuffer, [data]);
         break;
       }
-      case 0xD0: { // Channel Pressure
+      case 0xd0: {
+        // Channel Pressure
         // `parse()` stores the pressure amount directly as `event.data` (a number); `0` is valid.
-        if (typeof data !== 'number') {
-          throw new Error(`Invalid pressureAmount ${JSON.stringify(data)} for event ${JSON.stringify(event)}`);
+        if (typeof data !== "number") {
+          throw new Error(
+            `Invalid pressureAmount ${JSON.stringify(data)} for event ${JSON.stringify(event)}`,
+          );
         }
         // Channel Pressure events have one data byte: the pressure amount
         AudioMIDI.writeEventData(dataBuffer, [data]);
         break;
       }
-      case 0xE0: { // Pitch Bend
+      case 0xe0: {
+        // Pitch Bend
         // Pitch Bend events have two data bytes, matching the `{ firstByte, secondByte }` produced by `parse()`.
         // `firstByte` is the LSB (xxxxxxx), `secondByte` is the MSB (yyyyyyy); `0` is valid for both.
         const pitchBend = /** @type {PitchBendData | undefined} */ (data);
         const firstByte = pitchBend?.firstByte;
         const secondByte = pitchBend?.secondByte;
         if (firstByte === undefined || secondByte === undefined) {
-          throw new Error(`Invalid pitch bend bytes firstByte ${firstByte} or secondByte ${secondByte} for event ${JSON.stringify(data)}`);
+          throw new Error(
+            `Invalid pitch bend bytes firstByte ${firstByte} or secondByte ${secondByte} for event ${JSON.stringify(data)}`,
+          );
         }
         AudioMIDI.writeEventData(dataBuffer, [firstByte, secondByte]);
         break;
       }
-      case 0xF0: { // SysEx Event
+      case 0xf0: {
+        // SysEx Event
         const sysex = /** @type {SysExData | undefined} */ (data);
         if (!sysex?.manufacturerId || !sysex?.data) {
           throw new Error(`Invalid manufacturerId or data for event ${JSON.stringify(data)}`);
         }
         dataBuffer.writeUInt8(sysex.manufacturerId);
         AudioMIDI.writeEventData(dataBuffer, sysex.data);
-        dataBuffer.writeUInt8(0xF7); // EOX
+        dataBuffer.writeUInt8(0xf7); // EOX
         break;
       }
-      case 0xF3: { // Song Select
+      case 0xf3: {
+        // Song Select
         // `0` is a valid song number, so check for presence rather than truthiness.
         const songSelect = /** @type {SongSelectData | undefined} */ (data);
         if (songSelect?.songNumber === undefined) {
-          throw new Error(`Invalid songNumber ${songSelect?.songNumber} for event ${JSON.stringify(data)}`);
+          throw new Error(
+            `Invalid songNumber ${songSelect?.songNumber} for event ${JSON.stringify(data)}`,
+          );
         }
         AudioMIDI.writeEventData(dataBuffer, [songSelect.songNumber]);
         break;
       }
-      case 0xF6: { // Tune Request
+      case 0xf6: {
+        // Tune Request
         // No additional data for Tune Request
         break;
       }
-      case 0xF7: { // End of SysEx
+      case 0xf7: {
+        // End of SysEx
         // No additional data for End of SysEx
         break;
       }
-      case 0xF8: // MIDI Clock
-      case 0xFA: // Start
-      case 0xFB: // Continue
-      case 0xFC: // Stop
-      case 0xFE: { // Active Sensing
+      case 0xf8: // MIDI Clock
+      case 0xfa: // Start
+      case 0xfb: // Continue
+      case 0xfc: // Stop
+      case 0xfe: {
+        // Active Sensing
         // No additional data for these real-time messages
         break;
       }
-      case 0xFF: { // Meta Event
+      case 0xff: {
+        // Meta Event
         dataBuffer.writeUInt8(/** @type {number} */ (metaType)); // Write the metaType
         AudioMIDI.writeVariableLengthValue(dataBuffer, /** @type {number} */ (metaEventLength)); // Write the length
 
@@ -1193,9 +1246,14 @@ class AudioMIDI extends DataBuffer {
           case 0x00: {
             const sequence = /** @type {SequenceNumberData | undefined} */ (data);
             if (sequence?.sequenceNumber === undefined) {
-              throw new Error(`Invalid sequenceNumber ${sequence?.sequenceNumber} for event ${JSON.stringify(data)}`);
+              throw new Error(
+                `Invalid sequenceNumber ${sequence?.sequenceNumber} for event ${JSON.stringify(data)}`,
+              );
             }
-            AudioMIDI.writeEventData(dataBuffer, [sequence.sequenceNumber >> 8, sequence.sequenceNumber & 0xFF]);
+            AudioMIDI.writeEventData(dataBuffer, [
+              sequence.sequenceNumber >> 8,
+              sequence.sequenceNumber & 0xff,
+            ]);
             break;
           }
           case 0x01: // Text Event
@@ -1206,7 +1264,8 @@ class AudioMIDI extends DataBuffer {
           case 0x06: // Marker
           case 0x07: // Cue Point
           case 0x08: // Program Name
-          case 0x09: { // Device (Port) Name
+          case 0x09: {
+            // Device (Port) Name
             if (!data) {
               throw new Error(`Invalid text data ${data} for event ${JSON.stringify(data)}`);
             }
@@ -1214,7 +1273,8 @@ class AudioMIDI extends DataBuffer {
             break;
           }
           case 0x20: // MIDI Channel Prefix
-          case 0x21: { // MIDI Port
+          case 0x21: {
+            // MIDI Port
             // `0` is a valid channel / port number, so check for presence rather than truthiness.
             if (data === undefined || data === null) {
               throw new Error(`Invalid data ${data} for event ${JSON.stringify(data)}`);
@@ -1222,11 +1282,13 @@ class AudioMIDI extends DataBuffer {
             dataBuffer.writeUInt8(/** @type {number} */ (data));
             break;
           }
-          case 0x2F: { // End of Track
+          case 0x2f: {
+            // End of Track
             // No data to write for End of Track, just ensure the length is 0
             break;
           }
-          case 0x51: { // Set Tempo
+          case 0x51: {
+            // Set Tempo
             const tempo = /** @type {TempoData | undefined} */ (data);
             if (!tempo) {
               throw new Error(`Invalid data for event ${JSON.stringify(data)}`);
@@ -1235,7 +1297,8 @@ class AudioMIDI extends DataBuffer {
             AudioMIDI.writeEventData(dataBuffer, [byte1, byte2, byte3]);
             break;
           }
-          case 0x54: { // SMPTE Offset
+          case 0x54: {
+            // SMPTE Offset
             const smpte = /** @type {SmpteOffsetData | undefined} */ (data);
             if (!smpte) {
               throw new Error(`Invalid data for event ${JSON.stringify(data)}`);
@@ -1244,28 +1307,45 @@ class AudioMIDI extends DataBuffer {
             AudioMIDI.writeEventData(dataBuffer, [hourByte, minute, second, frame, subFrame]);
             break;
           }
-          case 0x58: { // Time Signature
+          case 0x58: {
+            // Time Signature
             const timeSignature = /** @type {TimeSignatureData | undefined} */ (data);
             const { numerator, denominator, metronome, thirtySecondNotes } = timeSignature ?? {};
             // `0` is a legitimate value for these fields, so check for presence rather than truthiness.
-            if (numerator === undefined || denominator === undefined || metronome === undefined || thirtySecondNotes === undefined) {
-              throw new Error(`Invalid numerator ${numerator} or denominator ${denominator} or metronome ${metronome} or thirtySecondNotes ${thirtySecondNotes} for event ${JSON.stringify(data)}`);
+            if (
+              numerator === undefined ||
+              denominator === undefined ||
+              metronome === undefined ||
+              thirtySecondNotes === undefined
+            ) {
+              throw new Error(
+                `Invalid numerator ${numerator} or denominator ${denominator} or metronome ${metronome} or thirtySecondNotes ${thirtySecondNotes} for event ${JSON.stringify(data)}`,
+              );
             }
-            AudioMIDI.writeEventData(dataBuffer, [numerator, denominator, metronome, thirtySecondNotes]);
+            AudioMIDI.writeEventData(dataBuffer, [
+              numerator,
+              denominator,
+              metronome,
+              thirtySecondNotes,
+            ]);
             break;
           }
-          case 0x59: { // Key Signature
+          case 0x59: {
+            // Key Signature
             const keySignatureData = /** @type {KeySignatureData | undefined} */ (data);
             const { keySignature, majorOrMinor } = keySignatureData ?? {};
             // C Major is `keySignature: 0, majorOrMinor: 0`, and flats are negative, so check for presence rather than truthiness.
             if (keySignature === undefined || majorOrMinor === undefined) {
-              throw new Error(`Invalid keySignature ${keySignature} or majorOrMinor ${majorOrMinor} for event ${JSON.stringify(data)}`);
+              throw new Error(
+                `Invalid keySignature ${keySignature} or majorOrMinor ${majorOrMinor} for event ${JSON.stringify(data)}`,
+              );
             }
             // `keySignature` may be negative (flats); `writeUInt8` writes the two's-complement byte.
             AudioMIDI.writeEventData(dataBuffer, [keySignature, majorOrMinor]);
             break;
           }
-          case 0x7F: { // Sequencer Specific Meta-Event
+          case 0x7f: {
+            // Sequencer Specific Meta-Event
             if (!data) {
               throw new Error(`Invalid data ${data} for event ${JSON.stringify(data)}`);
             }
@@ -1273,7 +1353,9 @@ class AudioMIDI extends DataBuffer {
             break;
           }
           default: {
-            debug(`Unhandled Meta Event Type: ${/** @type {number} */ (metaType).toString(16).toUpperCase()}`);
+            debug(
+              `Unhandled Meta Event Type: ${/** @type {number} */ (metaType).toString(16).toUpperCase()}`,
+            );
             break;
           }
         }
@@ -1299,13 +1381,16 @@ class AudioMIDI extends DataBuffer {
     for (const track of this.chunks) {
       // Match Note On (0x9n) on any of the 16 channels, not just channel 0.
       /** @type {MidiTrackEvent[]} */
-      const noteEvents = track.events.filter((event) => ((event.type ?? 0) & 0xF0) === 0x90)
+      const noteEvents = track.events.filter((event) => ((event.type ?? 0) & 0xf0) === 0x90);
       for (const event of noteEvents) {
-        if (typeof event.data === 'object' && 'velocity' in event.data && event.data?.velocity > 0) {
+        if (
+          typeof event.data === "object" &&
+          "velocity" in event.data &&
+          event.data?.velocity > 0
+        ) {
           // event.data.note might be a string or number, so ensure we parse
-          const noteNumber = typeof event.data.note === 'string'
-            ? parseInt(event.data.note, 10)
-            : event.data.note;
+          const noteNumber =
+            typeof event.data.note === "string" ? parseInt(event.data.note, 10) : event.data.note;
 
           if (!Number.isNaN(noteNumber)) {
             noteNumbers.add(noteNumber);
@@ -1340,18 +1425,20 @@ class AudioMIDI extends DataBuffer {
       issues.push(`Unsupported MIDI format: ${this.format}.`);
     }
     if (this.trackCount !== this.chunks.length) {
-      issues.push(`Header trackCount=${this.trackCount}, but parsed chunk count=${this.chunks.length}.`);
+      issues.push(
+        `Header trackCount=${this.trackCount}, but parsed chunk count=${this.chunks.length}.`,
+      );
     }
 
     // Per-Chunk Checks
     this.chunks.forEach((track, trackIndex) => {
       // Check chunk type
-      if (track.type !== 'MThd' && track.type !== 'MTrk') {
+      if (track.type !== "MThd" && track.type !== "MTrk") {
         issues.push(`Track ${trackIndex} has unknown chunk type: "${track.type}".`);
       }
 
       // If chunkLength is zero but track has events, or vice versa
-      if (track.type === 'MTrk') {
+      if (track.type === "MTrk") {
         if (track.chunkLength === 0 && track.events.length > 0) {
           issues.push(`Track ${trackIndex} chunkLength=0 but has ${track.events.length} events.`);
         } else if (track.chunkLength > 0 && track.events.length === 0) {
@@ -1360,7 +1447,7 @@ class AudioMIDI extends DataBuffer {
       }
 
       // Track-by-Track Validation
-      if (track.type !== 'MTrk') {
+      if (track.type !== "MTrk") {
         // Skip non-track chunks like the main header
         return;
       }
@@ -1373,19 +1460,24 @@ class AudioMIDI extends DataBuffer {
       track.events.forEach((event, eventIndex) => {
         // Delta time must be >= 0
         if (event.deltaTime < 0) {
-          issues.push(`Track ${trackIndex} event ${eventIndex} has negative deltaTime ${event.deltaTime}.`);
+          issues.push(
+            `Track ${trackIndex} event ${eventIndex} has negative deltaTime ${event.deltaTime}.`,
+          );
         }
 
         // Check well-formed event data.
         // Channel Voice messages (0x80 - 0xEF) embed the channel in the low nibble, so normalize to the base type to match all 16 channels.
         const statusByte = /** @type {number} */ (event.type);
-        const eventBaseType = statusByte >= 0x80 && statusByte <= 0xEF ? (statusByte & 0xF0) : statusByte;
+        const eventBaseType =
+          statusByte >= 0x80 && statusByte <= 0xef ? statusByte & 0xf0 : statusByte;
         switch (eventBaseType) {
           // Note On
           case 0x90: {
             const noteData = /** @type {NoteData | undefined} */ (event.data);
             if (!noteData || noteData.note === undefined || noteData.velocity === undefined) {
-              issues.push(`Track ${trackIndex} event ${eventIndex} missing note/velocity data: ${JSON.stringify(event.data)}`);
+              issues.push(
+                `Track ${trackIndex} event ${eventIndex} missing note/velocity data: ${JSON.stringify(event.data)}`,
+              );
             } else {
               const noteOnNumber = parseInt(`${noteData.note}`, 10);
               // If velocity > 0, it is a real Note On
@@ -1397,7 +1489,9 @@ class AudioMIDI extends DataBuffer {
               else {
                 const count = activeNotes.get(noteOnNumber) || 0;
                 if (count <= 0) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} tries to Note Off note ${noteOnNumber} which was not active.`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} tries to Note Off note ${noteOnNumber} which was not active.`,
+                  );
                 } else {
                   activeNotes.set(noteOnNumber, count - 1);
                 }
@@ -1410,12 +1504,16 @@ class AudioMIDI extends DataBuffer {
           case 0x80: {
             const noteData = /** @type {NoteData | undefined} */ (event.data);
             if (!noteData || noteData.note === undefined) {
-              issues.push(`Track ${trackIndex} event ${eventIndex} missing note for Note Off: ${JSON.stringify(event.data)}`);
+              issues.push(
+                `Track ${trackIndex} event ${eventIndex} missing note for Note Off: ${JSON.stringify(event.data)}`,
+              );
             } else {
               const noteOffNumber = parseInt(`${noteData.note}`, 10);
               const count = activeNotes.get(noteOffNumber) || 0;
               if (count <= 0) {
-                issues.push(`Track ${trackIndex} event ${eventIndex} tries to Note Off note ${noteOffNumber} which was not active.`);
+                issues.push(
+                  `Track ${trackIndex} event ${eventIndex} tries to Note Off note ${noteOffNumber} which was not active.`,
+                );
               } else {
                 activeNotes.set(noteOffNumber, count - 1);
               }
@@ -1424,44 +1522,58 @@ class AudioMIDI extends DataBuffer {
           }
 
           // Meta Event
-          case 0xFF:
-            if (typeof event.metaType === 'undefined') {
-              issues.push(`Track ${trackIndex} event ${eventIndex} has missing metaType: ${JSON.stringify(event)}`);
+          case 0xff:
+            if (typeof event.metaType === "undefined") {
+              issues.push(
+                `Track ${trackIndex} event ${eventIndex} has missing metaType: ${JSON.stringify(event)}`,
+              );
               break;
             }
 
             // Basic length checks for common meta events
             switch (event.metaType) {
-              case 0x2F: // End of Track
+              case 0x2f: // End of Track
                 gotEndOfTrack = true;
                 if (event.metaEventLength !== 0) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} End-of-Track has metaEventLength=${event.metaEventLength}, expected=0`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} End-of-Track has metaEventLength=${event.metaEventLength}, expected=0`,
+                  );
                 }
                 break;
               case 0x51: // Tempo
                 if (event.metaEventLength !== 3) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} Tempo event has metaEventLength=${event.metaEventLength}, expected=3`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} Tempo event has metaEventLength=${event.metaEventLength}, expected=3`,
+                  );
                 }
                 break;
               case 0x58: // Time Signature
                 if (event.metaEventLength !== 4) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} Time Signature has metaEventLength=${event.metaEventLength}, expected=4`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} Time Signature has metaEventLength=${event.metaEventLength}, expected=4`,
+                  );
                 }
                 break;
               case 0x59: // Key Signature
                 if (event.metaEventLength !== 2) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} Key Signature has metaEventLength=${event.metaEventLength}, expected=2`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} Key Signature has metaEventLength=${event.metaEventLength}, expected=2`,
+                  );
                 }
                 break;
               case 0x54: // SMPTE Offset
                 if (event.metaEventLength !== 5) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} SMPTE Offset has metaEventLength=${event.metaEventLength}, expected=5`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} SMPTE Offset has metaEventLength=${event.metaEventLength}, expected=5`,
+                  );
                 }
                 break;
               case 0x00: // Sequence Number
                 // Usually length=2 or 0
                 if (event.metaEventLength !== 2 && event.metaEventLength !== 0) {
-                  issues.push(`Track ${trackIndex} event ${eventIndex} Sequence Number has metaEventLength=${event.metaEventLength}, expected=2 or 0`);
+                  issues.push(
+                    `Track ${trackIndex} event ${eventIndex} Sequence Number has metaEventLength=${event.metaEventLength}, expected=2 or 0`,
+                  );
                 }
                 break;
               default:
@@ -1506,7 +1618,7 @@ class AudioMIDI extends DataBuffer {
    * @returns {Header} The decoded values.
    */
   static decodeHeader(chunk) {
-    debug('decodeHeader: length =', chunk.length);
+    debug("decodeHeader: length =", chunk.length);
     const header = DataStream.fromData(chunk);
     const type = header.readString(4);
     const chunkLength = header.readUInt32();
@@ -1532,7 +1644,7 @@ class AudioMIDI extends DataBuffer {
       ticksPerFrame = timeDivisionByte2;
     } else {
       // PPQN
-      timeDivision = (timeDivisionByte1 * 256) + timeDivisionByte2;
+      timeDivision = timeDivisionByte1 * 256 + timeDivisionByte2;
     }
 
     const output = {
@@ -1544,7 +1656,7 @@ class AudioMIDI extends DataBuffer {
       ticksPerFrame,
       timeDivision,
     };
-    debug('decodeHeader:', output);
+    debug("decodeHeader:", output);
     return output;
   }
 
@@ -1558,79 +1670,152 @@ class AudioMIDI extends DataBuffer {
    */
   static getControllerLabel(controller) {
     switch (controller) {
-      case 0x00: return 'Bank Select (MSB)';
-      case 0x01: return 'Modulation Wheel (MSB)';
-      case 0x02: return 'Breath Controller (MSB)';
-      case 0x04: return 'Foot Controller (MSB)';
-      case 0x05: return 'Portamento Time (MSB)';
-      case 0x06: return 'Data Entry (MSB)';
-      case 0x07: return 'Volume (MSB)';
-      case 0x08: return 'Balance (MSB)';
-      case 0x0A: return 'Pan (MSB)';
-      case 0x0B: return 'Expression Controller (MSB)';
-      case 0x0C: return 'Effect Control 1 (MSB)';
-      case 0x0D: return 'Effect Control 2 (MSB)';
-      case 0x10: return 'General Purpose Controller 1 (MSB)';
-      case 0x11: return 'General Purpose Controller 2 (MSB)';
-      case 0x12: return 'General Purpose Controller 3 (MSB)';
-      case 0x13: return 'General Purpose Controller 4 (MSB)';
-      case 0x20: return 'Bank Select (LSB)';
-      case 0x21: return 'Modulation Wheel (LSB)';
-      case 0x22: return 'Breath Controller (LSB)';
-      case 0x24: return 'Foot Controller (LSB)';
-      case 0x25: return 'Portamento Time (LSB)';
-      case 0x26: return 'Data Entry (LSB)';
-      case 0x27: return 'Volume (LSB)';
-      case 0x28: return 'Balance (LSB)';
-      case 0x2A: return 'Pan (LSB)';
-      case 0x2B: return 'Expression Controller (LSB)';
-      case 0x2C: return 'Effect Control 1 (LSB)';
-      case 0x2D: return 'Effect Control 2 (LSB)';
-      case 0x30: return 'General Purpose Controller 1 (LSB)';
-      case 0x31: return 'General Purpose Controller 2 (LSB)';
-      case 0x32: return 'General Purpose #3 LSB';
-      case 0x33: return 'General Purpose #4 LSB';
-      case 0x40: return 'Hold Pedal #1';
-      case 0x41: return 'Portamento (GS)';
-      case 0x42: return 'Sostenuto (GS)';
-      case 0x43: return 'Soft Pedal (GS)';
-      case 0x44: return 'Legato Pedal';
-      case 0x45: return 'Hold Pedal #2';
-      case 0x46: return 'Sound Variation';
-      case 0x47: return 'Sound Timbre';
-      case 0x48: return 'Sound Release Time';
-      case 0x49: return 'Sound Attack Time';
-      case 0x4A: return 'Sound Brightness';
-      case 0x4B: return 'Sound Control #6';
-      case 0x4C: return 'Sound Control #7';
-      case 0x4D: return 'Sound Control #8';
-      case 0x4E: return 'Sound Control #9';
-      case 0x4F: return 'Sound Control #10';
-      case 0x50: return 'GP Control #5';
-      case 0x51: return 'GP Control #6';
-      case 0x52: return 'GP Control #7';
-      case 0x53: return 'GP Control #8';
-      case 0x54: return 'Portamento Control (GS)';
-      case 0x5B: return 'Reverb Level (GS)';
-      case 0x5C: return 'Tremolo Depth';
-      case 0x5D: return 'Chorus Level (GS)';
-      case 0x5E: return 'Celeste Depth';
-      case 0x5F: return 'Phaser Depth';
-      case 0x60: return 'Data Increment';
-      case 0x61: return 'Data Decrement';
-      case 0x62: return 'NRPN Parameter LSB (GS)';
-      case 0x63: return 'NRPN Parameter MSB (GS)';
-      case 0x64: return 'RPN Parameter LSB';
-      case 0x65: return 'RPN Parameter MSB';
-      case 0x78: return 'All Sound Off (GS)';
-      case 0x79: return 'Reset All Controllers';
-      case 0x7A: return 'Local On/Off';
-      case 0x7B: return 'All Notes Off';
-      case 0x7C: return 'Omni Mode Off';
-      case 0x7D: return 'Omni Mode On';
-      case 0x7E: return 'Mono Mode On';
-      case 0x7F: return 'Poly Mode On';
-      default: return `Unknown Controller: ${controller}`;
+      case 0x00:
+        return "Bank Select (MSB)";
+      case 0x01:
+        return "Modulation Wheel (MSB)";
+      case 0x02:
+        return "Breath Controller (MSB)";
+      case 0x04:
+        return "Foot Controller (MSB)";
+      case 0x05:
+        return "Portamento Time (MSB)";
+      case 0x06:
+        return "Data Entry (MSB)";
+      case 0x07:
+        return "Volume (MSB)";
+      case 0x08:
+        return "Balance (MSB)";
+      case 0x0a:
+        return "Pan (MSB)";
+      case 0x0b:
+        return "Expression Controller (MSB)";
+      case 0x0c:
+        return "Effect Control 1 (MSB)";
+      case 0x0d:
+        return "Effect Control 2 (MSB)";
+      case 0x10:
+        return "General Purpose Controller 1 (MSB)";
+      case 0x11:
+        return "General Purpose Controller 2 (MSB)";
+      case 0x12:
+        return "General Purpose Controller 3 (MSB)";
+      case 0x13:
+        return "General Purpose Controller 4 (MSB)";
+      case 0x20:
+        return "Bank Select (LSB)";
+      case 0x21:
+        return "Modulation Wheel (LSB)";
+      case 0x22:
+        return "Breath Controller (LSB)";
+      case 0x24:
+        return "Foot Controller (LSB)";
+      case 0x25:
+        return "Portamento Time (LSB)";
+      case 0x26:
+        return "Data Entry (LSB)";
+      case 0x27:
+        return "Volume (LSB)";
+      case 0x28:
+        return "Balance (LSB)";
+      case 0x2a:
+        return "Pan (LSB)";
+      case 0x2b:
+        return "Expression Controller (LSB)";
+      case 0x2c:
+        return "Effect Control 1 (LSB)";
+      case 0x2d:
+        return "Effect Control 2 (LSB)";
+      case 0x30:
+        return "General Purpose Controller 1 (LSB)";
+      case 0x31:
+        return "General Purpose Controller 2 (LSB)";
+      case 0x32:
+        return "General Purpose #3 LSB";
+      case 0x33:
+        return "General Purpose #4 LSB";
+      case 0x40:
+        return "Hold Pedal #1";
+      case 0x41:
+        return "Portamento (GS)";
+      case 0x42:
+        return "Sostenuto (GS)";
+      case 0x43:
+        return "Soft Pedal (GS)";
+      case 0x44:
+        return "Legato Pedal";
+      case 0x45:
+        return "Hold Pedal #2";
+      case 0x46:
+        return "Sound Variation";
+      case 0x47:
+        return "Sound Timbre";
+      case 0x48:
+        return "Sound Release Time";
+      case 0x49:
+        return "Sound Attack Time";
+      case 0x4a:
+        return "Sound Brightness";
+      case 0x4b:
+        return "Sound Control #6";
+      case 0x4c:
+        return "Sound Control #7";
+      case 0x4d:
+        return "Sound Control #8";
+      case 0x4e:
+        return "Sound Control #9";
+      case 0x4f:
+        return "Sound Control #10";
+      case 0x50:
+        return "GP Control #5";
+      case 0x51:
+        return "GP Control #6";
+      case 0x52:
+        return "GP Control #7";
+      case 0x53:
+        return "GP Control #8";
+      case 0x54:
+        return "Portamento Control (GS)";
+      case 0x5b:
+        return "Reverb Level (GS)";
+      case 0x5c:
+        return "Tremolo Depth";
+      case 0x5d:
+        return "Chorus Level (GS)";
+      case 0x5e:
+        return "Celeste Depth";
+      case 0x5f:
+        return "Phaser Depth";
+      case 0x60:
+        return "Data Increment";
+      case 0x61:
+        return "Data Decrement";
+      case 0x62:
+        return "NRPN Parameter LSB (GS)";
+      case 0x63:
+        return "NRPN Parameter MSB (GS)";
+      case 0x64:
+        return "RPN Parameter LSB";
+      case 0x65:
+        return "RPN Parameter MSB";
+      case 0x78:
+        return "All Sound Off (GS)";
+      case 0x79:
+        return "Reset All Controllers";
+      case 0x7a:
+        return "Local On/Off";
+      case 0x7b:
+        return "All Notes Off";
+      case 0x7c:
+        return "Omni Mode Off";
+      case 0x7d:
+        return "Omni Mode On";
+      case 0x7e:
+        return "Mono Mode On";
+      case 0x7f:
+        return "Poly Mode On";
+      default:
+        return `Unknown Controller: ${controller}`;
     }
   }
 
@@ -1644,65 +1829,68 @@ class AudioMIDI extends DataBuffer {
   static getManufacturerLabel(manufacturerId) {
     /** @type {Record<number, string>} */
     const manufacturers = {
-      0x01: 'Sequential Circuits',
-      0x02: 'Big Briar',
-      0x03: 'Octave/Plateau',
-      0x04: 'Moog',
-      0x05: 'Passport Designs',
-      0x06: 'Lexicon',
-      0x07: 'Kurzweil',
-      0x08: 'Fender',
-      0x09: 'Gulbransen',
-      0x0A: 'Delta Labs',
-      0x0B: 'Sound Comp',
-      0x0C: 'General Electro',
-      0x0D: 'Matthews Research',
-      0x0E: 'Effect control 2',
-      0x10: 'Oberheim',
-      0x11: 'PAIA',
-      0x12: 'Simmons',
-      0x13: 'DigiDesign',
-      0x14: 'Fairlight',
-      0x15: 'JL Cooper',
-      0x16: 'Lowery',
-      0x17: 'Lin',
-      0x18: 'Emu',
-      0x1B: 'Peavey',
-      0x20: 'BonTempi',
-      0x21: 'S.I.E.L.',
-      0x23: 'SyntheAxe',
-      0x24: 'Hohner',
-      0x25: 'Crumar',
-      0x26: 'Solton',
-      0x27: 'Jellinghaus Ms',
-      0x28: 'CTS',
-      0x29: 'PPG',
-      0x2F: 'Elka',
-      0x36: 'Cheetah',
-      0x3E: 'Waldorf',
-      0x40: 'Kawai',
-      0x41: 'Roland',
-      0x42: 'Korg',
-      0x43: 'Yamaha',
-      0x44: 'Casio',
-      0x46: 'Kamiya Studio',
-      0x47: 'Akai',
-      0x48: 'Victor',
-      0x4B: 'Fujitsu',
-      0x4C: 'Sony',
-      0x4E: 'Teac',
-      0x50: 'Matsushita',
-      0x51: 'Fostex',
-      0x52: 'Zoom',
-      0x54: 'Matsushita',
-      0x55: 'Suzuki',
-      0x56: 'Fuji Sound',
-      0x57: 'Acoustic Technical Laboratory',
-      0x7E: 'Universal Non Realtime Message (UNRT)',
-      0x7F: 'Universal Realtime Message (URT)',
+      0x01: "Sequential Circuits",
+      0x02: "Big Briar",
+      0x03: "Octave/Plateau",
+      0x04: "Moog",
+      0x05: "Passport Designs",
+      0x06: "Lexicon",
+      0x07: "Kurzweil",
+      0x08: "Fender",
+      0x09: "Gulbransen",
+      0x0a: "Delta Labs",
+      0x0b: "Sound Comp",
+      0x0c: "General Electro",
+      0x0d: "Matthews Research",
+      0x0e: "Effect control 2",
+      0x10: "Oberheim",
+      0x11: "PAIA",
+      0x12: "Simmons",
+      0x13: "DigiDesign",
+      0x14: "Fairlight",
+      0x15: "JL Cooper",
+      0x16: "Lowery",
+      0x17: "Lin",
+      0x18: "Emu",
+      0x1b: "Peavey",
+      0x20: "BonTempi",
+      0x21: "S.I.E.L.",
+      0x23: "SyntheAxe",
+      0x24: "Hohner",
+      0x25: "Crumar",
+      0x26: "Solton",
+      0x27: "Jellinghaus Ms",
+      0x28: "CTS",
+      0x29: "PPG",
+      0x2f: "Elka",
+      0x36: "Cheetah",
+      0x3e: "Waldorf",
+      0x40: "Kawai",
+      0x41: "Roland",
+      0x42: "Korg",
+      0x43: "Yamaha",
+      0x44: "Casio",
+      0x46: "Kamiya Studio",
+      0x47: "Akai",
+      0x48: "Victor",
+      0x4b: "Fujitsu",
+      0x4c: "Sony",
+      0x4e: "Teac",
+      0x50: "Matsushita",
+      0x51: "Fostex",
+      0x52: "Zoom",
+      0x54: "Matsushita",
+      0x55: "Suzuki",
+      0x56: "Fuji Sound",
+      0x57: "Acoustic Technical Laboratory",
+      0x7e: "Universal Non Realtime Message (UNRT)",
+      0x7f: "Universal Realtime Message (URT)",
     };
 
-    return manufacturers[manufacturerId] || `Unknown Manufacturer: ${manufacturerId.toString(16).toUpperCase()}`;
+    return (
+      manufacturers[manufacturerId] ||
+      `Unknown Manufacturer: ${manufacturerId.toString(16).toUpperCase()}`
+    );
   }
 
   /**
@@ -1715,7 +1903,7 @@ class AudioMIDI extends DataBuffer {
     value = Math.round(value);
     const buffer = [];
     do {
-      buffer.push(value & 0x7F);
+      buffer.push(value & 0x7f);
 
       value >>= 7;
     } while (value > 0);
@@ -1740,10 +1928,10 @@ class AudioMIDI extends DataBuffer {
         throw new Error(`Invalid data: ${JSON.stringify(data)}`);
       }
       data.forEach((byte) => dataBuffer.writeUInt8(byte));
-    } else if (typeof data === 'string') {
+    } else if (typeof data === "string") {
       dataBuffer.writeBytes(new TextEncoder().encode(data));
     } else {
-      debug(`Invalid writeEventData:`, data)
+      debug(`Invalid writeEventData:`, data);
       throw new Error(`Invalid writeEventData: ${JSON.stringify(data)}`);
     }
   }
@@ -1759,19 +1947,19 @@ class AudioMIDI extends DataBuffer {
     const tempo = Math.round(60000000 / bpm);
 
     // Extract byte1, the most significant byte
-    const byte1 = (tempo >> 16) & 0xFF;
+    const byte1 = (tempo >> 16) & 0xff;
 
     // Extract byte2, the middle byte
-    const byte2 = (tempo >> 8) & 0xFF;
+    const byte2 = (tempo >> 8) & 0xff;
 
     // Extract byte3, the least significant byte
-    const byte3 = tempo & 0xFF;
+    const byte3 = tempo & 0xff;
 
     return {
       // Tempo events have a delta time of 0
       deltaTime: 0,
       // Meta Event
-      type: 0xFF,
+      type: 0xff,
       // Set Tempo
       metaType: 0x51,
       // Length is always 3 for Set Tempo events
@@ -1785,7 +1973,7 @@ class AudioMIDI extends DataBuffer {
         // Beats Per Minute
         bpm,
       },
-      label: 'Set Tempo',
+      label: "Set Tempo",
     };
   }
 
@@ -1810,24 +1998,26 @@ class AudioMIDI extends DataBuffer {
 
     /** @type {Record<number, string>} */
     const labels = {
-      0x01: 'Text Event',
-      0x02: 'Copyright Notice',
-      0x03: 'Sequence / Track Name',
-      0x04: 'Instrument Name',
-      0x05: 'Lyrics',
-      0x06: 'Marker',
-      0x07: 'Cue Point',
-      0x08: 'Program Name',
-      0x09: 'Device (Port) Name',
+      0x01: "Text Event",
+      0x02: "Copyright Notice",
+      0x03: "Sequence / Track Name",
+      0x04: "Instrument Name",
+      0x05: "Lyrics",
+      0x06: "Marker",
+      0x07: "Cue Point",
+      0x08: "Program Name",
+      0x09: "Device (Port) Name",
     };
 
     /** @type {string} */
-    const label = labels[metaType] ? labels[metaType] : `Meta Event 0x${metaType.toString(16).toUpperCase()}: ${data}`;
+    const label = labels[metaType]
+      ? labels[metaType]
+      : `Meta Event 0x${metaType.toString(16).toUpperCase()}: ${data}`;
 
     return {
       // Meta events have a delta time of 0
       deltaTime: 0,
-      type: 0xFF,
+      type: 0xff,
       // Meta event type
       metaType,
       // Length of the string data
@@ -1845,12 +2035,12 @@ class AudioMIDI extends DataBuffer {
    */
   static generateEndOfTrackEvent() {
     return {
-      data: '',
+      data: "",
       deltaTime: 0,
-      type: 0xFF,
-      metaType: 0x2F,
+      type: 0xff,
+      metaType: 0x2f,
       metaEventLength: 0,
-      label: 'End of Track',
+      label: "End of Track",
     };
   }
 
@@ -1887,7 +2077,7 @@ class AudioMIDI extends DataBuffer {
    */
   static convertToMidi({ ppq = 480, bpm, tracks, skipNotes = [] }) {
     /** The new MIDI instance. */
-    const midi = new AudioMIDI('', { timeDivision: ppq });
+    const midi = new AudioMIDI("", { timeDivision: ppq });
 
     // Loop over the tracks to add (the `tracks` option is optional).
     for (const track of tracks ?? []) {
@@ -1900,19 +2090,21 @@ class AudioMIDI extends DataBuffer {
 
       // If a BPM is provided at a tempo event.
       if (bpm) {
-        currentTrack.events.push(AudioMIDI.generateTempoEvent(bpm))
+        currentTrack.events.push(AudioMIDI.generateTempoEvent(bpm));
       }
 
       // Fill in any metaStringEvents that are provided (the field is optional).
       if (metaStringEvents && Object.keys(metaStringEvents).length > 0) {
         for (const [type, data] of Object.entries(metaStringEvents)) {
-          currentTrack.events.push(AudioMIDI.generateMetaStringEvent(Number.parseInt(type, 10), data))
+          currentTrack.events.push(
+            AudioMIDI.generateMetaStringEvent(Number.parseInt(type, 10), data),
+          );
         }
       }
 
       // Step 1: Generate Note On and Note Off events (the `notes` field is optional).
       for (const note of notes ?? []) {
-        debug('note:', note);
+        debug("note:", note);
         if (!skipNotes.includes(note.midiNote)) {
           // Add a Note On event
           currentTrack.events.push({
@@ -1925,12 +2117,12 @@ class AudioMIDI extends DataBuffer {
               velocity: note.velocity,
               length: note.length,
             },
-            label: 'Note On',
+            label: "Note On",
           });
 
           // Add a Note Off event
           currentTrack.events.push({
-            deltaTime: (currentTime * ppq) + Math.ceil(note.length),
+            deltaTime: currentTime * ppq + Math.ceil(note.length),
             type: 0x80,
             channel: 0,
             data: {
@@ -1939,14 +2131,14 @@ class AudioMIDI extends DataBuffer {
               velocity: 0,
               length: note.length,
             },
-            label: 'Note Off',
+            label: "Note Off",
           });
         } else {
-          debug('skipping note:', note);
+          debug("skipping note:", note);
         }
         const ticks = note.ticks / ppq;
         if (ticks > 0) {
-          debug('incrementing time by', ticks);
+          debug("incrementing time by", ticks);
         }
         currentTime += ticks;
       }
@@ -1982,22 +2174,26 @@ class AudioMIDI extends DataBuffer {
    * AudioMIDI.noteToMidi('C-1') === 12
    * AudioMIDI.noteToMidi('C-2') === 0
    */
-  static noteToMidi(noteString, octaveOffset = 2, noteMap = {
-    C: 0,
-    'C#': 1,
-    D: 2,
-    'D#': 3,
-    E: 4,
-    'E#': 5,
-    F: 5,
-    'F#': 6,
-    G: 7,
-    'G#': 8,
-    A: 9,
-    'A#': 10,
-    B: 11,
-    'B#': 0,
-  }) {
+  static noteToMidi(
+    noteString,
+    octaveOffset = 2,
+    noteMap = {
+      C: 0,
+      "C#": 1,
+      D: 2,
+      "D#": 3,
+      E: 4,
+      "E#": 5,
+      F: 5,
+      "F#": 6,
+      G: 7,
+      "G#": 8,
+      A: 9,
+      "A#": 10,
+      B: 11,
+      "B#": 0,
+    },
+  ) {
     // Extract the note (C, C#, D, etc.) and the octave (-2, -1, 1, 2, 3, 4, etc.)
     const match = noteString.match(/^([A-G]#?)(-?\d+)$/);
 
@@ -2033,7 +2229,11 @@ class AudioMIDI extends DataBuffer {
    * AudioMIDI.midiToNote(12) === 'C-1'
    * AudioMIDI.midiToNote(0) === 'C-2'
    */
-  static midiToNote(midiValue, octaveOffset = 2, noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']) {
+  static midiToNote(
+    midiValue,
+    octaveOffset = 2,
+    noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+  ) {
     if (midiValue < 0 || midiValue > 127) {
       throw new Error(`Invalid MIDI value: ${midiValue}. Must be between 0 and 127.`);
     }

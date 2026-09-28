@@ -13,10 +13,10 @@ class UnderflowError extends Error {
    */
   constructor(message) {
     super(message);
-    this.name = 'UnderflowError';
-    this.stack = (new Error(message)).stack;
+    this.name = "UnderflowError";
+    this.stack = new Error(message).stack;
     // https://nodejs.org/api/errors.html#errors_error_capturestacktrace_targetobject_constructoropt
-    if (typeof Error.captureStackTrace === 'function') {
+    if (typeof Error.captureStackTrace === "function") {
       Error.captureStackTrace(this, this.constructor);
     }
   }

@@ -1,19 +1,29 @@
-import CRC32 from './data-hash-crc32.js';
-import DataBitstream from './data-bitstream.js';
-import DataBuffer from './data-buffer.js';
-import DataBufferList from './data-buffer-list.js';
-import DataStream from './data-stream.js';
-import { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph } from './data-formating.js';
-import { diff, edits, hunks, Op } from './diff/diff.js';
-import { float80, float48, convertFromIeeeExtended } from './data-helpers.js';
-import Myers from './diff/myers.js';
-import ShiftJIS from './encodings/shift-jis.js';
-import ImagePNG from './image/data-image-png.js';
-import GIFLZW from './image/gif_lzw.js';
-import ImageGIF from './image/data-image-gif.js';
+import AudioMIDI from "./audio/audio-midi.js";
 // import ImageHEIC from './image/data-image-heic.js';
-import AudioWAV from './audio/audio-wav.js';
-import AudioMIDI from './audio/audio-midi.js';
+import AudioWAV from "./audio/audio-wav.js";
+import DataBitstream from "./data-bitstream.js";
+import DataBufferList from "./data-buffer-list.js";
+import DataBuffer from "./data-buffer.js";
+import {
+  formatBytes,
+  hexTable,
+  formatTable,
+  formatTableThemeMySQL,
+  formatTableThemeUnicode,
+  formatTableThemeMarkdown,
+  formatDiffHex,
+  formatDiffHunks,
+  formatMyersGraph,
+} from "./data-formating.js";
+import CRC32 from "./data-hash-crc32.js";
+import { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
+import DataStream from "./data-stream.js";
+import { diff, edits, hunks, Op } from "./diff/diff.js";
+import Myers from "./diff/myers.js";
+import ShiftJIS from "./encodings/shift-jis.js";
+import ImageGIF from "./image/data-image-gif.js";
+import ImagePNG from "./image/data-image-png.js";
+import GIFLZW from "./image/gif_lzw.js";
 
 export default {
   CRC32,
@@ -47,19 +57,29 @@ export default {
   AudioMIDI,
 };
 
-export { default as CRC32 } from './data-hash-crc32.js';
-export { default as DataBitstream } from './data-bitstream.js';
-export { default as DataBuffer } from './data-buffer.js';
-export { default as DataBufferList } from './data-buffer-list.js';
-export { default as DataStream } from './data-stream.js';
-export { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph } from './data-formating.js';
-export { diff, edits, hunks, Op } from './diff/diff.js';
-export { default as Myers } from './diff/myers.js';
-export { default as ShiftJIS } from './encodings/shift-jis.js';
-export { default as ImagePNG } from './image/data-image-png.js';
-export { default as GIFLZW } from './image/gif_lzw.js';
-export { default as ImageGIF } from './image/data-image-gif.js';
-export { float80, float48, convertFromIeeeExtended } from './data-helpers.js';
+export { default as CRC32 } from "./data-hash-crc32.js";
+export { default as DataBitstream } from "./data-bitstream.js";
+export { default as DataBuffer } from "./data-buffer.js";
+export { default as DataBufferList } from "./data-buffer-list.js";
+export { default as DataStream } from "./data-stream.js";
+export {
+  formatBytes,
+  hexTable,
+  formatTable,
+  formatTableThemeMySQL,
+  formatTableThemeUnicode,
+  formatTableThemeMarkdown,
+  formatDiffHex,
+  formatDiffHunks,
+  formatMyersGraph,
+} from "./data-formating.js";
+export { diff, edits, hunks, Op } from "./diff/diff.js";
+export { default as Myers } from "./diff/myers.js";
+export { default as ShiftJIS } from "./encodings/shift-jis.js";
+export { default as ImagePNG } from "./image/data-image-png.js";
+export { default as GIFLZW } from "./image/gif_lzw.js";
+export { default as ImageGIF } from "./image/data-image-gif.js";
+export { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
 // export { default as ImageHEIC } from './image/data-image-heic.js';
-export { default as AudioWAV } from './audio/audio-wav.js';
-export { default as AudioMIDI } from './audio/audio-midi.js';
+export { default as AudioWAV } from "./audio/audio-wav.js";
+export { default as AudioMIDI } from "./audio/audio-midi.js";

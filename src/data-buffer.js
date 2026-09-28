@@ -1,6 +1,6 @@
-import UnderflowError from './underflow-error.js';
-import { convertFromIeeeExtended, float48, float80 } from './data-helpers.js';
-import { edits } from './diff/diff.js';
+import { convertFromIeeeExtended, float48, float80 } from "./data-helpers.js";
+import { edits } from "./diff/diff.js";
+import UnderflowError from "./underflow-error.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -11,7 +11,12 @@ import { edits } from './diff/diff.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBuffer'); } catch {} }
+if (typeof process !== "undefined" && process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("DataBuffer");
+  } catch {}
+}
 
 /**
  * Helper class for manipulating binary data.
@@ -32,41 +37,45 @@ class DataBuffer {
   data = new Uint8Array(0);
 
   /**
- * Creates an instance of DataBuffer.
- * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
- * @throws {TypeError} Missing input data.
- * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
- */
+   * Creates an instance of DataBuffer.
+   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} [input] The data to process.
+   * @throws {TypeError} Missing input data.
+   * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
+   */
   constructor(input) {
     /** @type {boolean} Is this instance for creating a new file? */
     this.writing = false;
 
-    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
-      debug('constructor: from Buffer');
+    if (typeof Buffer !== "undefined" && Buffer.isBuffer(input)) {
+      debug("constructor: from Buffer");
       this.data = Buffer.from(input);
-    } else if (typeof input === 'string') {
-      debug('constructor: from string');
+    } else if (typeof input === "string") {
+      debug("constructor: from string");
       this.data = new TextEncoder().encode(input);
     } else if (input instanceof Uint8Array) {
-      debug('constructor: from Uint8Array');
+      debug("constructor: from Uint8Array");
       this.data = input;
     } else if (input instanceof ArrayBuffer) {
-      debug('constructor: from ArrayBuffer');
+      debug("constructor: from ArrayBuffer");
       this.data = new Uint8Array(input);
     } else if (Array.isArray(input)) {
-      debug('constructor: Normal Array');
+      debug("constructor: Normal Array");
       this.data = new Uint8Array(input);
-    } else if (typeof input === 'number') {
-      debug('constructor: Number (i.e. length)');
+    } else if (typeof input === "number") {
+      debug("constructor: Number (i.e. length)");
       this.data = new Uint8Array(input);
     } else if (input instanceof DataBuffer) {
-      debug('constructor: from DataBuffer, a shallow copy');
+      debug("constructor: from DataBuffer, a shallow copy");
       this.data = input.data;
     } else if (input && input.buffer && input.buffer instanceof ArrayBuffer) {
-      debug('constructor: from typed arrays other than Uint8Array');
-      this.data = new Uint8Array(input.buffer, input.byteOffset, input.length * input.BYTES_PER_ELEMENT);
-    } else if (typeof input === 'undefined') {
-      debug('constructor: empty, creating a new file from scratch');
+      debug("constructor: from typed arrays other than Uint8Array");
+      this.data = new Uint8Array(
+        input.buffer,
+        input.byteOffset,
+        input.length * input.BYTES_PER_ELEMENT,
+      );
+    } else if (typeof input === "undefined") {
+      debug("constructor: empty, creating a new file from scratch");
       this.writing = true;
       this.data = new Uint8Array();
     } else {
@@ -115,7 +124,7 @@ class DataBuffer {
    * @returns {DataBuffer} The new DataBuffer.
    */
   static allocate(size) {
-    debug('DataBuffer.allocate:', size);
+    debug("DataBuffer.allocate:", size);
     return new DataBuffer(size);
   }
 
@@ -138,17 +147,17 @@ class DataBuffer {
     const buffer = new DataBuffer(input);
     const { length } = buffer;
     if (!length) {
-      debug('compare: no input provided');
+      debug("compare: no input provided");
       return false;
     }
     const { data } = buffer;
     for (let i = 0; i < length; i++) {
       if (this.data[offset + i] !== data[i]) {
-        debug('compare: first failed match at', i);
+        debug("compare: first failed match at", i);
         return false;
       }
     }
-    debug('compare: data is the same');
+    debug("compare: data is the same");
     return true;
   }
 
@@ -166,7 +175,7 @@ class DataBuffer {
     const x = Array.from(this.data.slice(offset));
     const y = Array.from(buffer.data);
 
-    debug('diff: comparing', x.length, 'bytes against', y.length, 'bytes');
+    debug("diff: comparing", x.length, "bytes against", y.length, "bytes");
 
     // Use byte-wise comparison
     return edits(x, y, (a, b) => a === b);
@@ -178,9 +187,9 @@ class DataBuffer {
    * @returns {boolean} `true` if the data is the upcoming data, `false` if it is not or there is not enough buffer remaining.
    */
   isNextBytes(input) {
-    debug('isNextBytes:', input);
-    if (!input || typeof input.length !== 'number' || input.length === 0) {
-      debug('isNextBytes: no input provided');
+    debug("isNextBytes:", input);
+    if (!input || typeof input.length !== "number" || input.length === 0) {
+      debug("isNextBytes: no input provided");
       return false;
     }
     if (!this.available(input.length)) {
@@ -188,11 +197,18 @@ class DataBuffer {
       return false;
     }
 
-    debug('isNextBytes: this.offset =', this.offset);
+    debug("isNextBytes: this.offset =", this.offset);
     const off = this.offset;
     for (let i = 0; i < input.length; i++) {
       if (input[i] !== this.data[off + i]) {
-        debug('isNextBytes: first failed match at', i, ', where:', input[i], '!==', this.data[off + i]);
+        debug(
+          "isNextBytes: first failed match at",
+          i,
+          ", where:",
+          input[i],
+          "!==",
+          this.data[off + i],
+        );
         return false;
       }
     }
@@ -205,7 +221,7 @@ class DataBuffer {
    * @returns {DataBuffer} A new copy of the current DataBuffer.
    */
   copy() {
-    debug('copy');
+    debug("copy");
     return new DataBuffer(new Uint8Array(this.data.slice(0)));
   }
 
@@ -216,8 +232,8 @@ class DataBuffer {
    * @returns {DataBuffer} The new DataBuffer
    */
   slice(position, length = this.length) {
-    debug('slice:', position, length);
-    if ((position === 0) && (length >= this.length)) {
+    debug("slice:", position, length);
+    if (position === 0 && length >= this.length) {
       return new DataBuffer(this.data);
     }
     // `subarray` returns a new typed array copy on the same ArrayBuffer,
@@ -260,12 +276,12 @@ class DataBuffer {
    * @throws {UnderflowError} Insufficient Bytes in the DataBuffer.
    */
   advance(bytes) {
-    debug('advance:', bytes);
+    debug("advance:", bytes);
     if (!this.available(bytes)) {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} <= ${this.remainingBytes()}`);
     }
     this.offset += bytes;
-    debug('advance: offset', this.offset);
+    debug("advance: offset", this.offset);
   }
 
   /**
@@ -274,12 +290,12 @@ class DataBuffer {
    * @throws {UnderflowError} Insufficient Bytes in the DataBuffer.
    */
   rewind(bytes) {
-    debug('rewind:', bytes);
+    debug("rewind:", bytes);
     if (bytes > this.offset) {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} > ${this.offset}`);
     }
     this.offset -= bytes;
-    debug('rewind: offset', this.offset);
+    debug("rewind: offset", this.offset);
   }
 
   /**
@@ -304,7 +320,7 @@ class DataBuffer {
    */
   readUInt8() {
     if (!this.available(1)) {
-      throw new UnderflowError('Insufficient Bytes: 1');
+      throw new UnderflowError("Insufficient Bytes: 1");
     }
     const output = this.data[this.offset];
     this.offset += 1;
@@ -381,13 +397,15 @@ class DataBuffer {
   peekBit(position, length = 1, offset = 0) {
     // debug('peekBit:', position, length, offset);
     if (Number.isNaN(position) || !Number.isInteger(position) || position < 0 || position > 7) {
-      throw new Error(`peekBit position is invalid: ${position}, must be an Integer between 0 and 7`);
+      throw new Error(
+        `peekBit position is invalid: ${position}, must be an Integer between 0 and 7`,
+      );
     }
     if (Number.isNaN(length) || !Number.isInteger(length) || length < 1 || length > 8) {
       throw new Error(`peekBit length is invalid: ${length}, must be an Integer between 1 and 8`);
     }
     const value = this.peekUInt8(offset);
-    return ((value << position) & 0xFF) >>> (8 - length);
+    return ((value << position) & 0xff) >>> (8 - length);
   }
 
   /**
@@ -396,7 +414,7 @@ class DataBuffer {
    */
   readInt8() {
     if (!this.available(1)) {
-      throw new UnderflowError('Insufficient Bytes: 1');
+      throw new UnderflowError("Insufficient Bytes: 1");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 1);
     const v = view.getInt8(0);
@@ -423,7 +441,7 @@ class DataBuffer {
    */
   readUInt16(littleEndian) {
     if (!this.available(2)) {
-      throw new UnderflowError('Insufficient Bytes: 2');
+      throw new UnderflowError("Insufficient Bytes: 2");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 2);
     const v = view.getUint16(0, littleEndian);
@@ -441,7 +459,10 @@ class DataBuffer {
     if (!this.availableAt(2, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 2`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getUint16(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getUint16(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -451,7 +472,7 @@ class DataBuffer {
    */
   readInt16(littleEndian = false) {
     if (!this.available(2)) {
-      throw new UnderflowError('Insufficient Bytes: 2');
+      throw new UnderflowError("Insufficient Bytes: 2");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 2);
     const v = view.getInt16(0, littleEndian);
@@ -469,7 +490,10 @@ class DataBuffer {
     if (!this.availableAt(2, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 2`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getInt16(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 2).getInt16(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -529,7 +553,7 @@ class DataBuffer {
    */
   readUInt32(littleEndian = false) {
     if (!this.available(4)) {
-      throw new UnderflowError('Insufficient Bytes: 4');
+      throw new UnderflowError("Insufficient Bytes: 4");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
     const v = view.getUint32(0, littleEndian);
@@ -547,7 +571,10 @@ class DataBuffer {
     if (!this.availableAt(4, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getUint32(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getUint32(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -557,7 +584,7 @@ class DataBuffer {
    */
   readInt32(littleEndian = false) {
     if (!this.available(4)) {
-      throw new UnderflowError('Insufficient Bytes: 4');
+      throw new UnderflowError("Insufficient Bytes: 4");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
     const v = view.getInt32(0, littleEndian);
@@ -575,7 +602,10 @@ class DataBuffer {
     if (!this.availableAt(4, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getInt32(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getInt32(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -585,7 +615,7 @@ class DataBuffer {
    */
   readFloat32(littleEndian = false) {
     if (!this.available(4)) {
-      throw new UnderflowError('Insufficient Bytes: 4');
+      throw new UnderflowError("Insufficient Bytes: 4");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 4);
     const v = view.getFloat32(0, littleEndian);
@@ -603,7 +633,10 @@ class DataBuffer {
     if (!this.availableAt(4, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 4`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getFloat32(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 4).getFloat32(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -636,7 +669,7 @@ class DataBuffer {
    */
   readFloat64(littleEndian = false) {
     if (!this.available(8)) {
-      throw new UnderflowError('Insufficient Bytes: 8');
+      throw new UnderflowError("Insufficient Bytes: 8");
     }
     const view = new DataView(this.data.buffer, this.data.byteOffset + this.offset, 8);
     const v = view.getFloat64(0, littleEndian);
@@ -654,7 +687,10 @@ class DataBuffer {
     if (!this.availableAt(8, offset)) {
       throw new UnderflowError(`Insufficient Bytes: ${offset} + 8`);
     }
-    return new DataView(this.data.buffer, this.data.byteOffset + offset, 8).getFloat64(0, littleEndian);
+    return new DataView(this.data.buffer, this.data.byteOffset + offset, 8).getFloat64(
+      0,
+      littleEndian,
+    );
   }
 
   /**
@@ -734,8 +770,8 @@ class DataBuffer {
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
    * @returns {string} The read value as a string.
    */
-  readString(length, encoding = 'ascii') {
-    debug('readString:', { length, encoding });
+  readString(length, encoding = "ascii") {
+    debug("readString:", { length, encoding });
     return this.decodeString(this.offset, length, encoding, true);
   }
 
@@ -746,8 +782,8 @@ class DataBuffer {
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
    * @returns {string} The read value as a string.
    */
-  peekString(offset, length, encoding = 'ascii') {
-    debug('peekString:', { offset, length, encoding });
+  peekString(offset, length, encoding = "ascii") {
+    debug("peekString:", { offset, length, encoding });
     return this.decodeString(offset, length, encoding, false);
   }
 
@@ -762,7 +798,7 @@ class DataBuffer {
    * @returns {string} The read value as a string.
    */
   decodeString(offset, length, encoding, advance) {
-    debug('decodeString:', { offset, length, encoding, advance });
+    debug("decodeString:", { offset, length, encoding, advance });
     encoding = encoding.toLowerCase();
     const nullEnd = length === null ? 0 : -1;
 
@@ -775,8 +811,8 @@ class DataBuffer {
     const codes = [];
 
     switch (encoding) {
-      case 'ascii':
-      case 'latin1': {
+      case "ascii":
+      case "latin1": {
         while (offset < end) {
           const character = this.peekUInt8(offset++);
           if (character === nullEnd) {
@@ -786,8 +822,8 @@ class DataBuffer {
         }
         break;
       }
-      case 'utf8':
-      case 'utf-8': {
+      case "utf8":
+      case "utf-8": {
         while (offset < end) {
           const b1 = this.peekUInt8(offset++);
           if (b1 === nullEnd) {
@@ -797,61 +833,61 @@ class DataBuffer {
           let b3;
           if ((b1 & 0x80) === 0) {
             codes.push(b1);
-          } else if ((b1 & 0xE0) === 0xC0) {
+          } else if ((b1 & 0xe0) === 0xc0) {
             // one continuation (128 to 2047)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            codes.push(((b1 & 0x1F) << 6) | b2);
-          } else if ((b1 & 0xF0) === 0xE0) {
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            codes.push(((b1 & 0x1f) << 6) | b2);
+          } else if ((b1 & 0xf0) === 0xe0) {
             // two continuation (2048 to 55295 and 57344 to 65535)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            b3 = this.peekUInt8(offset++) & 0x3F;
-            codes.push(((b1 & 0x0F) << 12) | (b2 << 6) | b3);
-          } else if ((b1 & 0xF8) === 0xF0) {
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            b3 = this.peekUInt8(offset++) & 0x3f;
+            codes.push(((b1 & 0x0f) << 12) | (b2 << 6) | b3);
+          } else if ((b1 & 0xf8) === 0xf0) {
             // three continuation (65536 to 1114111)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            b3 = this.peekUInt8(offset++) & 0x3F;
-            const b4 = this.peekUInt8(offset++) & 0x3F;
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            b3 = this.peekUInt8(offset++) & 0x3f;
+            const b4 = this.peekUInt8(offset++) & 0x3f;
 
             // Split into a Surrogate Pair
-            const pt = (((b1 & 0x0F) << 18) | (b2 << 12) | (b3 << 6) | b4) - 0x10000;
-            codes.push(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+            const pt = (((b1 & 0x0f) << 18) | (b2 << 12) | (b3 << 6) | b4) - 0x10000;
+            codes.push(0xd800 + (pt >> 10), 0xdc00 + (pt & 0x3ff));
           }
         }
         break;
       }
-      case 'utf16-be':
-      case 'utf16be':
-      case 'utf16le':
-      case 'utf16-le':
-      case 'utf16bom':
-      case 'utf16-bom': {
+      case "utf16-be":
+      case "utf16be":
+      case "utf16le":
+      case "utf16-le":
+      case "utf16bom":
+      case "utf16-bom": {
         /** @type {boolean} */
         let littleEndian;
 
         // find endianness
         switch (encoding) {
-          case 'utf16be':
-          case 'utf16-be': {
+          case "utf16be":
+          case "utf16-be": {
             littleEndian = false;
             break;
           }
-          case 'utf16le':
-          case 'utf16-le': {
+          case "utf16le":
+          case "utf16-le": {
             littleEndian = true;
             break;
           }
-          case 'utf16bom':
-          case 'utf16-bom':
+          case "utf16bom":
+          case "utf16-bom":
           default: {
             const bom = this.peekUInt16(offset);
-            if ((length < 2) || (bom === nullEnd)) {
+            if (length < 2 || bom === nullEnd) {
               if (advance) {
-                this.advance(offset += 2);
+                this.advance((offset += 2));
               }
               return String.fromCharCode(...codes);
             }
 
-            littleEndian = bom === 0xFFFE;
+            littleEndian = bom === 0xfffe;
             offset += 2;
             break;
           }
@@ -859,15 +895,15 @@ class DataBuffer {
 
         /** @type {number} */
         let w1 = 0;
-        while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
+        while (offset < end && (w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd) {
           offset += 2;
 
-          if ((w1 < 0xD800) || (w1 > 0xDFFF)) {
+          if (w1 < 0xd800 || w1 > 0xdfff) {
             codes.push(w1);
           } else {
             const w2 = this.peekUInt16(offset, littleEndian);
-            if ((w2 < 0xDC00) || (w2 > 0xDFFF)) {
-              throw new Error('Invalid utf16 sequence.');
+            if (w2 < 0xdc00 || w2 > 0xdfff) {
+              throw new Error("Invalid utf16 sequence.");
             }
 
             codes.push(w1, w2);
@@ -899,8 +935,8 @@ class DataBuffer {
    * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
    * @returns {string} The read value as a string (without the null terminator).
    */
-  readNullTerminatedString(encoding = 'ascii', nullValue = 0x00) {
-    debug('readNullTerminatedString:', { encoding, nullValue });
+  readNullTerminatedString(encoding = "ascii", nullValue = 0x00) {
+    debug("readNullTerminatedString:", { encoding, nullValue });
     const result = this.decodeNullTerminatedString(this.offset, encoding, true, nullValue);
     return result;
   }
@@ -913,8 +949,8 @@ class DataBuffer {
    * @param {number} [nullValue] The byte value that terminates the string, default is 0x00.
    * @returns {string} The read value as a string (without the null terminator).
    */
-  peekNullTerminatedString(offset, encoding = 'ascii', nullValue = 0x00) {
-    debug('peekNullTerminatedString:', { offset, encoding, nullValue });
+  peekNullTerminatedString(offset, encoding = "ascii", nullValue = 0x00) {
+    debug("peekNullTerminatedString:", { offset, encoding, nullValue });
     const result = this.decodeNullTerminatedString(offset, encoding, false, nullValue);
     return result;
   }
@@ -930,14 +966,14 @@ class DataBuffer {
    * @returns {string} The read value as a string (without the null terminator).
    */
   decodeNullTerminatedString(offset, encoding, advance, nullValue = 0x00) {
-    debug('decodeNullTerminatedString:', { offset, encoding, advance, nullValue });
+    debug("decodeNullTerminatedString:", { offset, encoding, advance, nullValue });
     encoding = encoding.toLowerCase();
     /** @type {number[]} */
     const codes = [];
 
     switch (encoding) {
-      case 'utf8':
-      case 'utf-8': {
+      case "utf8":
+      case "utf-8": {
         while (offset < this.length) {
           const b1 = this.peekUInt8(offset++);
           if (b1 === nullValue) {
@@ -947,13 +983,13 @@ class DataBuffer {
           let b3;
           if ((b1 & 0x80) === 0) {
             codes.push(b1);
-          } else if ((b1 & 0xE0) === 0xC0) {
+          } else if ((b1 & 0xe0) === 0xc0) {
             // one continuation (128 to 2047)
             if (offset >= this.length) break;
             b2 = this.peekUInt8(offset++);
             if (b2 === nullValue) break;
-            codes.push(((b1 & 0x1F) << 6) | (b2 & 0x3F));
-          } else if ((b1 & 0xF0) === 0xE0) {
+            codes.push(((b1 & 0x1f) << 6) | (b2 & 0x3f));
+          } else if ((b1 & 0xf0) === 0xe0) {
             // two continuation (2048 to 55295 and 57344 to 65535)
             if (offset >= this.length) break;
             b2 = this.peekUInt8(offset++);
@@ -961,8 +997,8 @@ class DataBuffer {
             if (offset >= this.length) break;
             b3 = this.peekUInt8(offset++);
             if (b3 === nullValue) break;
-            codes.push(((b1 & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F));
-          } else if ((b1 & 0xF8) === 0xF0) {
+            codes.push(((b1 & 0x0f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f));
+          } else if ((b1 & 0xf8) === 0xf0) {
             // three continuation (65536 to 1114111)
             if (offset >= this.length) break;
             b2 = this.peekUInt8(offset++);
@@ -975,14 +1011,16 @@ class DataBuffer {
             if (b4 === nullValue) break;
 
             // Split into a Surrogate Pair
-            const pt = (((b1 & 0x0F) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F)) - 0x10000;
-            codes.push(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+            const pt =
+              (((b1 & 0x0f) << 18) | ((b2 & 0x3f) << 12) | ((b3 & 0x3f) << 6) | (b4 & 0x3f)) -
+              0x10000;
+            codes.push(0xd800 + (pt >> 10), 0xdc00 + (pt & 0x3ff));
           }
         }
         break;
       }
-      case 'utf16-be':
-      case 'utf16be': {
+      case "utf16-be":
+      case "utf16be": {
         while (offset < this.length - 1) {
           const b1 = this.peekUInt8(offset);
           const b2 = this.peekUInt8(offset + 1);
@@ -995,8 +1033,8 @@ class DataBuffer {
         }
         break;
       }
-      case 'utf16-le':
-      case 'utf16le': {
+      case "utf16-le":
+      case "utf16le": {
         while (offset < this.length - 1) {
           const b1 = this.peekUInt8(offset);
           const b2 = this.peekUInt8(offset + 1);
@@ -1009,8 +1047,8 @@ class DataBuffer {
         }
         break;
       }
-      case 'ascii':
-      case 'latin1':
+      case "ascii":
+      case "latin1":
       default: {
         // For other encodings, fall back to ASCII behavior
         while (offset < this.length) {
@@ -1040,7 +1078,7 @@ class DataBuffer {
    * Resets the instance offsets to 0.
    */
   reset() {
-    debug('reset');
+    debug("reset");
     this.offset = 0;
   }
 
@@ -1051,7 +1089,7 @@ class DataBuffer {
    * @param {boolean} [advance] Flag to increment the offset to the next position, default is true.
    */
   writeUInt8(data, offset = this.offset, advance = true) {
-    debug('writeUInt8:', { data, offset, advance });
+    debug("writeUInt8:", { data, offset, advance });
     this.buffer[offset] = data;
     if (advance) {
       this.offset++;
@@ -1066,13 +1104,13 @@ class DataBuffer {
    * @param {boolean} [littleEndian] Endianness of the write order, little Endian when `true`, default is big Endian `false`.
    */
   writeUInt16(data, offset = this.offset, advance = true, littleEndian = false) {
-    debug('writeUInt16:', { data, offset, advance, littleEndian });
+    debug("writeUInt16:", { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset]     =  data & 0xFF;
-      this.buffer[offset + 1] = (data & 0xFF00) >> 8;
+      this.buffer[offset] = data & 0xff;
+      this.buffer[offset + 1] = (data & 0xff00) >> 8;
     } else {
-      this.buffer[offset]     = (data & 0xFF00) >> 8;
-      this.buffer[offset + 1] =  data & 0xFF;
+      this.buffer[offset] = (data & 0xff00) >> 8;
+      this.buffer[offset + 1] = data & 0xff;
     }
     if (advance) {
       this.offset += 2;
@@ -1087,15 +1125,15 @@ class DataBuffer {
    * @param {boolean} [littleEndian] Endianness of the write order, little Endian when `true`, default is big Endian `false`.
    */
   writeUInt24(data, offset = this.offset, advance = true, littleEndian = false) {
-    debug('writeUInt24:', { data, offset, advance, littleEndian });
+    debug("writeUInt24:", { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset]     =  data & 0x0000FF;
-      this.buffer[offset + 1] = (data & 0x00FF00) >> 8;
-      this.buffer[offset + 2] = (data & 0xFF0000) >> 16;
+      this.buffer[offset] = data & 0x0000ff;
+      this.buffer[offset + 1] = (data & 0x00ff00) >> 8;
+      this.buffer[offset + 2] = (data & 0xff0000) >> 16;
     } else {
-      this.buffer[offset]     = (data & 0xFF0000) >> 16;
-      this.buffer[offset + 1] = (data & 0x00FF00) >> 8;
-      this.buffer[offset + 2] =  data & 0x0000FF;
+      this.buffer[offset] = (data & 0xff0000) >> 16;
+      this.buffer[offset + 1] = (data & 0x00ff00) >> 8;
+      this.buffer[offset + 2] = data & 0x0000ff;
     }
     if (advance) {
       this.offset += 3;
@@ -1110,17 +1148,17 @@ class DataBuffer {
    * @param {boolean} [littleEndian] Endianness of the write order, little Endian when `true`, default is big Endian `false`.
    */
   writeUInt32(data, offset = this.offset, advance = true, littleEndian = false) {
-    debug('writeUInt32:', { data, offset, advance, littleEndian });
+    debug("writeUInt32:", { data, offset, advance, littleEndian });
     if (littleEndian) {
-      this.buffer[offset]     =  data & 0x000000FF;
-      this.buffer[offset + 1] = (data & 0x0000FF00) >> 8;
-      this.buffer[offset + 2] = (data & 0x00FF0000) >> 16;
-      this.buffer[offset + 3] = (data & 0xFF000000) >> 24;
+      this.buffer[offset] = data & 0x000000ff;
+      this.buffer[offset + 1] = (data & 0x0000ff00) >> 8;
+      this.buffer[offset + 2] = (data & 0x00ff0000) >> 16;
+      this.buffer[offset + 3] = (data & 0xff000000) >> 24;
     } else {
-      this.buffer[offset]     = (data & 0xFF000000) >> 24;
-      this.buffer[offset + 1] = (data & 0x00FF0000) >> 16;
-      this.buffer[offset + 2] = (data & 0x0000FF00) >> 8;
-      this.buffer[offset + 3] =  data & 0x000000FF;
+      this.buffer[offset] = (data & 0xff000000) >> 24;
+      this.buffer[offset + 1] = (data & 0x00ff0000) >> 16;
+      this.buffer[offset + 2] = (data & 0x0000ff00) >> 8;
+      this.buffer[offset + 3] = data & 0x000000ff;
     }
     if (advance) {
       this.offset += 4;
@@ -1134,7 +1172,7 @@ class DataBuffer {
    * @param {boolean} [advance] Flag to increment the offset to the next position, default is true.
    */
   writeBytes(data, offset = this.offset, advance = true) {
-    debug('writeBytes:', { data, offset, advance });
+    debug("writeBytes:", { data, offset, advance });
     for (let i = 0; i < data.length; i++) {
       this.buffer[offset + i] = data[i];
     }
@@ -1160,59 +1198,56 @@ class DataBuffer {
    * @param {string} [encoding] The encoding of the string, defailt is `ascii`.
    * @param {boolean} [advance] Flag to increment the offset to the next position, default is true.
    */
-  writeString(string, offset = this.offset, encoding = 'ascii', advance = true) {
-    debug('writeString:', { string, offset, encoding, advance });
+  writeString(string, offset = this.offset, encoding = "ascii", advance = true) {
+    debug("writeString:", { string, offset, encoding, advance });
     const data = [];
     switch (encoding) {
-      case 'ascii':
-      case 'latin1': {
+      case "ascii":
+      case "latin1": {
         for (let i = 0; i < string.length; i++) {
-          data.push(string.charCodeAt(i) & 0xFF);
+          data.push(string.charCodeAt(i) & 0xff);
         }
         break;
       }
-      case 'utf8':
-      case 'utf-8': {
+      case "utf8":
+      case "utf-8": {
         for (let i = 0; i < string.length; i++) {
           let charcode = string.charCodeAt(i);
           if (charcode < 0x80) {
             data.push(charcode);
           } else if (charcode < 0x800) {
+            data.push(0xc0 | (charcode >> 6), 0x80 | (charcode & 0x3f));
+          } else if (charcode < 0xd800 || charcode >= 0xe000) {
             data.push(
-              0xC0 | (charcode >> 6),
-              0x80 | (charcode & 0x3F),
-            );
-          } else if (charcode < 0xD800 || charcode >= 0xE000) {
-            data.push(
-              0xE0 | (charcode >> 12),
-              0x80 | ((charcode >> 6) & 0x3F),
-              0x80 | (charcode & 0x3F),
+              0xe0 | (charcode >> 12),
+              0x80 | ((charcode >> 6) & 0x3f),
+              0x80 | (charcode & 0x3f),
             );
           } else {
             i++;
             // Surrogate Pair
             // UTF-16 encodes 0x10000-0x10FFFF by subtracting 0x10000 and splitting the 20 bits of 0x0-0xFFFFF into two halves.
-            charcode = 0x10000 + (((charcode & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+            charcode = 0x10000 + (((charcode & 0x3ff) << 10) | (string.charCodeAt(i) & 0x3ff));
             data.push(
-              0xF0 | (charcode >> 18),
-              0x80 | ((charcode >> 12) & 0x3F),
-              0x80 | ((charcode >> 6) & 0x3F),
-              0x80 | (charcode & 0x3F),
+              0xf0 | (charcode >> 18),
+              0x80 | ((charcode >> 12) & 0x3f),
+              0x80 | ((charcode >> 6) & 0x3f),
+              0x80 | (charcode & 0x3f),
             );
           }
         }
         break;
       }
-      case 'utf16be':
-      case 'utf16le':
-      case 'utf16bom': {
-        const littleEndian = encoding === 'utf16le';
+      case "utf16be":
+      case "utf16le":
+      case "utf16bom": {
+        const littleEndian = encoding === "utf16le";
         for (let i = 0; i < string.length; i++) {
           const charcode = string.charCodeAt(i);
           if (littleEndian) {
-            data.push(charcode & 0xFF, charcode / 256 >>> 0);
+            data.push(charcode & 0xff, (charcode / 256) >>> 0);
           } else {
-            data.push(charcode / 256 >>> 0, charcode & 0xFF);
+            data.push((charcode / 256) >>> 0, charcode & 0xff);
           }
         }
         break;
@@ -1221,7 +1256,7 @@ class DataBuffer {
         throw new Error(`Unknown Encoding: ${encoding}`);
       }
     }
-    debug('writeString: data', data);
+    debug("writeString: data", data);
     this.writeBytes(data, offset, advance);
   }
 
@@ -1229,7 +1264,7 @@ class DataBuffer {
    * Convert a write mode file into a read mode file.
    */
   commit() {
-    debug('commit: converting to read mode file');
+    debug("commit: converting to read mode file");
     this.data = new Uint8Array(this.buffer);
     this._buffer = null;
     this.writing = false;

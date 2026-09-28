@@ -1,5 +1,6 @@
-import { inflate } from 'pako';
-import DataBuffer from '../data-buffer.js';
+import { inflate } from "pako";
+
+import DataBuffer from "../data-buffer.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -10,7 +11,12 @@ import DataBuffer from '../data-buffer.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (typeof process !== 'undefined' && process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('Uttori.ImagePNG'); } catch {} }
+if (typeof process !== "undefined" && process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("Uttori.ImagePNG");
+  } catch {}
+}
 
 /**
  * PNG Decoder
@@ -111,7 +117,7 @@ class ImagePNG extends DataBuffer {
    * @static
    */
   static fromFile(data) {
-    debug('fromFile:', data);
+    debug("fromFile:", data);
     return new ImagePNG(data);
   }
 
@@ -122,7 +128,7 @@ class ImagePNG extends DataBuffer {
    * @static
    */
   static fromBuffer(buffer) {
-    debug('fromBuffer:', buffer.length);
+    debug("fromBuffer:", buffer.length);
     return new ImagePNG(buffer);
   }
 
@@ -131,7 +137,7 @@ class ImagePNG extends DataBuffer {
    * @param {number} bitDepth The bitDepth to set, one of: 1, 2, 4, 8, 16
    */
   setBitDepth(bitDepth) {
-    debug('setBitDepth:', bitDepth);
+    debug("setBitDepth:", bitDepth);
     if (![1, 2, 4, 8, 16].includes(bitDepth)) {
       throw new Error(`Invalid Bit Depth: ${bitDepth}, can be one of: 1, 2, 4, 8, 16`);
     }
@@ -153,17 +159,30 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Invalid Color Type, anything other than 0, 2, 3, 4, 6
    */
   setColorType(colorType) {
-    debug('setColorType:', colorType);
+    debug("setColorType:", colorType);
     let colors = 0;
     let alpha = false;
 
     switch (colorType) {
-      case 0: colors = 1; break;
-      case 2: colors = 3; break;
-      case 3: colors = 1; break;
-      case 4: colors = 2; alpha = true; break;
-      case 6: colors = 4; alpha = true; break;
-      default: throw new Error(`Invalid Color Type: ${colorType}, can be one of: 0, 2, 3, 4, 6`);
+      case 0:
+        colors = 1;
+        break;
+      case 2:
+        colors = 3;
+        break;
+      case 3:
+        colors = 1;
+        break;
+      case 4:
+        colors = 2;
+        alpha = true;
+        break;
+      case 6:
+        colors = 4;
+        alpha = true;
+        break;
+      default:
+        throw new Error(`Invalid Color Type: ${colorType}, can be one of: 0, 2, 3, 4, 6`);
     }
 
     this.colors = colors;
@@ -178,7 +197,7 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Unsupported Compression Method, anything other than 0
    */
   setCompressionMethod(compressionMethod) {
-    debug('setCompressionMethod:', compressionMethod);
+    debug("setCompressionMethod:", compressionMethod);
     if (compressionMethod !== 0) {
       throw new Error(`Unsupported Compression Method: ${compressionMethod}, should be 0`);
     }
@@ -192,7 +211,7 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Unsupported Filter Method, anything other than 0
    */
   setFilterMethod(filterMethod) {
-    debug('setFilterMethod:', filterMethod);
+    debug("setFilterMethod:", filterMethod);
     if (filterMethod !== 0) {
       throw new Error(`Unsupported Filter Method: ${filterMethod}, should be 0`);
     }
@@ -206,7 +225,7 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Unsupported Interlace Method, anything other than 0 or 1
    */
   setInterlaceMethod(interlaceMethod) {
-    debug('setInterlaceMethod:', interlaceMethod);
+    debug("setInterlaceMethod:", interlaceMethod);
     if (interlaceMethod !== 0 && interlaceMethod !== 1) {
       throw new Error(`Unsupported Interlace Method: ${interlaceMethod}`);
     }
@@ -220,16 +239,18 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Too many colors for the current bit depth
    */
   setPalette(palette) {
-    debug('setPalette:', palette);
+    debug("setPalette:", palette);
     if (!Array.isArray(palette) && !ArrayBuffer.isView(palette)) {
-      debug('Invalid palette provided.');
+      debug("Invalid palette provided.");
       return;
     }
     if (palette.length === 0) {
-      throw new Error('Palette contains no colors');
+      throw new Error("Palette contains no colors");
     }
-    if (palette.length > (2 ** (this.bitDepth) * 3)) {
-      throw new Error(`Palette contains more colors than ${2 ** (this.bitDepth) * 3} ((2 ^ ${this.bitDepth}) * 3)`);
+    if (palette.length > 2 ** this.bitDepth * 3) {
+      throw new Error(
+        `Palette contains more colors than ${2 ** this.bitDepth * 3} ((2 ^ ${this.bitDepth}) * 3)`,
+      );
     }
     this.palette = palette;
   }
@@ -245,7 +266,7 @@ class ImagePNG extends DataBuffer {
    */
   getPixel(x, y) {
     if (!this.pixels) {
-      throw new Error('Pixel data has not been decoded.');
+      throw new Error("Pixel data has not been decoded.");
     }
     if (!Number.isInteger(x) || x >= this.width || x < 0) {
       throw new Error(`x position out of bounds or invalid: ${x}`);
@@ -253,12 +274,23 @@ class ImagePNG extends DataBuffer {
     if (!Number.isInteger(y) || y >= this.height || y < 0) {
       throw new Error(`y position out of bounds or invalid: ${y}`);
     }
-    debug('getPixel x:', x, 'y:', y, 'colorType:', this.colorType, 'colors:', this.colors, 'bitDepth:', this.bitDepth);
+    debug(
+      "getPixel x:",
+      x,
+      "y:",
+      y,
+      "colorType:",
+      this.colorType,
+      "colors:",
+      this.colors,
+      "bitDepth:",
+      this.bitDepth,
+    );
     // const i = (y * this.width + x) * this.bitDepth;
     // const i = (this.colors * this.bitDepth) / (8 * (y * this.width + x));
     const i = ((this.colors * this.bitDepth) / 8) * (y * this.width + x);
 
-    debug('index:', i);
+    debug("index:", i);
     switch (this.colorType) {
       case 0: {
         return [this.pixels[i], this.pixels[i], this.pixels[i], 255];
@@ -302,18 +334,18 @@ class ImagePNG extends DataBuffer {
    * Parse the PNG file, decoding the supported chunks.
    */
   parse() {
-    debug('parse');
+    debug("parse");
     this.decodeHeader();
 
     while (this.remainingBytes()) {
       const type = this.decodeChunk();
       // Stop after IEND
-      if (type === 'IEND') {
+      if (type === "IEND") {
         const leftover = this.remainingBytes();
         // TODO: Find a PNG file with other data types in it?
         /* c8 ignore next 3 */
         if (leftover > 0) {
-          debug('ending with data left:', leftover, 'bytes left');
+          debug("ending with data left:", leftover, "bytes left");
         }
         break;
       }
@@ -329,17 +361,17 @@ class ImagePNG extends DataBuffer {
    * @see {@link http://www.w3.org/TR/2003/REC-PNG-20031110/#5PNG-file-signature|PNG Signature}
    */
   decodeHeader() {
-    debug('decodeHeader: offset =', this.offset);
+    debug("decodeHeader: offset =", this.offset);
     /* c8 ignore next 3 */
     if (this.offset !== 0) {
-      debug('Offset should be at 0 to read the header.');
+      debug("Offset should be at 0 to read the header.");
     }
 
     const header = this.read(8);
-    debug('header:', header);
+    debug("header:", header);
     const header_buffer = new DataBuffer(header);
-    if (!header_buffer.compare([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {
-      throw new Error('Missing or invalid PNG header.');
+    if (!header_buffer.compare([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
+      throw new Error("Missing or invalid PNG header.");
     }
 
     this.header = header;
@@ -359,26 +391,38 @@ class ImagePNG extends DataBuffer {
    * @see {@link http://www.w3.org/TR/2003/REC-PNG-20031110/#5Chunk-layout|Chunk Layout}
    */
   decodeChunk() {
-    debug('decodeChunk');
+    debug("decodeChunk");
     const length = this.readUInt32();
 
     /* c8 ignore next 3 */
     if (length < 0) {
-      throw new Error(`Invalid Chunk Length: ${0xFFFFFFFF & length}`);
+      throw new Error(`Invalid Chunk Length: ${0xffffffff & length}`);
     }
 
     const type = this.readString(4);
     const chunk = this.read(length);
     const crc = this.readUInt32();
 
-    debug('decodeChunk type', type, 'chunk size', length, 'crc', crc.toString(16).toUpperCase());
+    debug("decodeChunk type", type, "chunk size", length, "crc", crc.toString(16).toUpperCase());
     switch (type) {
-      case 'IHDR': this.decodeIHDR(chunk); break;
-      case 'PLTE': this.decodePLTE(chunk); break;
-      case 'IDAT': this.decodeIDAT(chunk); break;
-      case 'IEND': this.decodeIEND(chunk); break;
-      case 'tRNS': this.decodeTRNS(chunk); break;
-      case 'pHYs': this.decodePHYS(chunk); break;
+      case "IHDR":
+        this.decodeIHDR(chunk);
+        break;
+      case "PLTE":
+        this.decodePLTE(chunk);
+        break;
+      case "IDAT":
+        this.decodeIDAT(chunk);
+        break;
+      case "IEND":
+        this.decodeIEND(chunk);
+        break;
+      case "tRNS":
+        this.decodeTRNS(chunk);
+        break;
+      case "pHYs":
+        this.decodePHYS(chunk);
+        break;
       // case 'cHRM': decodeCHRM(chunk); break;
       // case 'gAMA': decodeGAMA(chunk); break;
       // case 'bKGD': decodeBKGD(chunk); break;
@@ -411,7 +455,7 @@ class ImagePNG extends DataBuffer {
    * @see {@link http://www.libpng.org/pub/png/spec/1.2/png-1.2-pdg.html#C.IHDR|Image Header}
    */
   decodeIHDR(chunk) {
-    debug('decodeIHDR');
+    debug("decodeIHDR");
     const header = new DataBuffer(chunk);
 
     const width = header.readUInt32();
@@ -430,9 +474,18 @@ class ImagePNG extends DataBuffer {
     this.setFilterMethod(filter_method);
     this.setInterlaceMethod(interlace_method);
 
-    debug('decodeIHDR =', JSON.stringify({
-      width, height, bit_depth, color_type, compression_method, filter_method, interlace_method,
-    }));
+    debug(
+      "decodeIHDR =",
+      JSON.stringify({
+        width,
+        height,
+        bit_depth,
+        color_type,
+        compression_method,
+        filter_method,
+        interlace_method,
+      }),
+    );
   }
 
   /**
@@ -443,7 +496,7 @@ class ImagePNG extends DataBuffer {
    * @see {@link http://www.w3.org/TR/PNG/#11PLTE|Palette}
    */
   decodePLTE(chunk) {
-    debug('decodePLTE');
+    debug("decodePLTE");
     this.setPalette(chunk);
   }
 
@@ -454,7 +507,7 @@ class ImagePNG extends DataBuffer {
    * @see {@link http://www.w3.org/TR/2003/REC-PNG-20031110/#11IDAT|Image Data}
    */
   decodeIDAT(chunk) {
-    debug('decodeIDAT:', chunk.length, 'bytes');
+    debug("decodeIDAT:", chunk.length, "bytes");
     this.dataChunks.push(chunk);
   }
 
@@ -465,7 +518,7 @@ class ImagePNG extends DataBuffer {
    * @see {@link https://www.w3.org/TR/PNG/#11tRNS|Transparency}
    */
   decodeTRNS(chunk) {
-    debug('decodeTRNS');
+    debug("decodeTRNS");
     this.transparency = chunk;
   }
 
@@ -507,7 +560,7 @@ class ImagePNG extends DataBuffer {
    */
 
   decodeIEND(_chunk) {
-    debug('decodeIEND');
+    debug("decodeIEND");
   }
 
   /**
@@ -518,12 +571,12 @@ class ImagePNG extends DataBuffer {
    * @throws {Error} Adam7 interlaced format is unsupported
    */
   decodePixels() {
-    debug('decodePixels');
+    debug("decodePixels");
     if (this.dataChunks.length === 0) {
-      throw new Error('No IDAT chunks to decode.');
+      throw new Error("No IDAT chunks to decode.");
     }
     const length = this.dataChunks.reduce((accumulator, chunk) => accumulator + chunk.length, 0);
-    debug('Data Chunks Total Size:', length);
+    debug("Data Chunks Total Size:", length);
     const data = new Uint8Array(length);
     let k = 0;
     for (const chunk of this.dataChunks) {
@@ -537,10 +590,10 @@ class ImagePNG extends DataBuffer {
     try {
       out = inflate(data);
     } /* c8 ignore next 3 */ catch (err) {
-      debug('Error Inflating:', err);
+      debug("Error Inflating:", err);
       throw err;
     }
-    debug('Inflated Size:', out.length);
+    debug("Inflated Size:", out.length);
     // debug('Inflated:', out);
 
     try {
@@ -550,7 +603,7 @@ class ImagePNG extends DataBuffer {
         this.interlaceAdam7(out);
       }
     } /* c8 ignore next 3 */ catch (e) {
-      debug('Error Deinterlacing:', e);
+      debug("Error Deinterlacing:", e);
       throw e;
     }
   }
@@ -567,31 +620,70 @@ class ImagePNG extends DataBuffer {
     this.pixels = new Uint8Array(bytes_per_pixel * this.width * this.height);
 
     const chunk = new DataBuffer(data);
-    debug('interlaceNone: bytes:', chunk.remainingBytes(), 'bytes_per_pixel:', bytes_per_pixel, 'color_bytes_per_row:', color_bytes_per_row);
+    debug(
+      "interlaceNone: bytes:",
+      chunk.remainingBytes(),
+      "bytes_per_pixel:",
+      bytes_per_pixel,
+      "color_bytes_per_row:",
+      color_bytes_per_row,
+    );
     let offset = 0;
     while (chunk.remainingBytes() > 0) {
       const type = chunk.readUInt8();
-      const scanline = chunk.read(chunk.remainingBytes() < color_bytes_per_row ? chunk.remainingBytes() : color_bytes_per_row);
+      const scanline = chunk.read(
+        chunk.remainingBytes() < color_bytes_per_row ? chunk.remainingBytes() : color_bytes_per_row,
+      );
       // debug('chunk filter type:', type);
       switch (type) {
         case 0: {
-          this.pixels = ImagePNG.unFilterNone(this.pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+          this.pixels = ImagePNG.unFilterNone(
+            this.pixels,
+            scanline,
+            bytes_per_pixel,
+            offset,
+            color_bytes_per_row,
+          );
           break;
         }
         case 1: {
-          this.pixels = ImagePNG.unFilterSub(this.pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+          this.pixels = ImagePNG.unFilterSub(
+            this.pixels,
+            scanline,
+            bytes_per_pixel,
+            offset,
+            color_bytes_per_row,
+          );
           break;
         }
         case 2: {
-          this.pixels = ImagePNG.unFilterUp(this.pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+          this.pixels = ImagePNG.unFilterUp(
+            this.pixels,
+            scanline,
+            bytes_per_pixel,
+            offset,
+            color_bytes_per_row,
+          );
           break;
         }
         case 3: {
-          this.pixels = ImagePNG.unFilterAverage(this.pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+          this.pixels = ImagePNG.unFilterAverage(
+            this.pixels,
+            scanline,
+            bytes_per_pixel,
+            offset,
+            color_bytes_per_row,
+          );
           break;
         }
         case 4: {
-          this.pixels = ImagePNG.unFilterPaeth(this.pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+          this.pixels = ImagePNG.unFilterPaeth(
+            this.pixels,
+            scanline,
+            bytes_per_pixel,
+            offset,
+            color_bytes_per_row,
+          );
           break;
         }
         default: {
@@ -626,7 +718,7 @@ class ImagePNG extends DataBuffer {
     this.pixels = new Uint8Array(bytes_per_pixel * this.width * this.height);
 
     const chunk = new DataBuffer(data);
-    debug('interlaceAdam7: bytes:', chunk.remainingBytes(), 'bytes_per_pixel:', bytes_per_pixel);
+    debug("interlaceAdam7: bytes:", chunk.remainingBytes(), "bytes_per_pixel:", bytes_per_pixel);
 
     // Process each of the 7 passes
     for (let pass = 0; pass < 7; pass++) {
@@ -649,29 +741,63 @@ class ImagePNG extends DataBuffer {
           }
 
           const type = chunk.readUInt8();
-          const scanline = chunk.read(chunk.remainingBytes() < color_bytes_per_row ? chunk.remainingBytes() : color_bytes_per_row);
+          const scanline = chunk.read(
+            chunk.remainingBytes() < color_bytes_per_row
+              ? chunk.remainingBytes()
+              : color_bytes_per_row,
+          );
           const offset = row * color_bytes_per_row;
 
           // Apply the appropriate filter
           switch (type) {
             case 0: {
-              pass_pixels = ImagePNG.unFilterNone(pass_pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+              pass_pixels = ImagePNG.unFilterNone(
+                pass_pixels,
+                scanline,
+                bytes_per_pixel,
+                offset,
+                color_bytes_per_row,
+              );
               break;
             }
             case 1: {
-              pass_pixels = ImagePNG.unFilterSub(pass_pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+              pass_pixels = ImagePNG.unFilterSub(
+                pass_pixels,
+                scanline,
+                bytes_per_pixel,
+                offset,
+                color_bytes_per_row,
+              );
               break;
             }
             case 2: {
-              pass_pixels = ImagePNG.unFilterUp(pass_pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+              pass_pixels = ImagePNG.unFilterUp(
+                pass_pixels,
+                scanline,
+                bytes_per_pixel,
+                offset,
+                color_bytes_per_row,
+              );
               break;
             }
             case 3: {
-              pass_pixels = ImagePNG.unFilterAverage(pass_pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+              pass_pixels = ImagePNG.unFilterAverage(
+                pass_pixels,
+                scanline,
+                bytes_per_pixel,
+                offset,
+                color_bytes_per_row,
+              );
               break;
             }
             case 4: {
-              pass_pixels = ImagePNG.unFilterPaeth(pass_pixels, scanline, bytes_per_pixel, offset, color_bytes_per_row);
+              pass_pixels = ImagePNG.unFilterPaeth(
+                pass_pixels,
+                scanline,
+                bytes_per_pixel,
+                offset,
+                color_bytes_per_row,
+              );
               break;
             }
             default: {
@@ -710,7 +836,7 @@ class ImagePNG extends DataBuffer {
    * @returns {number[]|Uint8Array} Pixels
    */
   static unFilterNone(pixels, scanline, bpp, offset, length) {
-    debug('unFilterNone:', 'bpp:', bpp, 'offset:', offset, 'length:', length);
+    debug("unFilterNone:", "bpp:", bpp, "offset:", offset, "length:", length);
     for (let i = 0, to = length; i < to; i++) {
       // debug(`this.pixels[${offset + i}] = ${scanline[i]}`);
       pixels[offset + i] = scanline[i];
@@ -729,7 +855,7 @@ class ImagePNG extends DataBuffer {
    * @returns {number[]|Uint8Array} Pixels
    */
   static unFilterSub(pixels, scanline, bpp, offset, length) {
-    debug('unFilterSub:', 'bpp:', bpp, 'offset:', offset, 'length:', length);
+    debug("unFilterSub:", "bpp:", bpp, "offset:", offset, "length:", length);
     let i = 0;
     for (; i < bpp; i++) {
       // debug(`this.pixels[${offset + i}] = ${scanline[i]}`);
@@ -738,7 +864,7 @@ class ImagePNG extends DataBuffer {
     for (; i < length; i++) {
       // Raw(x) + Raw(x - bpp)
       // debug(`this.pixels[${offset + i}] = ${(scanline[i] + this.pixels[offset + i - bpp]) & 0xFF}`);
-      pixels[offset + i] = (scanline[i] + pixels[offset + i - bpp]) & 0xFF;
+      pixels[offset + i] = (scanline[i] + pixels[offset + i - bpp]) & 0xff;
     }
     return pixels;
   }
@@ -754,22 +880,22 @@ class ImagePNG extends DataBuffer {
    * @returns {number[]|Uint8Array} Pixels
    */
   static unFilterUp(pixels, scanline, _bpp, offset, length) {
-    debug('unFilterUp:', 'offset:', offset, 'length:', length);
+    debug("unFilterUp:", "offset:", offset, "length:", length);
     let i = 0;
     let byte;
     let prev;
     // Prior(x) is 0 for all x on the first scanline
-    if ((offset - length) < 0) {
+    if (offset - length < 0) {
       for (; i < length; i++) {
         pixels[offset + i] = scanline[i];
       }
     } else {
       for (; i < length; i++) {
-      // Raw(x)
+        // Raw(x)
         byte = scanline[i];
         // Prior(x)
         prev = pixels[offset + i - length];
-        pixels[offset + i] = (byte + prev) & 0xFF;
+        pixels[offset + i] = (byte + prev) & 0xff;
       }
     }
     return pixels;
@@ -786,29 +912,31 @@ class ImagePNG extends DataBuffer {
    * @returns {number[]|Uint8Array} Pixels
    */
   static unFilterAverage(pixels, scanline, bpp, offset, length) {
-    debug('unFilterAverage:', 'bpp:', bpp, 'offset:', offset, 'length:', length);
-    let i = 0; let byte; let prev; let
-      prior;
-    if ((offset - length) < 0) {
+    debug("unFilterAverage:", "bpp:", bpp, "offset:", offset, "length:", length);
+    let i = 0;
+    let byte;
+    let prev;
+    let prior;
+    if (offset - length < 0) {
       // Prior(x) == 0 && Raw(x - bpp) == 0
       for (; i < bpp; i++) {
         pixels[offset + i] = scanline[i];
       }
       // Prior(x) == 0 && Raw(x - bpp) != 0 (right shift, prevent doubles)
       for (; i < length; i++) {
-        pixels[offset + i] = (scanline[i] + (pixels[offset + i - bpp] >> 1)) & 0xFF;
+        pixels[offset + i] = (scanline[i] + (pixels[offset + i - bpp] >> 1)) & 0xff;
       }
     } else {
       // Prior(x) != 0 && Raw(x - bpp) == 0
       for (; i < bpp; i++) {
-        pixels[offset + i] = (scanline[i] + (pixels[offset - length + i] >> 1)) & 0xFF;
+        pixels[offset + i] = (scanline[i] + (pixels[offset - length + i] >> 1)) & 0xff;
       }
       // Prior(x) != 0 && Raw(x - bpp) != 0
       for (; i < length; i++) {
         byte = scanline[i];
         prev = pixels[offset + i - bpp];
         prior = pixels[offset + i - length];
-        pixels[offset + i] = (byte + (prev + prior >> 1)) & 0xFF;
+        pixels[offset + i] = (byte + ((prev + prior) >> 1)) & 0xff;
       }
     }
     return pixels;
@@ -839,7 +967,7 @@ class ImagePNG extends DataBuffer {
    * @returns {number[]|Uint8Array} Pixels
    */
   static unFilterPaeth(pixels, scanline, bpp, offset, length) {
-    debug('unFilterPaeth:', 'bpp:', bpp, 'offset:', offset, 'length:', length);
+    debug("unFilterPaeth:", "bpp:", bpp, "offset:", offset, "length:", length);
     let i = 0;
     let raw;
     let a = 0;
@@ -850,7 +978,7 @@ class ImagePNG extends DataBuffer {
     let pb = 0;
     let pc = 0;
     let pr = 0;
-    if ((offset - length) < 0) {
+    if (offset - length < 0) {
       // Prior(x) == 0 && Raw(x - bpp) == 0
       for (; i < bpp; i++) {
         pixels[offset + i] = scanline[i];
@@ -858,13 +986,13 @@ class ImagePNG extends DataBuffer {
       // Prior(x) == 0 && Raw(x - bpp) != 0
       // paethPredictor(x, 0, 0) is always x
       for (; i < length; i++) {
-        pixels[offset + i] = (scanline[i] + pixels[offset + i - bpp]) & 0xFF;
+        pixels[offset + i] = (scanline[i] + pixels[offset + i - bpp]) & 0xff;
       }
     } else {
       // Prior(x) != 0 && Raw(x - bpp) == 0
       // paethPredictor(x, 0, 0) is always x
       for (; i < bpp; i++) {
-        pixels[offset + i] = (scanline[i] + pixels[offset + i - length]) & 0xFF;
+        pixels[offset + i] = (scanline[i] + pixels[offset + i - length]) & 0xff;
       }
       // Prior(x) != 0 && Raw(x - bpp) != 0
       for (; i < length; i++) {
@@ -879,7 +1007,7 @@ class ImagePNG extends DataBuffer {
         if (pa <= pb && pa <= pc) pr = a;
         else if (pb <= pc) pr = b;
         else pr = c;
-        pixels[offset + i] = (raw + pr) & 0xFF;
+        pixels[offset + i] = (raw + pr) & 0xff;
       }
     }
     return pixels;

@@ -14,6 +14,8 @@ import AudioMIDI from './audio/audio-midi.js';
 declare const _default: {
     CRC32: {
         of: typeof import("./data-hash-crc32.js").calculate;
+        compute: typeof import("./data-hash-crc32.js").compute;
+        crc32c: typeof import("./data-hash-crc32.js").crc32c;
     };
     DataBitstream: typeof DataBitstream;
     DataBuffer: typeof DataBuffer;

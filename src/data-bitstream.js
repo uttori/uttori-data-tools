@@ -1,6 +1,6 @@
-import DataStream from './data-stream.js';
-import DataBuffer from './data-buffer.js';
-import DataBufferList from './data-buffer-list.js';
+import DataBufferList from "./data-buffer-list.js";
+import DataBuffer from "./data-buffer.js";
+import DataStream from "./data-stream.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -11,7 +11,12 @@ import DataBufferList from './data-buffer-list.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataBitstream'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("DataBitstream");
+  } catch {}
+}
 
 /**
  * Read a DataStream as a stream of bits.
@@ -27,12 +32,12 @@ if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('
  * @class
  */
 class DataBitstream {
-/**
- * Creates an instance of DataBitstream.
- * @param {DataStream} stream The DataStream to process.
- */
+  /**
+   * Creates an instance of DataBitstream.
+   * @param {DataStream} stream The DataStream to process.
+   */
   constructor(stream) {
-    debug('constructor');
+    debug("constructor");
     /** @type {DataStream} The DataStream being processed. */
     this.stream = stream;
     /** @type {number} The number of buffers in the list. */
@@ -69,7 +74,7 @@ class DataBitstream {
    * @returns {DataBitstream} The copied DataBufferList.
    */
   copy() {
-    debug('copy');
+    debug("copy");
     const result = new DataBitstream(this.stream.copy());
     result.bitPosition = this.bitPosition;
     return result;
@@ -80,8 +85,8 @@ class DataBitstream {
    * @returns {number} The number of bits read thus far.
    */
   offset() {
-    debug('offset');
-    return (8 * this.stream.offset) + this.bitPosition;
+    debug("offset");
+    return 8 * this.stream.offset + this.bitPosition;
   }
 
   /**
@@ -90,8 +95,8 @@ class DataBitstream {
    * @returns {boolean} If the requested number of bits are avaliable in the stream.
    */
   available(bits) {
-    debug('available:', bits);
-    return this.stream.available(((bits + 8) - this.bitPosition) / 8);
+    debug("available:", bits);
+    return this.stream.available((bits + 8 - this.bitPosition) / 8);
   }
 
   /**
@@ -99,7 +104,7 @@ class DataBitstream {
    * @param {number} bits The number of bits to advance.
    */
   advance(bits) {
-    debug('advance:', bits);
+    debug("advance:", bits);
     const position = this.bitPosition + bits;
     this.stream.advance(position >> 3);
     this.bitPosition = position & 7;
@@ -110,7 +115,7 @@ class DataBitstream {
    * @param {number} bits The number of bits to go back.
    */
   rewind(bits) {
-    debug('rewind:', bits);
+    debug("rewind:", bits);
     const pos = this.bitPosition - bits;
     this.stream.rewind(Math.abs(pos >> 3));
     this.bitPosition = pos & 7;
@@ -121,7 +126,7 @@ class DataBitstream {
    * @param {number} offset The offset to go to.
    */
   seek(offset) {
-    debug('seek:', offset);
+    debug("seek:", offset);
     const current_offset = this.offset();
     if (offset > current_offset) {
       this.advance(offset - current_offset);
@@ -134,7 +139,7 @@ class DataBitstream {
    * Reset the bit position back to 0 and advance the stream.
    */
   align() {
-    debug('align');
+    debug("align");
     if (this.bitPosition !== 0) {
       this.bitPosition = 0;
       this.stream.advance(1);
@@ -149,7 +154,7 @@ class DataBitstream {
    * @returns {number} The value read in from the stream.
    */
   read(bits, signed = false, advance = true) {
-    debug('read:', bits, signed, advance);
+    debug("read:", bits, signed, advance);
     if (bits === 0) {
       return 0;
     }
@@ -157,13 +162,13 @@ class DataBitstream {
     /** @type {number} */
     let output = 0;
     const mBits = bits + this.bitPosition;
-    debug('read mBits:', mBits);
+    debug("read mBits:", mBits);
     if (mBits <= 8) {
-      output = ((this.stream.peekUInt8() << this.bitPosition) & 0xFF) >>> (8 - bits);
+      output = ((this.stream.peekUInt8() << this.bitPosition) & 0xff) >>> (8 - bits);
     } else if (mBits <= 16) {
-      output = ((this.stream.peekUInt16() << this.bitPosition) & 0xFFFF) >>> (16 - bits);
+      output = ((this.stream.peekUInt16() << this.bitPosition) & 0xffff) >>> (16 - bits);
     } else if (mBits <= 24) {
-      output = ((this.stream.peekUInt24() << this.bitPosition) & 0xFFFFFF) >>> (24 - bits);
+      output = ((this.stream.peekUInt24() << this.bitPosition) & 0xffffff) >>> (24 - bits);
     } else if (mBits <= 32) {
       output = (this.stream.peekUInt32() << this.bitPosition) >>> (32 - bits);
     } else if (mBits <= 40) {
@@ -204,7 +209,7 @@ class DataBitstream {
    * @returns {number} The value read in from the stream.
    */
   peek(bits, signed = false) {
-    debug('peek:', bits, signed);
+    debug("peek:", bits, signed);
     return this.read(bits, signed, false);
   }
 
@@ -220,7 +225,7 @@ class DataBitstream {
    * @throws {Error} Too Large, too many bits.
    */
   readLSB(bits, signed = false, advance = true) {
-    debug('readLSB:', bits, signed, advance);
+    debug("readLSB:", bits, signed, advance);
     if (bits === 0) {
       return 0;
     }
@@ -229,18 +234,18 @@ class DataBitstream {
     }
 
     const mBits = bits + this.bitPosition;
-    let output = (this.stream.peekUInt8(0)) >>> this.bitPosition;
+    let output = this.stream.peekUInt8(0) >>> this.bitPosition;
     if (mBits > 8) {
-      output |= (this.stream.peekUInt8(1)) << (8 - this.bitPosition);
+      output |= this.stream.peekUInt8(1) << (8 - this.bitPosition);
     }
     if (mBits > 16) {
-      output |= (this.stream.peekUInt8(2)) << (16 - this.bitPosition);
+      output |= this.stream.peekUInt8(2) << (16 - this.bitPosition);
     }
     if (mBits > 24) {
-      output += ((this.stream.peekUInt8(3)) << (24 - this.bitPosition)) >>> 0;
+      output += (this.stream.peekUInt8(3) << (24 - this.bitPosition)) >>> 0;
     }
     if (mBits > 32) {
-      output += (this.stream.peekUInt8(4)) * 2 ** (32 - this.bitPosition);
+      output += this.stream.peekUInt8(4) * 2 ** (32 - this.bitPosition);
     }
 
     if (mBits >= 32) {
@@ -276,7 +281,7 @@ class DataBitstream {
    * @throws {Error} Too Large, too many bits.
    */
   peekLSB(bits, signed = false) {
-    debug('peekLSB:', bits, signed);
+    debug("peekLSB:", bits, signed);
     return this.readLSB(bits, signed, false);
   }
 }

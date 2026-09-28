@@ -10,7 +10,7 @@
 
 Tools for working with binary data.
 
-- **CRC32** - Derive the Cyclic Redundancy Check of a data blob.
+- **CRC32** - CRC-32/ISO-HDLC (`of` hex, `compute` unsigned) and CRC-32C/Castagnoli (`crc32c`).
 - **DataStream** - Helpter class to ease parsing binary formats.
 - **DataBuffer** - Helper class for working with binary data.
 - **DataBufferList** - A linked list of DataBuffers.
@@ -31,6 +31,10 @@ import { CRC32, DataBuffer, DataBufferList, DataBitstream, DataStream } from '@u
 
 CRC32.of('The quick brown fox jumps over the lazy dog');
 ➜ '414FA339'
+CRC32.compute('123456789');
+➜ 0xCBF43926
+CRC32.crc32c('123456789');
+➜ 0xE3069283
 
 const stream_a = DataStream.fromData(Buffer.from([20, 29, 119]));
 const stream_b = DataStream.fromData(Buffer.from([20, 29, 119]));

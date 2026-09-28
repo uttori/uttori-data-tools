@@ -1,7 +1,7 @@
-import DataBuffer from './data-buffer.js';
-import DataBufferList from './data-buffer-list.js';
-import UnderflowError from './underflow-error.js';
-import { convertFromIeeeExtended, float48, float80 } from './data-helpers.js';
+import DataBufferList from "./data-buffer-list.js";
+import DataBuffer from "./data-buffer.js";
+import { convertFromIeeeExtended, float48, float80 } from "./data-helpers.js";
+import UnderflowError from "./underflow-error.js";
 
 /**
  * No-op logger, replaced by the `debug` package when enabled.
@@ -12,7 +12,12 @@ import { convertFromIeeeExtended, float48, float80 } from './data-helpers.js';
 /** @type {DebugLogger} */
 let debug = () => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) { try { const { default: d } = await import('debug'); debug = d('DataStream'); } catch {} }
+if (process.env.UTTORI_DATA_DEBUG) {
+  try {
+    const { default: d } = await import("debug");
+    debug = d("DataStream");
+  } catch {}
+}
 
 /**
  * Helper class to ease working with binary files.
@@ -45,7 +50,7 @@ class DataStream {
   constructor(list, options = {}) {
     options.size = options.size || 16;
     if (options && options.size % 8 !== 0) {
-      options.size += (8 - (options.size % 8));
+      options.size += 8 - (options.size % 8);
     }
     /** @type {number} ArrayBuffer byteLength */
     this.size = options.size;
@@ -116,11 +121,11 @@ class DataStream {
    */
   compare(input, offset = 0) {
     if (!input || !input.list || !input.list.availableBytes) {
-      debug('compare: no input provided');
+      debug("compare: no input provided");
       return false;
     }
     let { availableBytes } = input.list;
-    debug('compare', availableBytes, offset);
+    debug("compare", availableBytes, offset);
     if (offset) {
       availableBytes -= offset;
       this.seek(offset);
@@ -132,10 +137,10 @@ class DataStream {
       local = this.readUInt8();
       external = input.readUInt8();
       if (local !== external) {
-        debug('compare: first failed match at', i);
+        debug("compare: first failed match at", i);
         return false;
       }
-      debug('compare: match at', i);
+      debug("compare: match at", i);
     }
     return true;
   }
@@ -146,9 +151,9 @@ class DataStream {
    * @returns {boolean} True if the data is the upcoming data, false if it is not or there is not enough buffer remaining.
    */
   next(input) {
-    debug('next:', input);
-    if (!input || typeof input.length !== 'number' || input.length === 0) {
-      debug('next: no input provided');
+    debug("next:", input);
+    if (!input || typeof input.length !== "number" || input.length === 0) {
+      debug("next: no input provided");
       return false;
     }
     if (!this.available(input.length)) {
@@ -156,11 +161,11 @@ class DataStream {
       return false;
     }
 
-    debug('next: this.offset =', this.offset);
+    debug("next: this.offset =", this.offset);
     for (let i = 0; i < input.length; i++) {
       const data = this.peekUInt8(this.offset + i);
       if (input[i] !== data) {
-        debug('next: first failed match at', i, ', where:', input[i], '!==', data);
+        debug("next: first failed match at", i, ", where:", input[i], "!==", data);
         return false;
       }
     }
@@ -214,7 +219,7 @@ class DataStream {
    * @throws {UnderflowError} Insufficient Bytes in the stream.
    */
   advance(bytes) {
-    debug('advance:', bytes);
+    debug("advance:", bytes);
     if (!this.available(bytes)) {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} <= ${this.remainingBytes()}`);
     }
@@ -222,8 +227,12 @@ class DataStream {
     this.localOffset += bytes;
     this.offset += bytes;
 
-    while (this.list.first && (this.localOffset >= this.list.first.length) && this.list.moreAvailable()) {
-      debug('advance: end of the list, advancing list');
+    while (
+      this.list.first &&
+      this.localOffset >= this.list.first.length &&
+      this.list.moreAvailable()
+    ) {
+      debug("advance: end of the list, advancing list");
       this.localOffset -= this.list.first.length;
       this.list.advance();
     }
@@ -242,7 +251,7 @@ class DataStream {
       throw new UnderflowError(`Insufficient Bytes: ${bytes} > ${this.offset}`);
     }
     if (!this.list.first) {
-      throw new Error('No buffer to read from');
+      throw new Error("No buffer to read from");
     }
 
     // If we're at the end of the bufferlist, seek from the end
@@ -254,7 +263,7 @@ class DataStream {
     this.localOffset -= bytes;
     this.offset -= bytes;
 
-    while (this.list.first.prev && (this.localOffset < 0)) {
+    while (this.list.first.prev && this.localOffset < 0) {
       this.list.rewind();
       this.localOffset += this.list.first.length;
     }
@@ -284,10 +293,10 @@ class DataStream {
    */
   readUInt8() {
     if (!this.available(1)) {
-      throw new UnderflowError('Insufficient Bytes: 1');
+      throw new UnderflowError("Insufficient Bytes: 1");
     }
     if (!this.list.first) {
-      throw new Error('No buffer to read from');
+      throw new Error("No buffer to read from");
     }
 
     const output = this.list.first.data[this.localOffset];
@@ -382,13 +391,15 @@ class DataStream {
   peekBit(position, length = 1, offset = 0) {
     // debug('peekBit:', position, length, offset);
     if (Number.isNaN(position) || !Number.isInteger(position) || position < 0 || position > 7) {
-      throw new Error(`peekBit position is invalid: ${position}, must be an Integer between 0 and 7`);
+      throw new Error(
+        `peekBit position is invalid: ${position}, must be an Integer between 0 and 7`,
+      );
     }
     if (Number.isNaN(length) || !Number.isInteger(length) || length < 1 || length > 8) {
       throw new Error(`peekBit length is invalid: ${length}, must be an Integer between 1 and 8`);
     }
     const value = this.peekUInt8(offset);
-    return ((value << position) & 0xFF) >>> (8 - length);
+    return ((value << position) & 0xff) >>> (8 - length);
   }
 
   /**
@@ -684,9 +695,9 @@ class DataStream {
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
    */
   readSingleBuffer(length) {
-    debug('readSingleBuffer:', length);
+    debug("readSingleBuffer:", length);
     if (!this.list.first) {
-      throw new Error('No buffer to read from');
+      throw new Error("No buffer to read from");
     }
     const result = this.list.first.slice(this.localOffset, length);
     this.advance(result.length);
@@ -700,9 +711,9 @@ class DataStream {
    * @returns {DataBuffer} The requested number of bytes as a DataBuffer.
    */
   peekSingleBuffer(offset, length) {
-    debug('peekSingleBuffer:', offset, length);
+    debug("peekSingleBuffer:", offset, length);
     if (!this.list.first) {
-      throw new Error('No buffer to read from');
+      throw new Error("No buffer to read from");
     }
     return this.list.first.slice(this.localOffset + offset, length);
   }
@@ -713,7 +724,7 @@ class DataStream {
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
    * @returns {string} The read value as a string.
    */
-  readString(length, encoding = 'ascii') {
+  readString(length, encoding = "ascii") {
     return this.decodeString(this.offset, length, encoding, true);
   }
 
@@ -724,7 +735,7 @@ class DataStream {
    * @param {string} [encoding] The encoding of the string, default is `ascii`.
    * @returns {string} The read value as a string.
    */
-  peekString(offset, length, encoding = 'ascii') {
+  peekString(offset, length, encoding = "ascii") {
     return this.decodeString(offset, length, encoding, false);
   }
 
@@ -747,11 +758,11 @@ class DataStream {
     }
 
     const end = offset + length;
-    let result = '';
+    let result = "";
 
     switch (encoding) {
-      case 'ascii':
-      case 'latin1': {
+      case "ascii":
+      case "latin1": {
         while (offset < end) {
           const char = this.peekUInt8(offset++);
           if (char === nullEnd) {
@@ -761,8 +772,8 @@ class DataStream {
         }
         break;
       }
-      case 'utf8':
-      case 'utf-8': {
+      case "utf8":
+      case "utf-8": {
         while (offset < end) {
           const b1 = this.peekUInt8(offset++);
           if (b1 === nullEnd) {
@@ -772,61 +783,61 @@ class DataStream {
           let b3;
           if ((b1 & 0x80) === 0) {
             result += String.fromCharCode(b1);
-          } else if ((b1 & 0xE0) === 0xC0) {
+          } else if ((b1 & 0xe0) === 0xc0) {
             // one continuation (128 to 2047)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            result += String.fromCharCode(((b1 & 0x1F) << 6) | b2);
-          } else if ((b1 & 0xF0) === 0xE0) {
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            result += String.fromCharCode(((b1 & 0x1f) << 6) | b2);
+          } else if ((b1 & 0xf0) === 0xe0) {
             // two continuation (2048 to 55295 and 57344 to 65535)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            b3 = this.peekUInt8(offset++) & 0x3F;
-            result += String.fromCharCode(((b1 & 0x0F) << 12) | (b2 << 6) | b3);
-          } else if ((b1 & 0xF8) === 0xF0) {
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            b3 = this.peekUInt8(offset++) & 0x3f;
+            result += String.fromCharCode(((b1 & 0x0f) << 12) | (b2 << 6) | b3);
+          } else if ((b1 & 0xf8) === 0xf0) {
             // three continuation (65536 to 1114111)
-            b2 = this.peekUInt8(offset++) & 0x3F;
-            b3 = this.peekUInt8(offset++) & 0x3F;
-            const b4 = this.peekUInt8(offset++) & 0x3F;
+            b2 = this.peekUInt8(offset++) & 0x3f;
+            b3 = this.peekUInt8(offset++) & 0x3f;
+            const b4 = this.peekUInt8(offset++) & 0x3f;
 
             // split into a surrogate pair
-            const pt = (((b1 & 0x0F) << 18) | (b2 << 12) | (b3 << 6) | b4) - 0x10000;
-            result += String.fromCharCode(0xD800 + (pt >> 10), 0xDC00 + (pt & 0x3FF));
+            const pt = (((b1 & 0x0f) << 18) | (b2 << 12) | (b3 << 6) | b4) - 0x10000;
+            result += String.fromCharCode(0xd800 + (pt >> 10), 0xdc00 + (pt & 0x3ff));
           }
         }
         break;
       }
-      case 'utf16-be':
-      case 'utf16be':
-      case 'utf16le':
-      case 'utf16-le':
-      case 'utf16bom':
-      case 'utf16-bom': {
+      case "utf16-be":
+      case "utf16be":
+      case "utf16le":
+      case "utf16-le":
+      case "utf16bom":
+      case "utf16-bom": {
         /** @type {boolean} */
         let littleEndian = false;
 
         // find endianness
         switch (encoding) {
-          case 'utf16be':
-          case 'utf16-be': {
+          case "utf16be":
+          case "utf16-be": {
             littleEndian = false;
             break;
           }
-          case 'utf16le':
-          case 'utf16-le': {
+          case "utf16le":
+          case "utf16-le": {
             littleEndian = true;
             break;
           }
-          case 'utf16bom':
-          case 'utf16-bom':
+          case "utf16bom":
+          case "utf16-bom":
           default: {
             const bom = this.peekUInt16(offset);
-            if ((length < 2) || (bom === nullEnd)) {
+            if (length < 2 || bom === nullEnd) {
               if (advance) {
-                this.advance(offset += 2);
+                this.advance((offset += 2));
               }
               return result;
             }
 
-            littleEndian = bom === 0xFFFE;
+            littleEndian = bom === 0xfffe;
             offset += 2;
             break;
           }
@@ -834,15 +845,15 @@ class DataStream {
 
         /** @type {number} */
         let w1 = 0;
-        while ((offset < end) && ((w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd)) {
+        while (offset < end && (w1 = this.peekUInt16(offset, littleEndian)) !== nullEnd) {
           offset += 2;
 
-          if ((w1 < 0xD800) || (w1 > 0xDFFF)) {
+          if (w1 < 0xd800 || w1 > 0xdfff) {
             result += String.fromCharCode(w1);
           } else {
             const w2 = this.peekUInt16(offset, littleEndian);
-            if ((w2 < 0xDC00) || (w2 > 0xDFFF)) {
-              throw new Error('Invalid utf16 sequence.');
+            if (w2 < 0xdc00 || w2 > 0xdfff) {
+              throw new Error("Invalid utf16 sequence.");
             }
 
             result += String.fromCharCode(w1, w2);

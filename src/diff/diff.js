@@ -1,4 +1,4 @@
-import Myers from './myers.js';
+import Myers from "./myers.js";
 
 export const DEFAULT_CONTEXT = 3;
 
@@ -6,7 +6,7 @@ export const DEFAULT_CONTEXT = 3;
  * Op describes an edit operation.
  */
 export const Op = {
-  Match: 0,  // Two slice elements match
+  Match: 0, // Two slice elements match
   Delete: 1, // A deletion from an element on the left slice
   Insert: 2, // An insertion of an element from the right side
 };
@@ -152,8 +152,10 @@ function createHunks(x, y, rx, ry, _context) {
       });
     } else {
       // Few changes - cover only changed portion
-      let minX = x.length, maxX = 0;
-      let minY = y.length, maxY = 0;
+      let minX = x.length,
+        maxX = 0;
+      let minY = y.length,
+        maxY = 0;
 
       // Find the range of changes in x
       for (let i = 0; i < x.length; i++) {
@@ -213,7 +215,8 @@ function createEdits(x, y, rx, ry) {
   const n = rx.length - 1;
   const m = ry.length - 1;
 
-  let s = 0, t = 0;
+  let s = 0,
+    t = 0;
   while (s < n || t < m) {
     // Process deletions
     while (s < n && rx[s]) {
