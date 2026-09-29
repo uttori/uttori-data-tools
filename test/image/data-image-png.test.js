@@ -1,6 +1,6 @@
 import test from 'ava';
 import { promises as fs } from 'fs';
-import { DataBuffer, ImagePNG } from '../../src/index.js';
+import { DataBuffer, ImagePNG } from '../../dist/index.js';
 
 test('constructor(list, options): can initialize', async (t) => {
   const data = await fs.readFile('./test/image/assets/512x478x24.png');
@@ -100,53 +100,52 @@ test('setPalette(palette): can set the palette with an Array', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/512x478x24.png');
   const buffer = new DataBuffer(image_data);
   const image = ImagePNG.fromBuffer(buffer);
-  t.deepEqual(image.palette, []);
+  t.deepEqual(image.palette, new Uint8Array());
   t.notThrows(() => {
-    image.setPalette([1]);
+    image.setPalette([1, 2, 3]);
   });
-  t.deepEqual(image.palette, [1]);
+  t.deepEqual(image.palette, new Uint8Array([1, 2, 3]));
 });
 
 test('setPalette(palette): can set the palette with an Uint8Array', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/512x478x24.png');
   const buffer = new DataBuffer(image_data);
   const image = ImagePNG.fromBuffer(buffer);
-  const palette = new Uint8Array([1]);
-  t.deepEqual(image.palette, []);
+  const palette = new Uint8Array([1, 2, 3]);
+  t.deepEqual(image.palette, new Uint8Array());
   t.notThrows(() => {
     image.setPalette(palette);
   });
   t.deepEqual(image.palette, palette);
 });
 
-test('setPalette(palette): return when called with anything other than an array', async (t) => {
+test('setPalette(palette): throws when the value is not RGB triples', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/512x478x24.png');
   const buffer = new DataBuffer(image_data);
   const image = ImagePNG.fromBuffer(buffer);
-  t.deepEqual(image.palette, []);
-  t.notThrows(() => {
-    image.setPalette(0);
-    image.setPalette(undefined);
-    image.setPalette(null);
-    image.setPalette('');
-    image.setPalette({});
-  });
-  t.deepEqual(image.palette, []);
+  t.deepEqual(image.palette, new Uint8Array());
+  for (const palette of [0, undefined, null, '', {}, [], [1]]) {
+    t.throws(() => {
+      image.setPalette(palette);
+    }, { message: 'Invalid PNG palette; expected 1 to 256 RGB triples.' });
+  }
+  t.deepEqual(image.palette, new Uint8Array());
 });
 
 test('setPalette(palette): throws an error on invalid palette length', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/512x478x24.png');
   const buffer = new DataBuffer(image_data);
   const image = ImagePNG.fromBuffer(buffer);
-  image.bitDepth = 1;
-  t.deepEqual(image.palette, []);
+  image.setColorType(3);
+  image.setBitDepth(1);
+  t.deepEqual(image.palette, new Uint8Array());
   t.throws(() => {
     image.setPalette([]);
-  }, { message: 'Palette contains no colors' });
+  }, { message: 'Invalid PNG palette; expected 1 to 256 RGB triples.' });
   t.throws(() => {
     image.setPalette([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  }, { message: 'Palette contains more colors than 6 ((2 ^ 1) * 3)' });
-  t.deepEqual(image.palette, []);
+  }, { message: 'Palette contains more than 2 colors.' });
+  t.deepEqual(image.palette, new Uint8Array());
 });
 
 test('decodeHeader(): can read a valid header', async (t) => {
@@ -222,11 +221,11 @@ test('decodeTRNS(): can read a valid PNG tRNS chunk', async (t) => {
 test('decodePHYS(): can read a valid PNG pHYs chunk', async (t) => {
   let image_data = await fs.readFile('./test/image/assets/150x300x8-MANY-CHUNKS.png');
   let image = ImagePNG.fromFile(image_data);
-  t.deepEqual(image.physical, { width: 72, height: 72, unit: 1 });
+  t.deepEqual(image.physical, { width: 2835, height: 2835, unit: 1 });
 
   image_data = await fs.readFile('./test/image/assets/512x478x24.png');
   image = ImagePNG.fromFile(image_data);
-  t.deepEqual(image.physical, { width: 96, height: 96, unit: 1 });
+  t.deepEqual(image.physical, { width: 3780, height: 3780, unit: 1 });
 });
 
 test('decodePixels(): can decode pixel data', async (t) => {
@@ -368,13 +367,14 @@ test('decodePixels(): can decode pixel data', async (t) => {
   t.deepEqual(pixel, [233, 248, 251, 255]);
 });
 
-test('getPixel(x, y): throws errors for missing pixel data', async (t) => {
+test('getPixel(x, y): throws when there are no IDAT chunks', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/4x4x8-RGB-MAGENTA.png');
   const image = ImagePNG.fromFile(image_data);
-  image.pixels = null;
+  image.dataChunks = [];
+  image._decoded = false;
   t.throws(() => {
-    image.getPixel(999, 999);
-  }, { message: 'Pixel data has not been decoded.' });
+    image.getPixel(0, 0);
+  }, { message: 'No IDAT chunks to decode.' });
 });
 
 test('getPixel(x, y): throws errors for invalid params', async (t) => {
@@ -384,19 +384,19 @@ test('getPixel(x, y): throws errors for invalid params', async (t) => {
 
   t.throws(() => {
     image.getPixel(true, true);
-  }, { message: 'x position out of bounds or invalid: true' });
+  }, { message: 'x position must be an integer in [0, 1].' });
 
   t.throws(() => {
     image.getPixel(0, true);
-  }, { message: 'y position out of bounds or invalid: true' });
+  }, { message: 'y position must be an integer in [0, 1].' });
 
   t.throws(() => {
     image.getPixel(-1, -1);
-  }, { message: 'x position out of bounds or invalid: -1' });
+  }, { message: 'x position must be an integer in [0, 1].' });
 
   t.throws(() => {
     image.getPixel(0, -1);
-  }, { message: 'y position out of bounds or invalid: -1' });
+  }, { message: 'y position must be an integer in [0, 1].' });
 });
 
 test('getPixel(x, y): throws errors for invalid color type', async (t) => {
@@ -420,10 +420,10 @@ test('getPixel(x, y): can get a specific pixel of an image (4x4, RGB, 8 bit)', a
   t.deepEqual(pixel, [0, 254, 1, 255]);
 
   pixel = image.getPixel(0, 1);
-  t.deepEqual(pixel, [0, 0, 0, 255]);
+  t.deepEqual(pixel, [0, 0, 255, 255]);
 
   pixel = image.getPixel(1, 1);
-  t.deepEqual(pixel, [255, 254, 0, 255]);
+  t.deepEqual(pixel, [254, 0, 255, 255]);
 });
 
 test('getPixel(x, y): can get a specific pixel of an image (4x4, RGB, 8 bit, Zopfli)', async (t) => {
@@ -437,10 +437,10 @@ test('getPixel(x, y): can get a specific pixel of an image (4x4, RGB, 8 bit, Zop
   t.deepEqual(pixel, [0, 254, 1, 255]);
 
   pixel = image.getPixel(0, 1);
-  t.deepEqual(pixel, [0, 0, 0, 255]);
+  t.deepEqual(pixel, [0, 0, 255, 255]);
 
   pixel = image.getPixel(1, 1);
-  t.deepEqual(pixel, [255, 254, 0, 255]);
+  t.deepEqual(pixel, [254, 0, 255, 255]);
 });
 
 // PngSuite - Basic Formats
@@ -486,7 +486,7 @@ test('PngSuite - Basic Formats - basn0g16 - 16 bit (64k level) grayscale', async
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn0g16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 255]);
 });
@@ -504,39 +504,36 @@ test('PngSuite - Basic Formats - basn2c16 - 3x16 bits rgb color', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn2c16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   const pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [255, 255, 255, 255]);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 });
 
-// TODO: Fix getPixel
 test('PngSuite - Basic Formats - basn3p01 - 1 bit (2 color) paletted', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn3p01.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
   t.is(image.pixels.length, 1024);
-  // const pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  const pixel = image.getPixel(0, 0);
+  t.deepEqual(pixel, [238, 255, 34, 255]);
 });
 
-// TODO: Fix getPixel
 test('PngSuite - Basic Formats - basn3p02 - 2 bit (4 color) paletted', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn3p02.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
   t.is(image.pixels.length, 1024);
-  // const pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  const pixel = image.getPixel(0, 0);
+  t.deepEqual(pixel, [0, 0, 255, 255]);
 });
 
-// TODO: Fix getPixel
 test('PngSuite - Basic Formats - basn3p04 - 4 bit (16 color) paletted', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn3p04.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
   t.is(image.pixels.length, 1024);
-  // const pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  const pixel = image.getPixel(0, 0);
+  t.deepEqual(pixel, [255, 0, 0, 255]);
 });
 
 test('PngSuite - Basic Formats - basn3p08 - 8 bit (256 color) paletted', async (t) => {
@@ -561,7 +558,7 @@ test('PngSuite - Basic Formats - basn4a16 - 16 bit grayscale + 16 bit alpha-chan
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn4a16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 4096);
+  t.is(image.pixels.length, 2048);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 0]);
 });
@@ -579,7 +576,7 @@ test('PngSuite - Basic Formats - basn6a16 - 3x16 bits rgb color + 16 bit alpha-c
   const image_data = await fs.readFile('./test/image/assets/PngSuite/basn6a16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 8192);
+  t.is(image.pixels.length, 4096);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [255, 255, 0, 0]);
 });
@@ -598,12 +595,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [
-    240,
-    240,
-    240,
-    255,
-  ]);
+  t.deepEqual(pixel, [255, 255, 255, 255]);
 
   // basi0g02 - 2 bit (4 level) grayscale
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi0g02.png');
@@ -611,12 +603,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [
-    34,
-    34,
-    34,
-    255,
-  ]);
+  t.deepEqual(pixel, [0, 0, 0, 255]);
 
   // basi0g04 - 4 bit (16 level) grayscale
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi0g04.png');
@@ -624,12 +611,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [
-    2,
-    2,
-    2,
-    255,
-  ]);
+  t.deepEqual(pixel, [0, 0, 0, 255]);
 
   // basi0g08 - 8 bit (256 level) grayscale
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi0g08.png');
@@ -637,25 +619,15 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [
-    0,
-    0,
-    0,
-    255,
-  ]);
+  t.deepEqual(pixel, [0, 0, 0, 255]);
 
   // basi0g16 - 16 bit (64k level) grayscale
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi0g16.png');
   image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [
-    0,
-    0,
-    0,
-    255,
-  ]);
+  t.deepEqual(pixel, [0, 0, 0, 255]);
 
   // basi2c08 - 3x8 bits rgb color
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi2c08.png');
@@ -663,15 +635,15 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 3072);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 255, 255, 255]);
 
   // basi2c16 - 3x16 bits rgb color
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi2c16.png');
   image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 
   // basi3p01 - 1 bit (2 color) paletted
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi3p01.png');
@@ -679,7 +651,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [238, 255, 34, 255]);
 
   // basi3p02 - 2 bit (4 color) paletted
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi3p02.png');
@@ -687,7 +659,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [0, 0, 255, 255]);
 
   // basi3p04 - 4 bit (16 color) paletted
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi3p04.png');
@@ -695,7 +667,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 0, 0, 255]);
 
   // basi3p08 - 8 bit (256 color) paletted
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi3p08.png');
@@ -703,7 +675,7 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 1024);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [1, 0, 0, 255]);
 
   // basi4a08 - 8 bit grayscale + 8 bit alpha-channel
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi4a08.png');
@@ -711,15 +683,15 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 2048);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 255, 255, 0]);
 
   // basi4a16 - 16 bit grayscale + 16 bit alpha-channel
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi4a16.png');
   image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 4096);
+  t.is(image.pixels.length, 2048);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [0, 0, 0, 0]);
 
   // basi6a08 - 3x8 bits rgb color + 8 bit alpha-channel
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi6a08.png');
@@ -727,15 +699,15 @@ test('PngSuite - Interlacing', async (t) => {
   image.decodePixels();
   t.is(image.pixels.length, 4096);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 0, 8, 0]);
 
   // basi6a16 - 3x16 bits rgb color + 16 bit alpha-channel
   image_data = await fs.readFile('./test/image/assets/PngSuite/basi6a16.png');
   image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 8192);
+  t.is(image.pixels.length, 4096);
   pixel = image.getPixel(0, 0);
-  // t.deepEqual(pixel, []);
+  t.deepEqual(pixel, [255, 255, 0, 0]);
 });
 
 // PngSuite - Odd Sizes
@@ -989,7 +961,7 @@ test('PngSuite - Chunk Ordering - oi1n0g16 - grayscale mother image with 1 idat-
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi1n0g16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 255]);
 });
@@ -998,16 +970,16 @@ test('PngSuite - Chunk Ordering - oi1n2c16 - color mother image with 1 idat-chun
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi1n2c16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   const pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [255, 255, 255, 255]);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 });
 
 test('PngSuite - Chunk Ordering - oi2n0g16 - grayscale image with 2 idat-chunks', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi2n0g16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 255]);
 });
@@ -1016,16 +988,16 @@ test('PngSuite - Chunk Ordering - oi2n2c16 - color image with 2 idat-chunks', as
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi2n2c16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   const pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [255, 255, 255, 255]);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 });
 
 test('PngSuite - Chunk Ordering - oi4n0g16 - grayscale image with 4 unequal sized idat-chunks', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi4n0g16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 255]);
 });
@@ -1034,16 +1006,16 @@ test('PngSuite - Chunk Ordering - oi4n2c16 - color image with 4 unequal sized id
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi4n2c16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   const pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [255, 255, 255, 255]);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 });
 
 test('PngSuite - Chunk Ordering - oi9n0g16 - grayscale image with all idat-chunks length one', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi9n0g16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 2048);
+  t.is(image.pixels.length, 1024);
   const pixel = image.getPixel(0, 0);
   t.deepEqual(pixel, [0, 0, 0, 255]);
 });
@@ -1052,9 +1024,9 @@ test('PngSuite - Chunk Ordering - oi9n2c16 - color image with all idat-chunks le
   const image_data = await fs.readFile('./test/image/assets/PngSuite/oi9n2c16.png');
   const image = ImagePNG.fromFile(image_data);
   image.decodePixels();
-  t.is(image.pixels.length, 6144);
+  t.is(image.pixels.length, 3072);
   const pixel = image.getPixel(0, 0);
-  t.deepEqual(pixel, [255, 255, 255, 255]);
+  t.deepEqual(pixel, [255, 255, 0, 255]);
 });
 
 // PngSuite - Zlib Compression
@@ -1134,63 +1106,58 @@ test('PngSuite - Corrupted Files - xlfn0g04 - added lf bytes', async (t) => {
   }, { message: 'Missing or invalid PNG header.' });
 });
 
-// TODO Enable option to verify IHDR CRCs.
-
-test.skip('PngSuite - Corrupted Files - xhdn0g08 - incorrect IHDR checksum', async (t) => {
+test('PngSuite - Corrupted Files - xhdn0g08 - incorrect IHDR checksum', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xhdn0g08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: '' });
+  }, { message: 'PNG IHDR CRC mismatch.' });
 });
 
 test('PngSuite - Corrupted Files - xc1n0g08 - color type 1', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xc1n0g08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: 'Invalid Color Type: 1, can be one of: 0, 2, 3, 4, 6' });
+  }, { message: 'Invalid PNG color type 1 at 8 bits.' });
 });
 
 test('PngSuite - Corrupted Files - xc9n2c08 - color type 9', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xc9n2c08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: 'Invalid Color Type: 9, can be one of: 0, 2, 3, 4, 6' });
+  }, { message: 'Invalid PNG color type 9 at 8 bits.' });
 });
 
 test('PngSuite - Corrupted Files - xd0n2c08 - bit-depth 0', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xd0n2c08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: 'Invalid Bit Depth: 0, can be one of: 1, 2, 4, 8, 16' });
+  }, { message: 'Invalid PNG color type 2 at 0 bits.' });
 });
 
 test('PngSuite - Corrupted Files - xd3n2c08 - bit-depth 3', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xd3n2c08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: 'Invalid Bit Depth: 3, can be one of: 1, 2, 4, 8, 16' });
+  }, { message: 'Invalid PNG color type 2 at 3 bits.' });
 });
 
 test('PngSuite - Corrupted Files - xd9n2c08 - bit-depth 99', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xd9n2c08.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: 'Invalid Bit Depth: 99, can be one of: 1, 2, 4, 8, 16' });
+  }, { message: 'Invalid PNG color type 2 at 99 bits.' });
 });
 
 test('PngSuite - Corrupted Files - xdtn0g01 - missing IDAT chunk', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xdtn0g01.png');
-  const image = ImagePNG.fromFile(image_data);
   t.throws(() => {
-    image.decodePixels();
-  }, { message: 'No IDAT chunks to decode.' });
+    ImagePNG.fromFile(image_data);
+  }, { message: 'Invalid PNG IEND chunk or trailing file bytes.' });
 });
 
-// TODO Enable option to verify IDAT CRCs.
-
-test.skip('PngSuite - Corrupted Files - xcsn0g01 - incorrect IDAT checksum', async (t) => {
+test('PngSuite - Corrupted Files - xcsn0g01 - incorrect IDAT checksum', async (t) => {
   const image_data = await fs.readFile('./test/image/assets/PngSuite/xcsn0g01.png');
   t.throws(() => {
     ImagePNG.fromFile(image_data);
-  }, { message: '' });
+  }, { message: 'PNG IDAT CRC mismatch.' });
 });

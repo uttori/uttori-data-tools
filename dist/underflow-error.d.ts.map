@@ -1,1 +1,1 @@
-{"version":3,"file":"underflow-error.d.ts","sourceRoot":"","sources":["../src/underflow-error.js"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,cAAM,cAAe,SAAQ,KAAK;IASzB,KAAK;IARZ;;;;OAIG;IACH,YAAY,OAAO,EAHR,MAGQ,EAQlB;CACF;eAEc,cAAc"}
+{"version":3,"file":"underflow-error.d.ts","sourceRoot":"","sources":["../src/underflow-error.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,cAAM,cAAe,SAAQ,KAAK;IAChC;;;;OAIG;IACH,YAAY,OAAO,EAAE,MAAM,EAQ1B;CACF;eAEc,cAAc"}

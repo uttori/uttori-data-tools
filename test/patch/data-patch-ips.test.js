@@ -1,6 +1,6 @@
 import test from 'ava';
-import IPS from '../../src/patch/data-patch-ips.js';
-import DataBuffer from '../../src/data-buffer.js';
+import IPS from '../../dist/patch/data-patch-ips.js';
+import DataBuffer from '../../dist/data-buffer.js';
 
 test('constructor: creates an IPS instance', (t) => {
   const ips = new IPS();

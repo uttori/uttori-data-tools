@@ -1,6 +1,6 @@
 import test from 'ava';
 import { promises as fs } from 'fs';
-import { ImageGIF, DataBuffer } from '../../src/index.js';
+import { ImageGIF, DataBuffer } from '../../dist/index.js';
 
 // GIFTestSuite data from https://code.google.com/archive/p/imagetestsuite/wikis/GIFTestSuite.wiki
 // [imagetestsuite](https://code.google.com/archive/p/imagetestsuite/downloads)

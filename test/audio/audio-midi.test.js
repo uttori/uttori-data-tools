@@ -1,6 +1,6 @@
 import test from 'ava';
 import { promises as fs } from 'fs';
-import { DataBuffer, AudioMIDI } from '../../src/index.js';
+import { DataBuffer, AudioMIDI } from '../../dist/index.js';
 
 /**
  * Build a 14 byte `MThd` header chunk.
@@ -59,7 +59,7 @@ const parseTrack = (trackData, options) => {
 
 /**
  * Write a single event and return the resulting bytes.
- * @param {import('../../src/audio/audio-midi.js').MidiTrackEvent} event The event to write.
+ * @param {import('../../dist/audio/audio-midi.js').MidiTrackEvent} event The event to write.
  * @returns {number[]} The written bytes.
  */
 const writeOne = (event) => {

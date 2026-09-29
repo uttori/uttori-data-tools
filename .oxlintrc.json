@@ -1,12 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "import",
-    "jsdoc",
-    "node",
-    "promise",
-    "typescript"
-  ],
+  "plugins": ["import", "jsdoc", "node", "promise", "typescript"],
   "jsPlugins": [
     "eslint-plugin-optimize-regex",
     "eslint-plugin-security"
@@ -16,6 +10,7 @@
   },
   "env": {
     "builtin": true,
+    "commonjs": true,
     "es2026": true,
     "browser": true,
     "node": true
@@ -39,11 +34,17 @@
     "test/**/*"
   ],
   "rules": {
+    "approx-constant": "error",
+    "bad-bitwise-operator": "error",
+    "branches-sharing-code": "error",
+    "curly": ["error", "all"],
+
     "import/namespace": "error",
     "import/default": "error",
     "import/no-named-as-default": "warn",
     "import/no-named-as-default-member": "warn",
     "import/no-duplicates": "warn",
+
     "jsdoc/check-access": "warn",
     "jsdoc/check-property-names": "warn",
     "jsdoc/check-tag-names": "warn",
@@ -64,7 +65,11 @@
     "jsdoc/require-throws-type": "warn",
     "jsdoc/require-yields": "warn",
     "jsdoc/require-yields-type": "warn",
+
+    "node/no-exports-assign": "error",
+
     "optimize-regex/optimize-regex": "warn",
+
     "security/detect-buffer-noassert": "warn",
     "security/detect-child-process": "warn",
     "security/detect-disable-mustache-escape": "warn",
@@ -76,8 +81,22 @@
     "security/detect-pseudoRandomBytes": "warn",
     "security/detect-unsafe-regex": "warn",
     "security/detect-bidi-characters": "warn",
+
     "no-array-constructor": "error",
+    "no-console": "warn",
+    "no-empty": [
+      "error",
+      {
+        "allowEmptyCatch": true
+      }
+    ],
+    "no-nested-ternary": "error",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": "off",
     "no-unused-expressions": "error",
+    "no-unused-labels": "error",
+    "no-unused-private-class-members": "error",
     "no-unused-vars": [
       "error",
       {
@@ -86,15 +105,16 @@
         "caughtErrors": "none"
       }
     ],
-    "no-console": "warn",
-    "no-empty": [
-      "error",
-      {
-        "allowEmptyCatch": true
-      }
-    ],
+    "no-useless-constructor": "error",
+
     "typescript/await-thenable": "error",
     "typescript/ban-ts-comment": "error",
+    "typescript/consistent-return": [
+      "warn",
+      {
+        "treatUndefinedAsUnspecified": false
+      }
+    ],
     "typescript/no-array-delete": "error",
     "typescript/no-base-to-string": "error",
     "typescript/no-duplicate-enum-values": "error",
@@ -126,6 +146,9 @@
     "typescript/no-wrapper-object-types": "error",
     "typescript/only-throw-error": "error",
     "typescript/prefer-as-const": "error",
+    "typescript/prefer-for-of": "error",
+    "typescript/prefer-function-type": "error",
+    "typescript/prefer-literal-enum-member": "error",
     "typescript/prefer-namespace-keyword": "error",
     "typescript/prefer-promise-reject-errors": "error",
     "typescript/require-await": "error",
@@ -133,12 +156,67 @@
     "typescript/restrict-template-expressions": "error",
     "typescript/triple-slash-reference": "error",
     "typescript/unbound-method": "error",
-    "typescript/consistent-return": [
-      "warn",
-      {
-        "treatUndefinedAsUnspecified": false
-      }
-    ]
+    "typescript/unified-signatures": "error"
   },
-  "overrides": []
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx"
+      ],
+      "rules": {
+        "jsdoc/require-param": "off",
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-property-type": "off",
+        "jsdoc/require-returns": "off",
+        "jsdoc/require-returns-type": "off",
+        "jsdoc/require-throws-type": "off",
+        "jsdoc/require-yields-type": "off",
+
+        "constructor-super": "off",
+        "getter-return": "off",
+        "no-class-assign": "off",
+        "no-const-assign": "off",
+        "no-dupe-class-members": "off",
+        "no-dupe-keys": "off",
+        "no-func-assign": "off",
+        "no-import-assign": "off",
+        "no-new-native-nonconstructor": "off",
+        "no-obj-calls": "off",
+        "no-redeclare": "off",
+        "no-setter-return": "off",
+        "no-this-before-super": "off",
+        "no-unreachable": "off",
+        "no-unsafe-negation": "off",
+        "no-var": "error",
+        "no-with": "off",
+        "prefer-const": "error",
+        "prefer-rest-params": "error",
+        "prefer-spread": "error"
+      }
+    },
+    {
+      // Test doubles and deliberately malformed inputs exercise runtime validation.
+      // Async doubles preserve real signatures even when resolving immediately. Spies capture detached methods.
+      // Keep these rules enabled for production code and development scripts.
+      "files": ["tests/**", "packages/*/tests/**", "packages/*/tests-host/**"],
+      "rules": {
+        "import/no-named-as-default-member": "off",
+        "jsdoc/require-param": "off",
+        "jsdoc/require-returns": "off",
+        "security/detect-non-literal-regexp": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/no-misused-spread": "off",
+        "typescript/no-unnecessary-type-assertion": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off",
+        "typescript/require-await": "off",
+        "typescript/require-array-sort-compare": "off",
+        "typescript/unbound-method": "off"
+      }
+    }
+  ]
 }

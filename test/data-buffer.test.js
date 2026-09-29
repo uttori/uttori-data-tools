@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBuffer, Op } from '../src/index.js';
+import { DataBuffer, Op } from '../dist/index.js';
 
 test('create from ArrayBuffer', (t) => {
   const buf = new DataBuffer(new ArrayBuffer(9));
@@ -117,7 +117,8 @@ test('slice', (t) => {
   const bytes = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const buffer = new DataBuffer(bytes);
   t.is(buffer.slice(0, 4).length, 4);
-  t.is(bytes, buffer.slice(0, 100).data);
+  t.not(bytes, buffer.slice(0, 100).data);
+  t.deepEqual(bytes, buffer.slice(0, 100).data);
   t.deepEqual(new DataBuffer(bytes.slice(3, 6)), buffer.slice(3, 3));
   t.is(buffer.slice(5).length, 5);
 });
@@ -177,7 +178,7 @@ test('seek', (t) => {
 
   t.throws(() => buf.seek(100), { message: 'Insufficient Bytes: 99 <= 4' });
 
-  t.throws(() => buf.seek(-10), { message: 'Insufficient Bytes: 11 > 1' });
+  t.throws(() => buf.seek(-10), { instanceOf: RangeError, message: 'Invalid position: -10' });
 });
 
 test('remainingBytes', (t) => {
@@ -1163,8 +1164,9 @@ test('decodeString: UTF16-BOM little endian, null terminated', (t) => {
 
 test('decodeString: UTF16-BOM', (t) => {
   const stream = new DataBuffer(new Uint8Array([0xFF, 0xFE, 252, 0, 98, 0, 101, 0, 114, 0, 0, 0]));
-  t.is(stream.decodeString(0, 1, 'utf16-bom', true), '');
-  t.is(stream.decodeString(0, 1, 'utf16-bom', false), '');
+  t.throws(() => stream.decodeString(0, 1, 'utf16-bom', true), { message: 'Invalid utf16 sequence.' });
+  t.is(stream.offset, 0);
+  t.throws(() => stream.decodeString(0, 1, 'utf16-bom', false), { message: 'Invalid utf16 sequence.' });
 });
 
 test('decodeString: invalid encoding', (t) => {
@@ -1176,7 +1178,7 @@ test('decodeString: invalid encoding', (t) => {
   t.is(error.message, 'Unknown Encoding: magic');
 });
 
-test('decodeString: invalid utf8-sequence', (t) => {
+test('decodeString: invalid utf16-sequence', (t) => {
   const stream = new DataBuffer(new Uint8Array([0xDC, 0x00, 0xE0, 0xBB, 0xDC, 0x00]));
   const error = t.throws(() => {
     stream.decodeString(0, null, 'utf16be');
@@ -1240,113 +1242,114 @@ test('readNullTerminatedString: utf8 custom nullValue', (t) => {
   t.is(stream.offset, 6);
 
   // Test that nullValue in continuation bytes also terminates
+  // The incomplete preceding sequence is replaced with U+FFFD, rather than silently discarded.
   stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 3);
 });
 
 test('readNullTerminatedString: utf8 edge cases - buffer length and nullValue in continuation bytes', (t) => {
   // 2-byte UTF-8 sequence: buffer ends before b2
   let stream = new DataBuffer(new Uint8Array([0xC3]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 1);
 
   // 2-byte UTF-8 sequence: b2 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xC3, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 2-byte UTF-8 sequence: b2 equals nullValue (with default 0x00)
   stream = new DataBuffer(new Uint8Array([0xC3, 0x00]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 3-byte UTF-8 sequence: buffer ends before b2
   stream = new DataBuffer(new Uint8Array([0xE6]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 1);
 
   // 3-byte UTF-8 sequence: b2 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xE6, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 3-byte UTF-8 sequence: buffer ends before b3
   stream = new DataBuffer(new Uint8Array([0xE6, 0x97]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 3-byte UTF-8 sequence: b3 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 3);
 
   // 3-byte UTF-8 sequence: b3 equals nullValue (with default 0x00)
   stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0x00]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 3);
 
   // 4-byte UTF-8 sequence: buffer ends before b2
   stream = new DataBuffer(new Uint8Array([0xF0]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 1);
 
   // 4-byte UTF-8 sequence: b2 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xF0, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 4-byte UTF-8 sequence: buffer ends before b3
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 2);
 
   // 4-byte UTF-8 sequence: b3 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 3);
 
   // 4-byte UTF-8 sequence: buffer ends before b4
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 3);
 
   // 4-byte UTF-8 sequence: b4 equals nullValue
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0xFF]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '');
-  t.is(stream.readNullTerminatedString('utf8', 0xFF), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8', 0xFF), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8', 0xFF), '\uFFFD');
   t.is(stream.offset, 4);
 
   // 4-byte UTF-8 sequence: b4 equals nullValue (with default 0x00)
   stream = new DataBuffer(new Uint8Array([0xF0, 0x9F, 0x91, 0x00]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '');
-  t.is(stream.readNullTerminatedString('utf8'), '');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '\uFFFD');
   t.is(stream.offset, 4);
 
   // Mixed: valid 2-byte sequence followed by incomplete 3-byte sequence
   stream = new DataBuffer(new Uint8Array([0xC3, 0xB6, 0xE6, 0x97]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), 'ö');
-  t.is(stream.readNullTerminatedString('utf8'), 'ö');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), 'ö\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), 'ö\uFFFD');
   t.is(stream.offset, 4);
 
   // Mixed: valid 3-byte sequence followed by incomplete 4-byte sequence
   stream = new DataBuffer(new Uint8Array([0xE6, 0x97, 0xA5, 0xF0, 0x9F]));
-  t.is(stream.peekNullTerminatedString(0, 'utf8'), '日');
-  t.is(stream.readNullTerminatedString('utf8'), '日');
+  t.is(stream.peekNullTerminatedString(0, 'utf8'), '日\uFFFD');
+  t.is(stream.readNullTerminatedString('utf8'), '日\uFFFD');
   t.is(stream.offset, 5);
 });
 
@@ -1622,7 +1625,7 @@ test('writeUint24', (t) => {
     t.is(byte, stream.readUInt24());
   }
 
-  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 2' });
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 3' });
 });
 
 test('writeUint24 - littleEndian, no advance', (t) => {
@@ -1651,7 +1654,7 @@ test('writeUint24 - littleEndian, no advance', (t) => {
     t.is(byte.toString(16), stream.readUInt24().toString(16));
   }
 
-  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 2' });
+  t.throws(() => stream.readUInt24(), { message: 'Insufficient Bytes: 3' });
 });
 
 test('writeUint32', (t) => {
@@ -1761,7 +1764,7 @@ test('writeString - UTF-8', (t) => {
   stream.commit();
   stream.seek(0);
 
-  const output = stream.readString(value.length, 'utf8');
+  const output = stream.readString(Buffer.byteLength(value, 'utf8'), 'utf8');
   // Check each byte incase we mess up encoding.
   t.is(value[0], output[0]);
   t.is(value[1], output[1]);
@@ -2005,4 +2008,710 @@ test('diff: multiple changes', (t) => {
   t.is(matchOps.length, 3); // Bytes at positions 0, 2, 4
   t.is(deleteOps.length, 3); // Changed bytes: 0x02, 0x04, 0x06
   t.is(insertOps.length, 3); // New bytes: 0xFF, 0xAA, 0xBB
+});
+
+// Regression coverage for bounds, ownership, write state, and bounded Unicode decoding.
+
+test('constructor: invalid lengths and view-like objects are rejected', (t) => {
+  for (const length of [-1, 0.5, Number.NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    t.throws(() => new DataBuffer(length), { instanceOf: RangeError });
+    t.throws(() => DataBuffer.allocate(length), { instanceOf: RangeError });
+  }
+  const backing = new ArrayBuffer(8);
+  t.throws(() => new DataBuffer(new DataView(backing)), { instanceOf: TypeError });
+  t.throws(() => new DataBuffer({ buffer: backing, byteOffset: 1, length: 2, BYTES_PER_ELEMENT: 1 }), { instanceOf: TypeError });
+  t.is(new DataBuffer(0).length, 0);
+  t.false(new DataBuffer(0).writing);
+  t.true(new DataBuffer().writing);
+});
+
+test('constructor: ownership and branding remain compatible', (t) => {
+  const bytes = new Uint8Array([1, 2, 3]);
+  const buffer = new DataBuffer(bytes);
+  const shallow = new DataBuffer(buffer);
+  t.is(buffer.data, bytes);
+  t.is(shallow.data, bytes);
+  bytes[0] = 9;
+  t.is(buffer.readUInt8(), 9);
+  t.is(shallow.readUInt8(), 9);
+  const nodeBytes = Buffer.from([1, 2, 3]);
+  const nodeBuffer = new DataBuffer(nodeBytes);
+  t.not(nodeBuffer.data, nodeBytes);
+  nodeBytes[0] = 9;
+  t.is(nodeBuffer.readUInt8(), 1);
+  const brand = Symbol.for('uttori.DataBuffer');
+  t.true(buffer[brand]);
+  t.false(Object.getOwnPropertyDescriptor(buffer, brand).enumerable);
+  t.is(buffer.nativeEndian, new Uint16Array(new Uint8Array([0x12, 0x34]).buffer)[0] === 0x3412);
+});
+
+test('constructor: shared Uint8Array input retains its independent-copy policy', (t) => {
+  const shared = new Uint8Array(new SharedArrayBuffer(8), 2, 4);
+  shared.set([1, 2, 3, 4]);
+  const buffer = new DataBuffer(shared);
+  t.not(buffer.data.buffer, shared.buffer);
+  shared[0] = 99;
+  t.is(buffer.readUInt32(), 0x01020304);
+});
+
+for (const backing of ['Uint8Array', 'Buffer']) {
+  const make = (bytes) => backing === 'Buffer' ? Buffer.from(bytes) : new Uint8Array(bytes);
+
+  test(`ownership: copies and slices are independent with ${backing}`, (t) => {
+    const parent = new DataBuffer(make([1, 2, 3, 4]));
+    for (const copy of [parent.copy(), parent.slice(0), parent.slice(0, 100), parent.slice(0, 4)]) {
+      t.not(parent.data.buffer, copy.data.buffer);
+      t.deepEqual(Array.from(copy.data), [1, 2, 3, 4]);
+      copy.data[0] = 9;
+      t.is(parent.data[0], 1);
+    }
+    const partial = parent.slice(1, 2);
+    t.deepEqual(Array.from(partial.data), [2, 3]);
+    partial.data[0] = 8;
+    t.is(parent.data[1], 2);
+    t.is(parent.slice(4).length, 0);
+    t.is(parent.slice(100).length, 0);
+    t.is(parent.slice(0, 0).length, 0);
+    t.is(parent.offset, 0);
+  });
+
+  test(`ownership: read/peek and readBuffer/peekBuffer copy ${backing}`, (t) => {
+    for (const littleEndian of [false, true]) {
+      const parent = new DataBuffer(make([1, 2, 3, 4]));
+      const peek = parent.peek(3, 0, littleEndian);
+      const read = parent.read(3, littleEndian);
+      t.is(parent.offset, 3);
+      t.deepEqual(Array.from(read), littleEndian ? [3, 2, 1] : [1, 2, 3]);
+      peek.fill(0);
+      read.fill(0);
+      t.deepEqual(Array.from(parent.data), [1, 2, 3, 4]);
+      parent.reset();
+      parent.peekBuffer(0, 2).data.fill(0);
+      parent.readBuffer(2).data.fill(0);
+      t.is(parent.offset, 2);
+      t.deepEqual(Array.from(parent.data), [1, 2, 3, 4]);
+    }
+  });
+
+  test(`bounds: invalid peeks cannot escape a ${backing} subview`, (t) => {
+    const parent = make([0xAA, 0xBB, 0x11, 0x22, 0xCC, 0xDD]);
+    const buffer = new DataBuffer(parent.subarray(2, 4));
+    const numeric = ['peekUInt8', 'peekInt8', 'peekUInt16', 'peekInt16', 'peekUInt24', 'peekInt24', 'peekUInt32', 'peekInt32', 'peekFloat32', 'peekFloat48', 'peekFloat64', 'peekFloat80', 'peekFloatIEEE754'];
+    for (const offset of [-2, -1, 0.5, Number.NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      for (const method of numeric) {
+        t.throws(() => buffer[method](offset), { name: 'UnderflowError' }, `${method} at ${offset}`);
+      }
+      t.throws(() => buffer.peek(1, offset), { name: 'UnderflowError' });
+      t.throws(() => buffer.peekBuffer(offset, 1), { name: 'UnderflowError' });
+      t.throws(() => buffer.peekString(offset, 1), { name: 'UnderflowError' });
+      t.throws(() => buffer.peekNullTerminatedString(offset), { name: 'UnderflowError' });
+      t.throws(() => buffer.peekBit(0, 1, offset), { name: 'UnderflowError' });
+    }
+    t.is(buffer.peekUInt16(), 0x1122);
+    t.throws(() => buffer.peekUInt16(1), { name: 'UnderflowError' });
+    t.is(buffer.offset, 0);
+  });
+
+  test(`numeric: unaligned ${backing} subviews match DataView`, (t) => {
+    const bytes = make(Array.from({ length: 35 }, (_, i) => (i * 73 + 17) & 0xFF));
+    const buffer = new DataBuffer(bytes.subarray(3, 30));
+    const native = new DataView(buffer.data.buffer, buffer.data.byteOffset, buffer.data.byteLength);
+    const methods = [['UInt8', 'getUint8', 1], ['Int8', 'getInt8', 1], ['UInt16', 'getUint16', 2], ['Int16', 'getInt16', 2], ['UInt32', 'getUint32', 4], ['Int32', 'getInt32', 4], ['Float32', 'getFloat32', 4], ['Float64', 'getFloat64', 8]];
+    for (const [suffix, getter, width] of methods) {
+      for (const littleEndian of [false, true]) {
+        for (let offset = 0; offset <= buffer.length - width; offset++) {
+          const expected = native[getter](offset, littleEndian);
+          const oldOffset = buffer.offset;
+          t.is(buffer[`peek${suffix}`](offset, littleEndian), expected);
+          t.is(buffer.offset, oldOffset);
+          buffer.seek(offset);
+          t.is(buffer[`read${suffix}`](littleEndian), expected);
+          t.is(buffer.offset, offset + width);
+        }
+      }
+    }
+  });
+}
+
+test('bounds: byte counts and zero-length boundaries are validated', (t) => {
+  const buffer = new DataBuffer([1, 2, 3]);
+  for (const bytes of [-1, 0.5, Number.NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    t.false(buffer.available(bytes));
+    t.false(buffer.availableAt(bytes, 0));
+    t.throws(() => buffer.read(bytes), { name: 'UnderflowError' });
+    t.throws(() => buffer.peek(bytes), { name: 'UnderflowError' });
+    t.throws(() => buffer.readBuffer(bytes), { name: 'UnderflowError' });
+    t.throws(() => buffer.peekBuffer(0, bytes), { name: 'UnderflowError' });
+    t.throws(() => buffer.readString(bytes), { name: 'UnderflowError' });
+    t.throws(() => buffer.advance(bytes), { instanceOf: RangeError });
+    t.throws(() => buffer.rewind(bytes), { instanceOf: RangeError });
+    t.throws(() => buffer.slice(0, bytes), { instanceOf: RangeError });
+    t.throws(() => buffer.slice(bytes), { instanceOf: RangeError });
+    t.is(buffer.offset, 0);
+  }
+  buffer.seek(3);
+  t.true(buffer.available(0));
+  t.true(buffer.availableAt(0, 3));
+  t.false(buffer.availableAt(0, 4));
+  t.is(buffer.read(0).length, 0);
+  t.is(buffer.readBuffer(0).length, 0);
+  t.is(buffer.peek(0, 3).length, 0);
+  t.is(buffer.readString(0), '');
+  t.is(buffer.readString(), '');
+  t.is(buffer.readNullTerminatedString(), '');
+  t.is(buffer.offset, 3);
+});
+
+test('bounds: invalid and corrupted cursors do not silently succeed', (t) => {
+  const buffer = new DataBuffer([1, 2, 3, 4]);
+  const methods = ['readUInt8', 'readInt8', 'readUInt16', 'readInt16', 'readUInt24', 'readInt24', 'readUInt32', 'readInt32', 'readFloat32', 'readFloat48', 'readFloat64', 'readFloat80', 'readFloatIEEE754'];
+  for (const offset of [-1, 0.5, Number.NaN, Infinity, -Infinity]) {
+    buffer.offset = offset;
+    for (const method of methods) {
+      t.throws(() => buffer[method](), { name: 'UnderflowError' });
+      t.is(buffer.offset, offset);
+    }
+    t.throws(() => buffer.advance(0), { instanceOf: RangeError });
+    t.throws(() => buffer.rewind(0), { instanceOf: RangeError });
+    t.throws(() => buffer.seek(0), { instanceOf: RangeError });
+    buffer.reset();
+    t.is(buffer.offset, 0);
+    t.throws(() => buffer.seek(offset), { instanceOf: RangeError });
+  }
+  buffer.offset = 10;
+  t.throws(() => buffer.seek(10), { name: 'UnderflowError' });
+  buffer.reset();
+  buffer.advance(4);
+  t.throws(() => buffer.advance(1), { name: 'UnderflowError' });
+  t.is(buffer.offset, 4);
+});
+
+test('writing mode: growth is allowed but uncommitted bytes are never readable', (t) => {
+  const buffer = new DataBuffer();
+  t.true(buffer.available(10));
+  t.true(buffer.availableAt(10, 10));
+  t.false(buffer.available(1, false));
+  t.false(buffer.availableAt(1, 0, false));
+  t.false(buffer.availableAt(1, -1));
+  t.false(buffer.availableAt(1, Number.MAX_SAFE_INTEGER));
+  t.false(buffer.available(-1));
+  t.throws(() => buffer.readUInt8(), { name: 'UnderflowError' });
+  t.throws(() => buffer.peekUInt8(), { name: 'UnderflowError' });
+  t.throws(() => buffer.read(2, true), { name: 'UnderflowError' });
+  t.throws(() => buffer.readBuffer(1), { name: 'UnderflowError' });
+  t.false(buffer.isNextBytes([0]));
+  t.false(buffer.compare([0]));
+  t.is(buffer.offset, 0);
+  buffer.writeUInt32(0x12345678);
+  buffer.reset();
+  t.throws(() => buffer.readUInt32(), { name: 'UnderflowError' });
+  t.is(buffer.offset, 0);
+  buffer.seek(100);
+  t.is(buffer.offset, 100);
+  buffer.rewind(100);
+  buffer.commit();
+  t.false(buffer.writing);
+  t.is(buffer.readUInt32(), 0x12345678);
+});
+
+for (const suffix of ['UInt24', 'Int24']) {
+  for (const littleEndian of [false, true]) {
+    test(`read${suffix}: complete preflight and cursor preservation, littleEndian=${littleEndian}`, (t) => {
+      for (const remaining of [0, 1, 2]) {
+        const buffer = new DataBuffer(new Uint8Array(remaining + 1));
+        buffer.seek(1);
+        t.throws(() => buffer[`read${suffix}`](littleEndian), { name: 'UnderflowError', message: 'Insufficient Bytes: 3' });
+        t.is(buffer.offset, 1);
+        t.throws(() => buffer[`peek${suffix}`](1, littleEndian), { name: 'UnderflowError', message: 'Insufficient Bytes: 1 + 3' });
+        t.is(buffer.offset, 1);
+      }
+    });
+  }
+}
+
+test('numeric: cached DataView follows replacement data and committed writes', (t) => {
+  const buffer = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
+  const keys = Reflect.ownKeys(buffer);
+  t.is(buffer.peekUInt32(), 0x01020304);
+  t.deepEqual(Reflect.ownKeys(buffer), keys);
+  t.deepEqual(buffer, new DataBuffer([0x01, 0x02, 0x03, 0x04]));
+  buffer.data[0] = 0xAA;
+  t.is(buffer.peekUInt32(), 0xAA020304);
+  const bytes = new Uint8Array([0xEE, 0x10, 0x20, 0x30, 0x40, 0xDD]);
+  buffer.data = bytes.subarray(1, 5);
+  t.is(buffer.peekUInt32(), 0x10203040);
+  buffer.data = bytes.subarray(2, 6);
+  t.is(buffer.peekUInt32(), 0x203040DD);
+  buffer.writeUInt32(0xFFFFFFFF, 0, false);
+  t.is(buffer.peekUInt32(), 0x203040DD);
+  buffer.commit();
+  t.is(buffer.peekUInt32(), 0xFFFFFFFF);
+  buffer.data = new Uint8Array([7]);
+  t.throws(() => buffer.peekUInt32(), { name: 'UnderflowError' });
+  t.is(buffer.peekInt8(), 7);
+});
+
+test('numeric: cached DataView handles resizable and detached ArrayBuffers', (t) => {
+  const backing = new ArrayBuffer(12, { maxByteLength: 32 });
+  const data = new Uint8Array(backing);
+  data.set([1, 2, 3, 4, 5, 6, 7, 8]);
+  const buffer = new DataBuffer(data);
+  t.is(buffer.peekUInt32(), 0x01020304);
+  backing.resize(2);
+  t.is(buffer.peekUInt16(), 0x0102);
+  t.throws(() => buffer.peekUInt32(), { name: 'UnderflowError' });
+  backing.resize(24);
+  data.set([9, 10, 11, 12], 20);
+  t.is(buffer.peekUInt32(20), 0x090A0B0C);
+  backing.resize(0);
+  t.throws(() => buffer.peekUInt8(), { name: 'UnderflowError' });
+  backing.resize(8);
+  data.set([0xAB, 0xCD, 0xEF, 0x12]);
+  t.is(buffer.peekUInt32(), 0xABCDEF12);
+  structuredClone(backing, { transfer: [backing] });
+  t.throws(() => buffer.readUInt8(), { name: 'UnderflowError' });
+  t.throws(() => buffer.peekUInt32(), { name: 'UnderflowError' });
+  t.is(buffer.offset, 0);
+});
+
+test('numeric: fixed-length resizable subviews recover after becoming out of bounds', (t) => {
+  const backing = new ArrayBuffer(16, { maxByteLength: 32 });
+  const data = new Uint8Array(backing, 4, 8);
+  data.set([1, 2, 3, 4]);
+  const buffer = new DataBuffer(data);
+  t.is(buffer.peekUInt32(), 0x01020304);
+  backing.resize(6);
+  t.throws(() => buffer.peekUInt16(), { name: 'UnderflowError' });
+  backing.resize(16);
+  data.set([5, 6, 7, 8]);
+  t.is(buffer.peekUInt32(), 0x05060708);
+});
+
+test('float48: explicit endian flags work independently of nativeEndian', (t) => {
+  const be = [0x74, 0x23, 0xF4, 0x00, 0xD2, 0x94];
+  for (const nativeEndian of [false, true]) {
+    for (const littleEndian of [false, true]) {
+      const bytes = littleEndian ? [...be].reverse() : be;
+      const buffer = new DataBuffer(bytes);
+      buffer.nativeEndian = nativeEndian;
+      t.is(buffer.peekFloat48(0, littleEndian), 999999.2502);
+      t.is(buffer.offset, 0);
+      t.is(buffer.readFloat48(littleEndian), 999999.2502);
+      t.is(buffer.offset, 6);
+    }
+  }
+});
+
+test('float80: existing byte-reversal flag also works with unaligned Buffer data', (t) => {
+  const be = [0x3F, 0xFF, 0x80, 0, 0, 0, 0, 0, 0, 0];
+  const buffer = new DataBuffer([]);
+  buffer.data = Buffer.from([99, ...be.toReversed(), 99]).subarray(1, 11);
+  t.is(buffer.peekFloat80(0, false), 1);
+  t.is(buffer.readFloat80(false), 1);
+});
+
+test('peekBit: exhaustive single-byte extraction preserves right-side zero filling', (t) => {
+  const buffer = new DataBuffer([0]);
+  for (let byte = 0; byte <= 255; byte++) {
+    buffer.data[0] = byte;
+    const bits = byte.toString(2).padStart(8, '0');
+    for (let position = 0; position <= 7; position++) {
+      for (let length = 1; length <= 8; length++) {
+        const expected = Number.parseInt(bits.slice(position, position + length).padEnd(length, '0'), 2);
+        t.is(buffer.peekBit(position, length), expected);
+      }
+    }
+  }
+  t.is(buffer.offset, 0);
+});
+
+const writeCases = [
+  ['writeUInt8', 0x12, [0x12]],
+  ['writeUInt16', 0x1234, [0x12, 0x34]],
+  ['writeUInt24', 0x123456, [0x12, 0x34, 0x56]],
+  ['writeUInt32', 0x89ABCDEF, [0x89, 0xAB, 0xCD, 0xEF]],
+  ['writeBytes', [0x12, 0x34], [0x12, 0x34]],
+];
+for (const [method, value, bytes] of writeCases) {
+  test(`${method}: explicit offsets determine the resulting cursor`, (t) => {
+    const buffer = new DataBuffer();
+    buffer.offset = 3;
+    buffer[method](value, 10);
+    t.is(buffer.offset, 10 + bytes.length);
+    t.deepEqual(buffer.buffer.slice(10), bytes);
+    buffer[method](value, 1, true);
+    t.is(buffer.offset, 1 + bytes.length);
+    buffer[method](value, 6, false);
+    t.is(buffer.offset, 1 + bytes.length);
+    buffer.commit();
+    t.deepEqual(Array.from(buffer.data.slice(10)), bytes);
+    t.is(buffer.data[0], 0);
+  });
+
+  test(`${method}: invalid offsets fail before initializing or mutating staging`, (t) => {
+    for (const offset of [-1, 0.25, Number.NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER, 0xFFFFFFFF, 0xFFFFFFFF - bytes.length + 1]) {
+      const buffer = new DataBuffer([1, 2, 3]);
+      t.is(buffer._buffer, null);
+      t.throws(() => buffer[method](value, offset), { instanceOf: RangeError });
+      t.is(buffer._buffer, null);
+      t.is(buffer.offset, 0);
+      t.deepEqual(Array.from(buffer.data), [1, 2, 3]);
+      const staging = buffer.buffer;
+      t.throws(() => buffer[method](value, offset, false), { instanceOf: RangeError });
+      t.is(buffer.buffer, staging);
+      t.deepEqual(staging, [1, 2, 3]);
+    }
+  });
+}
+
+test('writeString: explicit offsets and advance=false match the byte writers', (t) => {
+  const buffer = new DataBuffer();
+  buffer.offset = 2;
+  buffer.writeString('é', 10, 'utf8');
+  t.is(buffer.offset, 12);
+  t.deepEqual(buffer.buffer.slice(10), [0xC3, 0xA9]);
+  buffer.writeString('AB', 1, 'ascii');
+  t.is(buffer.offset, 3);
+  buffer.writeString('C', 5, 'ascii', false);
+  t.is(buffer.offset, 3);
+  const staging = buffer.buffer.slice();
+  for (const offset of [-1, 0.5, Number.NaN, Infinity, 0xFFFFFFFF]) {
+    t.throws(() => buffer.writeString('A', offset), { instanceOf: RangeError });
+    t.deepEqual(buffer.buffer, staging);
+    t.is(buffer.offset, 3);
+  }
+});
+
+test('writeBytes: overlapping staging input is snapshotted before writes', (t) => {
+  for (const offset of [0, 1, 2, 3, 8]) {
+    const buffer = new DataBuffer([1, 2, 3]);
+    const staging = buffer.buffer;
+    const expected = [1, 2, 3];
+    for (let i = 0; i < 3; i++) expected[offset + i] = i + 1;
+    buffer.writeBytes(staging, offset);
+    t.is(buffer.buffer, staging);
+    t.deepEqual(buffer.buffer, expected);
+    t.is(buffer.offset, offset + 3);
+    buffer.commit();
+    t.deepEqual(buffer.data, new Uint8Array(expected));
+  }
+});
+
+test('staging: lazy snapshots, commit, public mutation, and repeated writes stay compatible', (t) => {
+  const source = new Uint8Array([1, 2, 3]);
+  const buffer = new DataBuffer(source);
+  t.is(buffer._buffer, null);
+  source[0] = 9;
+  const staging = buffer.buffer;
+  t.deepEqual(staging, [9, 2, 3]);
+  source[1] = 8;
+  staging[2] = 7;
+  staging.push(6);
+  t.is(buffer.peekUInt8(1), 8);
+  t.is(buffer.peekUInt8(2), 3);
+  t.is(buffer.length, 3);
+  buffer.commit();
+  t.is(buffer._buffer, null);
+  t.false(buffer.writing);
+  t.deepEqual(Array.from(buffer.data), [9, 2, 7, 6]);
+  t.deepEqual(Array.from(source), [9, 8, 3]);
+  t.is(buffer.lengthInBytes, 4);
+  const committed = buffer.data;
+  buffer.writeUInt8(5, 0, false);
+  t.is(buffer.data, committed);
+  t.is(buffer.peekUInt8(), 9);
+  buffer.commit();
+  t.is(buffer.peekUInt8(), 5);
+  t.is(buffer.lengthInBytes, 4);
+  t.is(buffer.offset, 0);
+  buffer.commit();
+  t.deepEqual(Array.from(buffer.data), [5, 2, 7, 6]);
+});
+
+test('commit: metadata tracks appended bytes, sparse writes, and empty files', (t) => {
+  const buffer = new DataBuffer();
+  buffer.writeUInt16(0x1234, 5);
+  t.is(buffer.lengthInBytes, 0);
+  t.is(buffer.offset, 7);
+  buffer.commit();
+  t.is(buffer.lengthInBytes, 7);
+  t.is(buffer.length, 7);
+  t.is(buffer.offset, 7);
+  t.deepEqual(Array.from(buffer.data), [0, 0, 0, 0, 0, 0x12, 0x34]);
+  buffer.buffer.length = 0;
+  buffer.commit();
+  t.is(buffer.lengthInBytes, 0);
+  t.is(buffer.length, 0);
+  t.is(buffer.offset, 7);
+  buffer.reset();
+  t.throws(() => buffer.readUInt8(), { name: 'UnderflowError' });
+});
+
+test('writes: wider typed arrays remain element-wise and stage original numeric values', (t) => {
+  for (const input of [new Uint16Array([0x1234, 0xABCD]), new Int16Array([-1, -128]), new Uint32Array([0x89ABCDEF, 0x12345678]), new Int32Array([-1, -2147483648])]) {
+    const buffer = new DataBuffer();
+    buffer.writeBytes(input);
+    t.deepEqual(buffer.buffer, Array.from(input));
+    t.is(buffer.offset, input.length);
+    buffer.commit();
+    t.deepEqual(buffer.data, new Uint8Array(Array.from(input)));
+    const readOnly = new DataBuffer(input);
+    t.is(readOnly.length, input.byteLength);
+    t.deepEqual(readOnly.data, new Uint8Array(input.buffer, input.byteOffset, input.byteLength));
+  }
+  const buffer = new DataBuffer();
+  buffer.writeUInt8(0x1234);
+  buffer.writeUInt8(-1);
+  t.deepEqual(buffer.buffer, [0x1234, -1]);
+  buffer.commit();
+  t.deepEqual(Array.from(buffer.data), [0x34, 0xFF]);
+});
+
+test('writeUInt32: staged high bytes are unsigned in both endian orders', (t) => {
+  for (const littleEndian of [false, true]) {
+    const buffer = new DataBuffer();
+    buffer.writeUInt32(0x89ABCDEF, 0, true, littleEndian);
+    t.deepEqual(buffer.buffer, littleEndian ? [0xEF, 0xCD, 0xAB, 0x89] : [0x89, 0xAB, 0xCD, 0xEF]);
+    t.true(buffer.buffer.every(byte => byte >= 0 && byte <= 0xFF));
+  }
+});
+
+test('empty writes: do not initialize staging but still honor an explicit advancing offset', (t) => {
+  const buffer = new DataBuffer([1, 2, 3]);
+  buffer.writeBytes([], 2);
+  t.is(buffer.offset, 2);
+  t.is(buffer._buffer, null);
+  buffer.writeString('', 1);
+  t.is(buffer.offset, 1);
+  t.is(buffer._buffer, null);
+  buffer.writeBytes([], 0, false);
+  t.is(buffer.offset, 1);
+  t.is(buffer._buffer, null);
+});
+
+test('compare: preserves region matching, input conversion, empty and insufficient cases', (t) => {
+  const buffer = new DataBuffer([0xAA, 1, 2, 3, 0xBB]);
+  buffer.seek(2);
+  for (const input of [new DataBuffer([1, 2, 3]), [1, 2, 3], new Uint8Array([1, 2, 3]), Buffer.from([1, 2, 3]), new Uint8Array([1, 2, 3]).buffer]) {
+    t.true(buffer.compare(input, 1));
+    t.false(buffer.compare(input));
+    t.false(buffer.compare(input, 3));
+  }
+  t.true(buffer.compare(buffer));
+  t.true(buffer.compare(buffer.data));
+  t.true(buffer.compare([0x101, 0x102], 1));
+  t.false(buffer.compare([]));
+  t.false(buffer.compare(undefined));
+  for (const offset of [-1, 0.5, Number.NaN, Infinity, 6]) {
+    t.false(buffer.compare([1], offset));
+  }
+  t.is(buffer.offset, 2);
+  t.is(buffer._buffer, null);
+  const letters = new DataBuffer('xABCy');
+  t.true(letters.compare('ABC', 1));
+  t.true(new DataBuffer([0, 0, 7]).compare(2));
+  t.false(new DataBuffer([0, 0, 7]).compare(3));
+});
+
+test('diff: offset bounds and independent outputs with direct Buffer input', (t) => {
+  const buffer = new DataBuffer([1, 2, 3]);
+  for (const offset of [-1, 0.5, Number.NaN, Infinity, 4]) {
+    t.throws(() => buffer.diff([1], offset), { name: 'UnderflowError' });
+  }
+  const input = Buffer.from([1, 2, 3]);
+  const output = buffer.diff(input);
+  input[0] = 9;
+  t.is(output[0].x, 1);
+  t.is(output[0].y, 1);
+  t.is(buffer.diff([], 3).length, 0);
+  t.is(buffer.offset, 0);
+  t.is(buffer._buffer, null);
+});
+
+test('strings: zero, omitted, null, and explicit-offset lengths have distinct behavior', (t) => {
+  const buffer = new DataBuffer([65, 0, 66, 67, 0, 68]);
+  buffer.seek(2);
+  t.is(buffer.readString(0), '');
+  t.is(buffer.offset, 2);
+  t.is(buffer.peekString(0), 'A\0BC\0D');
+  t.is(buffer.peekString(3), 'C\0D');
+  t.is(buffer.offset, 2);
+  t.is(buffer.readString(null), 'BC');
+  t.is(buffer.offset, 5);
+  t.is(buffer.readUInt8(), 68);
+  buffer.reset();
+  t.is(buffer.readString(), 'A\0BC\0D');
+  t.is(buffer.offset, 6);
+  buffer.reset();
+  t.is(buffer.decodeString(2, 2, 'ascii', true), 'BC');
+  t.is(buffer.offset, 4);
+  t.is(buffer.decodeNullTerminatedString(0, 'ascii', true), 'A');
+  t.is(buffer.offset, 2);
+});
+
+test('strings: unknown encodings throw consistently without reading or writing', (t) => {
+  const buffer = new DataBuffer([65, 0]);
+  const operations = [
+    () => buffer.readString(1, 'MAGIC'),
+    () => buffer.peekString(0, 1, 'MAGIC'),
+    () => buffer.readString(null, 'MAGIC'),
+    () => buffer.peekString(0, null, 'MAGIC'),
+    () => buffer.readNullTerminatedString('MAGIC'),
+    () => buffer.peekNullTerminatedString(0, 'MAGIC'),
+    () => buffer.writeString('A', 0, 'MAGIC'),
+    () => buffer.readString(0, 'MAGIC'),
+  ];
+  for (const operation of operations) {
+    t.throws(operation, { message: 'Unknown Encoding: magic' });
+    t.is(buffer.offset, 0);
+    t.is(buffer._buffer, null);
+  }
+});
+
+for (const encoding of ['ascii', 'latin1', 'utf8', 'utf-8', 'utf16be', 'utf16-be', 'utf16le', 'utf16-le', 'utf16bom', 'utf16-bom']) {
+  test(`strings: ${encoding} aliases are case-insensitive across all APIs`, (t) => {
+    const buffer = new DataBuffer();
+    buffer.writeString('AB', 0, encoding.toUpperCase());
+    const length = buffer.offset;
+    buffer.writeBytes(encoding.startsWith('utf16') ? [0, 0] : [0]);
+    buffer.commit();
+    buffer.reset();
+    t.is(buffer.peekString(0, length, encoding.toUpperCase()), 'AB');
+    t.is(buffer.peekNullTerminatedString(0, encoding.toUpperCase()), 'AB');
+    t.is(buffer.readNullTerminatedString(encoding.toUpperCase()), 'AB');
+    t.is(buffer.offset, buffer.length);
+    buffer.reset();
+    t.is(buffer.readString(null, encoding.toUpperCase()), 'AB');
+    t.is(buffer.offset, buffer.length);
+    buffer.reset();
+    t.is(buffer.readString(length, encoding.toUpperCase()), 'AB');
+    t.is(buffer.offset, length);
+  });
+}
+
+test('strings: ASCII and Latin-1 preserve every byte including 0x80–0x9F', (t) => {
+  const bytes = Uint8Array.from({ length: 256 }, (_, i) => i);
+  const expected = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+  for (const encoding of ['ascii', 'latin1']) {
+    const buffer = new DataBuffer(bytes);
+    t.is(buffer.readString(256, encoding), expected);
+    const writer = new DataBuffer();
+    writer.writeString(expected, 0, encoding);
+    writer.commit();
+    t.deepEqual(writer.data, bytes);
+  }
+});
+
+test('strings: malformed UTF-8 matches bounded TextDecoder replacement behavior', (t) => {
+  const reference = new TextDecoder('utf-8', { ignoreBOM: true });
+  const cases = [
+    [0xC0, 0xAF], [0xC1, 0xBF], [0x80], [0xBF], [0xFF], [0xF5, 0x80, 0x80, 0x80],
+    [0xE0, 0x80, 0xAF], [0xED, 0xA0, 0x80], [0xF4, 0x90, 0x80, 0x80],
+    [0xC2], [0xE2, 0x82], [0xF0, 0x9F, 0x91], [0xC2, 65], [0xE2, 0x82, 65],
+    [0xF0, 0x9F, 0x91, 65], [0xEF, 0xBB, 0xBF, 65], [0xF4, 0x8F, 0xBF, 0xBF],
+  ];
+  for (const bytes of cases) {
+    const expected = reference.decode(new Uint8Array(bytes));
+    const buffer = new DataBuffer([...bytes, 0, 66]);
+    t.is(buffer.peekString(0, bytes.length, 'utf8'), expected);
+    t.is(buffer.offset, 0);
+    t.is(buffer.readString(bytes.length, 'utf8'), expected);
+    t.is(buffer.offset, bytes.length);
+    buffer.reset();
+    t.is(buffer.readNullTerminatedString('utf8'), expected);
+    t.is(buffer.offset, bytes.length + 1);
+    t.is(buffer.readUInt8(), 66);
+  }
+  const buffer = new DataBuffer([0xC3, 0xA9, 65]);
+  t.is(buffer.readString(1, 'utf8'), '\uFFFD');
+  t.is(buffer.offset, 1);
+  t.is(buffer.readUInt8(), 0xA9);
+});
+
+test('strings: UTF-8 writing replaces lone surrogates without losing neighboring characters', (t) => {
+  const reference = new TextEncoder();
+  for (const value of ['\uD800', '\uDC00', '\uD800A', '\uDC00A', '\uD800\uD800', '\uDC00\uDC00', 'A\uD800B', '\uD83D\uDC4D', '\uDBFF\uDFFF']) {
+    const buffer = new DataBuffer();
+    buffer.writeString(value, 0, 'utf8');
+    buffer.commit();
+    t.deepEqual(buffer.data, reference.encode(value));
+    t.is(buffer.offset, reference.encode(value).length);
+    buffer.reset();
+    t.is(buffer.readString(undefined, 'utf8'), new TextDecoder().decode(reference.encode(value)));
+  }
+});
+
+for (const encoding of ['utf16be', 'utf16le', 'utf16bom']) {
+  test(`strings: ${encoding} truncation and invalid surrogates are atomic`, (t) => {
+    const order = (units) => units.flatMap(unit => encoding === 'utf16le' ? [unit & 0xFF, unit >>> 8] : [unit >>> 8, unit & 0xFF]);
+    for (const units of [[0xDC00], [0xDC00, 0xDC01], [0xD800, 0x0041], [0xD800, 0xD800], [0xD800]]) {
+      const bytes = order(units);
+      const buffer = new DataBuffer([99, ...bytes, 0, 0, 66, 0]);
+      buffer.seek(1);
+      t.throws(() => buffer.readString(bytes.length, encoding), { message: 'Invalid utf16 sequence.' });
+      t.is(buffer.offset, 1);
+      t.throws(() => buffer.readNullTerminatedString(encoding), { message: 'Invalid utf16 sequence.' });
+      t.is(buffer.offset, 1);
+    }
+    const pair = new DataBuffer(order([0xD83D, 0xDC4D]));
+    t.throws(() => pair.readString(2, encoding), { message: 'Invalid utf16 sequence.' });
+    t.is(pair.offset, 0);
+    t.is(pair.readString(4, encoding), '👍');
+    const odd = new DataBuffer([65]);
+    t.throws(() => odd.readString(1, encoding), { message: 'Invalid utf16 sequence.' });
+    t.throws(() => odd.readNullTerminatedString(encoding), { message: 'Invalid utf16 sequence.' });
+    t.is(odd.offset, 0);
+  });
+}
+
+test('strings: UTF-16 BOM handling is bounded and does not discard ordinary characters', (t) => {
+  for (const bytes of [[0, 65, 0, 66], [0xFE, 0xFF, 0, 65, 0, 66], [0xFF, 0xFE, 65, 0, 66, 0]]) {
+    const buffer = new DataBuffer([99, ...bytes, 0, 0, 99]);
+    buffer.seek(1);
+    t.is(buffer.peekString(1, bytes.length, 'utf16bom'), 'AB');
+    t.is(buffer.readString(null, 'utf16bom'), 'AB');
+    t.is(buffer.offset, bytes.length + 3);
+    t.is(buffer.readUInt8(), 99);
+  }
+  const bomOnly = new DataBuffer([0xFE, 0xFF]);
+  t.is(bomOnly.readString(2, 'utf16bom'), '');
+  t.is(bomOnly.offset, 2);
+  bomOnly.reset();
+  t.is(bomOnly.readString(0, 'utf16bom'), '');
+  t.is(bomOnly.offset, 0);
+  const writer = new DataBuffer();
+  writer.writeString('', 0, 'utf16bom');
+  t.deepEqual(writer.buffer, [0xFE, 0xFF]);
+  t.is(writer.offset, 2);
+});
+
+test('strings: null terminator validation and missing-terminator behavior', (t) => {
+  const buffer = new DataBuffer([65, 0]);
+  for (const nullValue of [-1, 0.5, 256, Number.NaN, Infinity]) {
+    t.throws(() => buffer.readNullTerminatedString('ascii', nullValue), { instanceOf: RangeError });
+    t.is(buffer.offset, 0);
+  }
+  const missing = new DataBuffer([65, 66]);
+  t.is(missing.readString(null), 'AB');
+  t.is(missing.offset, 2);
+  const utf16 = new DataBuffer([0, 65, 0, 66]);
+  t.is(utf16.readNullTerminatedString('utf16be'), 'AB');
+  t.is(utf16.offset, 4);
+});
+
+test('strings: large fixed and null-terminated strings do not exceed argument limits', (t) => {
+  for (const encoding of ['ascii', 'latin1', 'utf8', 'utf16be', 'utf16le', 'utf16bom']) {
+    const value = encoding === 'ascii' || encoding === 'latin1' ? 'A'.repeat(200000) : 'Aé日👍'.repeat(40000);
+    const buffer = new DataBuffer();
+    buffer.writeString(value, 0, encoding);
+    const length = buffer.offset;
+    buffer.writeBytes(encoding.startsWith('utf16') ? [0, 0] : [0]);
+    buffer.commit();
+    buffer.reset();
+    t.is(buffer.readString(length, encoding), value);
+    t.is(buffer.offset, length);
+    buffer.reset();
+    t.is(buffer.readNullTerminatedString(encoding), value);
+    t.is(buffer.offset, buffer.length);
+  }
 });

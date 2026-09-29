@@ -1,6 +1,6 @@
 import { crc32 as zlibCrc32 } from 'node:zlib';
 import test from 'ava';
-import { CRC32 } from '../src/index.js';
+import { CRC32, DataBuffer } from '../dist/index.js';
 
 const isoBitwise = (bytes) => {
   let crc = 0xFFFFFFFF;
@@ -47,6 +47,11 @@ test('CRC32.of(data)', (t) => {
   input = Buffer.from([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
   checksum = 'FF6CAB0B';
   t.is(CRC32.of(input), checksum);
+
+  const bytes = new Uint8Array([0x31, 0x32, 0x33, 0x34]);
+  t.is(CRC32.of(new DataBuffer(bytes)), CRC32.of(bytes));
+  t.is(CRC32.of(new Uint16Array(bytes.buffer)), CRC32.of(bytes));
+  t.is(CRC32.compute(4), CRC32.compute(new Uint8Array(4)));
 });
 
 test('CRC32.compute matches ISO-HDLC, zlib, and CRC32.of', (t) => {

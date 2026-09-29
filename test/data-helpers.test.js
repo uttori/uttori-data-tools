@@ -1,5 +1,5 @@
 import test from 'ava';
-import { convertFromIeeeExtended, float48, float80 } from '../src/data-helpers.js';
+import { convertFromIeeeExtended, float48, float80 } from '../dist/data-helpers.js';
 
 test('convertFromIeeeExtended: zero', (t) => {
   t.is(convertFromIeeeExtended(new Uint8Array([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])), 0);

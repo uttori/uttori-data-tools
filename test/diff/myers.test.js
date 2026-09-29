@@ -1,5 +1,5 @@
 import test from 'ava';
-import Myers from '../../src/diff/myers.js';
+import Myers from '../../dist/diff/myers.js';
 
 /**
  * Helper function to create an array with repeated patterns

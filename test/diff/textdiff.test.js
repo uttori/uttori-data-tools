@@ -1,6 +1,6 @@
 import test from 'ava';
-import { textEdits, unified, htmlTable, textHunks } from '../../src/diff/textdiff.js';
-import { Op } from '../../src/diff/diff.js';
+import { textEdits, unified, htmlTable, textHunks } from '../../dist/diff/textdiff.js';
+import { Op } from '../../dist/diff/diff.js';
 
 test('textHunks: identical text should return empty result', (t) => {
   const x = 'line1\nline2\nline3';

@@ -1,4 +1,4 @@
-import { DataBuffer, DataBufferList, DataStream } from '../../src/index.js';
+import { DataBuffer, DataBufferList, DataStream } from '../../dist/index.js';
 
 const main = () => {
   const data_buffer = new DataBuffer();

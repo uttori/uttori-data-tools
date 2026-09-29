@@ -1,4 +1,4 @@
-import { CRC32 } from '../../src/index.js';
+import { CRC32 } from '../../dist/index.js';
 
 const main = () => {
   const crc = CRC32.of('test');

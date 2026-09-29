@@ -20,7 +20,7 @@ test('public PNG and WAVE subpaths parse supplied bytes', (t) => {
 });
 
 test('public PNG and WAVE subpaths bundle for a browser without Node imports', async (t) => {
-  for (const entry of ['src/image/data-image-png.js', 'src/audio/audio-wav.js']) {
+  for (const entry of ['dist/image/data-image-png.js', 'dist/audio/audio-wav.js']) {
     const bundle = await rollup({ input: resolve(root, entry), plugins: [nodeResolve()] });
     const output = await bundle.generate({ format: 'es', inlineDynamicImports: true });
     t.is(output.output.length, 1);

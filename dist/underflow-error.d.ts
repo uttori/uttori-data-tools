@@ -6,10 +6,9 @@
  * @class
  */
 declare class UnderflowError extends Error {
-    stack: string | undefined;
     /**
      * Creates a new UnderflowError.
-     * @param {string} message Message to show when the error is thrown.
+     * @param message Message to show when the error is thrown.
      * @class
      */
     constructor(message: string);

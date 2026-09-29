@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBuffer, DataBufferList, DataStream } from '../src/index.js';
+import { DataBuffer, DataBufferList, DataStream } from '../dist/index.js';
 
 /**
  * Return a new DataStream.

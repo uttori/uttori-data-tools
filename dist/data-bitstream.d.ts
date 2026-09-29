@@ -1,6 +1,5 @@
-import DataStream from './data-stream.js';
-import DataBuffer from './data-buffer.js';
-export type DebugLogger = (...args: any) => any;
+import DataBuffer from "./data-buffer.js";
+import DataStream from "./data-stream.js";
 /**
  * Read a DataStream as a stream of bits.
  * @property {DataStream} stream The DataStream to process.
@@ -15,58 +14,58 @@ export type DebugLogger = (...args: any) => any;
  * @class
  */
 declare class DataBitstream {
-    /** @type {DataStream} The DataStream being processed. */
+    /** The DataStream being processed. */
     stream: DataStream;
-    /** @type {number} The number of buffers in the list. */
+    /** The number of buffers in the list. */
     bitPosition: number;
     /**
      * Creates an instance of DataBitstream.
-     * @param {DataStream} stream The DataStream to process.
+     * @param stream The DataStream to process.
      */
     constructor(stream: DataStream);
     /**
      * Creates a new DataBitstream from file data.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|number|string|Uint8Array|Uint32Array} data The data of the image to process.
-     * @returns {DataBitstream} The new DataBitstream instance for the provided file data.
+     * @param data The data of the image to process.
+     * @returns The new DataBitstream instance for the provided file data.
      * @static
      */
     static fromData(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
     /**
      * Creates a new DataBitstream from an array of bytes.
-     * @param {number[]} bytes The data to read as a bitstream.
-     * @returns {DataBitstream} The new DataBitstream instance for the provided bytes.
+     * @param bytes The data to read as a bitstream.
+     * @returns The new DataBitstream instance for the provided bytes.
      * @static
      */
     static fromBytes(bytes: number[]): DataBitstream;
     /**
      * Creates a copy of the DataBitstream.
-     * @returns {DataBitstream} The copied DataBufferList.
+     * @returns The copied DataBufferList.
      */
     copy(): DataBitstream;
     /**
      * Returns the current stream offset in bits.
-     * @returns {number} The number of bits read thus far.
+     * @returns The number of bits read thus far.
      */
     offset(): number;
     /**
      * Returns if the specified number of bits is avaliable in the stream.
-     * @param {number} bits The number of bits to check for avaliablity.
-     * @returns {boolean} If the requested number of bits are avaliable in the stream.
+     * @param bits The number of bits to check for avaliablity.
+     * @returns If the requested number of bits are avaliable in the stream.
      */
     available(bits: number): boolean;
     /**
      * Advance the bit position by the specified number of bits in the stream.
-     * @param {number} bits The number of bits to advance.
+     * @param bits The number of bits to advance.
      */
     advance(bits: number): void;
     /**
      * Rewind the bit position by the specified number of bits in the stream.
-     * @param {number} bits The number of bits to go back.
+     * @param bits The number of bits to go back.
      */
     rewind(bits: number): void;
     /**
      * Go to the specified offset in the stream.
-     * @param {number} offset The offset to go to.
+     * @param offset The offset to go to.
      */
     seek(offset: number): void;
     /**
@@ -75,17 +74,17 @@ declare class DataBitstream {
     align(): void;
     /**
      * Read the specified number of bits.
-     * @param {number} bits The number of bits to be read.
-     * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
-     * @param {boolean} [advance] If true, advance the bit position, default is true.
-     * @returns {number} The value read in from the stream.
+     * @param bits The number of bits to be read.
+     * @param signed If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+     * @param advance If true, advance the bit position, default is true.
+     * @returns The value read in from the stream.
      */
     read(bits: number, signed?: boolean, advance?: boolean): number;
     /**
      * Read the specified number of bits without advancing the bit position.
-     * @param {number} bits The number of bits to be read.
-     * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
-     * @returns {number} The value read in from the stream.
+     * @param bits The number of bits to be read.
+     * @param signed If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+     * @returns The value read in from the stream.
      */
     peek(bits: number, signed?: boolean): number;
     /**
@@ -93,10 +92,10 @@ declare class DataBitstream {
      * In computing, the least significant bit (LSB) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd.
      * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
      * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
-     * @param {number} bits The number of bits to be read.
-     * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
-     * @param {boolean} [advance] If true, advance the bit position, default is true.
-     * @returns {number} The value read in from the stream.
+     * @param bits The number of bits to be read.
+     * @param signed If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+     * @param advance If true, advance the bit position, default is true.
+     * @returns The value read in from the stream.
      * @throws {Error} Too Large, too many bits.
      */
     readLSB(bits: number, signed?: boolean, advance?: boolean): number;
@@ -105,9 +104,9 @@ declare class DataBitstream {
      * In computing, the least significant bit (LSB) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd.
      * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
      * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
-     * @param {number} bits The number of bits to be read.
-     * @param {boolean} [signed] If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
-     * @returns {number} The value read in from the stream.
+     * @param bits The number of bits to be read.
+     * @param signed If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
+     * @returns The value read in from the stream.
      * @throws {Error} Too Large, too many bits.
      */
     peekLSB(bits: number, signed?: boolean): number;

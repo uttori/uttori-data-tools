@@ -3,36 +3,20 @@
  * @callback DebugLogger
  * @param {...*} args The arguments to log.
  */
-export type DebugLogger = (...args: any) => any;
-import DataBuffer from '@uttori/data-tools/data-buffer';
-export type IPSChunk = {
-    /**
-     * 3 bytes. The starting offset of the change.
-     */
+import DataBuffer from "@uttori/data-tools/data-buffer";
+/**  A chunk of IPS data. */
+export interface IPSChunk {
+    /** 3 bytes. The starting offset of the change. */
     offset: number;
-    /**
-     * The length of the change.
-     */
+    /** The length of the change. */
     length: number;
-    /**
-     * The type of change, value is not undefined when Run Length Encoding is being used.
-     */
+    /** The type of change, value is not undefined when Run Length Encoding is being used. */
     rle?: number;
-    /**
-     * The data to be used for the change when not RLE.
-     */
+    /** The data to be used for the change when not RLE. */
     data?: number[];
-};
-/**
- * A chunk of IPS data.
- * @typedef {object} IPSChunk
- * @property {number} offset 3 bytes. The starting offset of the change.
- * @property {number} length The length of the change.
- * @property {number} [rle] The type of change, value is not undefined when Run Length Encoding is being used.
- * @property {number[]} [data] The data to be used for the change when not RLE.
- */
-/** @type {number} The maximum size of a file in the IPS format, 16 megabytes. */
-export declare const IPS_MAX_SIZE: number;
+}
+/** The maximum size of a file in the IPS format, 16 megabytes. */
+export declare const IPS_MAX_SIZE = 16777216;
 /**
  * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
  * "IPS" allegedly stands for "International Patching System".
@@ -55,17 +39,16 @@ export declare const IPS_MAX_SIZE: number;
  * @see {@link http://fileformats.archiveteam.org/wiki/IPS_(binary_patch_format)}
  */
 declare class IPS extends DataBuffer {
-    /** @type {IPSChunk[]} The changed to be made. */
+    /** The chunks to be applied to the data. */
     hunks: IPSChunk[];
-    /** @type {number} The 3 byte length the file should be truncated to. */
+    /** The 3 byte length the file should be truncated to. */
     truncate: number;
     /**
      * Creates an instance of IPS.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     * @param {boolean} [parse] Whether to immediately parse the IPS file. Default is true.
+     * @param input The data to process.
+     * @param parse Whether to immediately parse the IPS file. Default is true.
      * @throws {TypeError} Missing input data.
      * @throws {TypeError} Unknown type of input for DataBuffer: ${typeof input}
-     * @class
      */
     constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, parse?: boolean);
     /**
@@ -87,21 +70,21 @@ declare class IPS extends DataBuffer {
     decodeHeader(): void;
     /**
      * Convert the current instance to an IPS file Buffer instance.
-     * @returns {DataBuffer} The new IPS file as a Buffer.
+     * @returns The new IPS file as a Buffer.
      */
     encode(): DataBuffer;
     /**
      * Apply the IPS patch to an input DataBuffer.
-     * @param {DataBuffer} input The binary to patch.
-     * @returns {DataBuffer} The patched binary.
+     * @param input The binary to patch.
+     * @returns The patched binary.
      */
     apply(input: DataBuffer): DataBuffer;
     /**
      * Calculate the difference between two DataBuffers and save it as an IPS patch.
      * @static
-     * @param {DataBuffer} original The original file to compare against.
-     * @param {DataBuffer} modified The modified file.
-     * @returns {IPS} The IPS patch file data as a Buffer.
+     * @param original The original file to compare against.
+     * @param modified The modified file.
+     * @returns The IPS patch file data as a Buffer.
      */
     static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
 }

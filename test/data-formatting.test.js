@@ -12,8 +12,8 @@ import {
   formatDiffHunks,
   formatMyersGraph,
   hunks,
-} from '../src/index.js';
-import Myers from '../src/diff/myers.js';
+} from '../dist/index.js';
+import Myers from '../dist/diff/myers.js';
 
 test('formatBytes', (t) => {
   t.is(formatBytes(0), '0 Bytes');

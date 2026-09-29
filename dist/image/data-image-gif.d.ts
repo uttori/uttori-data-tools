@@ -1,183 +1,80 @@
-import DataBuffer from '../data-buffer.js';
-export type DebugLogger = (...args: any) => any;
-export type ImageGIFOptions = {
-    /**
-     * Options for the ImageGIF instance.
-     */
-    rules: {
-        strict_block_size: boolean;
-        strict_lzw_minimum_code_size: boolean;
+import DataBuffer from "../data-buffer.js";
+export interface ImageGIFOptions {
+    /** Options for the ImageGIF instance. */
+    rules?: {
+        /** Strictly enforce the block size. */
+        strict_block_size?: boolean;
+        /** Strictly enforce the LZW minimum code size. */
+        strict_lzw_minimum_code_size?: boolean;
     };
-};
-export type ImageGIFImageDescriptor = {
-    /**
-     * The offset of the image descriptor in the data
-     */
+}
+export interface ImageGIFImageDescriptor {
+    /** The offset of the image descriptor in the data. */
     offset: number;
-    /**
-     * The left position of the image
-     */
+    /** The left position of the image. */
     leftPosition: number;
-    /**
-     * The top position of the image
-     */
+    /** The top position of the image. */
     topPosition: number;
-    /**
-     * The width of the image
-     */
+    /** The width of the image. */
     width: number;
-    /**
-     * The height of the image
-     */
+    /** The height of the image. */
     height: number;
-    /**
-     * The packed fields of the image descriptor
-     */
+    /** The packed fields of the image descriptor. */
     packed: number;
-    /**
-     * The local color table flag
-     */
+    /** The local color table flag. */
     localColorTableFlag: number;
-    /**
-     * The interlace flag
-     */
+    /** The interlace flag. */
     interlaceFlag: number;
-    /**
-     * The sort flag
-     */
+    /** The sort flag. */
     sortFlag: number;
-    /**
-     * The local color table size
-     */
+    /** The local color table size. */
     localColorTableSize: number;
-    /**
-     * The local color table
-     */
+    /** The local color table. */
     localColorTable: Uint8Array;
-    /**
-     * The LZW minimum code size
-     */
+    /** The LZW minimum code size. */
     lzwMinimumCodeSize: number;
-    /**
-     * The LZW data
-     */
+    /** The LZW data. */
     lzwData: number[];
-};
-export type ImageGIFFrame = {
-    /**
-     * The frame index in the order it was decoded.
-     */
+}
+/** A decoded animation frame reference. */
+export interface ImageGIFFrame {
+    /** The index of the frame. */
     index: number;
-    /**
-     * The frame delay in 1/100ths of a second.
-     */
+    /** The delay of the frame. */
     delay: number;
-    /**
-     * The disposal method from the Graphic Control Extension, when present.
-     */
+    /** The disposal method of the frame. */
     disposal?: number;
-};
-export type ImageGIFComment = {
-    /**
-     * The offset of the comment extension in the data.
-     */
+}
+/** A decoded comment extension. */
+export interface ImageGIFComment {
+    /** The offset of the comment extension in the data. */
     offset: number;
-    /**
-     * The decoded comment text.
-     */
+    /** The decoded comment text. */
     comment?: string;
-};
-export type ImageGIFPlainTextExtension = {
-    /**
-     * The offset of the plain text extension in the data.
-     */
+}
+/** A decoded plain text extension. */
+export interface ImageGIFPlainTextExtension {
+    /** The offset of the plain text extension in the data. */
     offset: number;
-    /**
-     * Column number, in pixels, of the left edge of the text grid.
-     */
+    /** The text grid left position. */
     textGridLeftPosition?: number;
-    /**
-     * Row number, in pixels, of the top edge of the text grid.
-     */
+    /** The text grid top position. */
     textGridTopPosition?: number;
-    /**
-     * Width of the text grid in pixels.
-     */
+    /** The image grid width. */
     imageGridWidth?: number;
-    /**
-     * Height of the text grid in pixels.
-     */
+    /** The image grid height. */
     imageGridHeight?: number;
-    /**
-     * Width, in pixels, of each cell in the grid.
-     */
+    /** The character cell width. */
     characterCellWidth?: number;
-    /**
-     * Height, in pixels, of each cell in the grid.
-     */
+    /** The character cell height. */
     characterCellHeight?: number;
-    /**
-     * Index into the Global Color Table for the text foreground.
-     */
+    /** The text foreground color index. */
     textForegroundColorIndex?: number;
-    /**
-     * Index into the Global Color Table for the text background.
-     */
+    /** The text background color index. */
     textBackgroundColorIndex?: number;
-    /**
-     * The decoded plain text data.
-     */
+    /** The plain text data. */
     plainText?: string;
-};
-/**
- * @typedef {Object} ImageGIFOptions
- * @property {object} rules Options for the ImageGIF instance.
- * @property {boolean} rules.strict_block_size Strictly enforce the block size.
- * @property {boolean} rules.strict_lzw_minimum_code_size Strictly enforce the LZW minimum code size.
- */
-/**
- * @typedef {Object} ImageGIFImageDescriptor
- * @property {number} offset The offset of the image descriptor in the data
- * @property {number} leftPosition The left position of the image
- * @property {number} topPosition The top position of the image
- * @property {number} width The width of the image
- * @property {number} height The height of the image
- * @property {number} packed The packed fields of the image descriptor
- * @property {number} localColorTableFlag The local color table flag
- * @property {number} interlaceFlag The interlace flag
- * @property {number} sortFlag The sort flag
- * @property {number} localColorTableSize The local color table size
- * @property {Uint8Array} localColorTable The local color table
- * @property {number} lzwMinimumCodeSize The LZW minimum code size
- * @property {number[]} lzwData The LZW data
- */
-/**
- * A decoded animation frame reference.
- * @typedef {object} ImageGIFFrame
- * @property {number} index The frame index in the order it was decoded.
- * @property {number} delay The frame delay in 1/100ths of a second.
- * @property {number} [disposal] The disposal method from the Graphic Control Extension, when present.
- */
-/**
- * A decoded Comment Extension.
- * @typedef {object} ImageGIFComment
- * @property {number} offset The offset of the comment extension in the data.
- * @property {string} [comment] The decoded comment text.
- */
-/**
- * A decoded Plain Text Extension.
- * @typedef {object} ImageGIFPlainTextExtension
- * @property {number} offset The offset of the plain text extension in the data.
- * @property {number} [textGridLeftPosition] Column number, in pixels, of the left edge of the text grid.
- * @property {number} [textGridTopPosition] Row number, in pixels, of the top edge of the text grid.
- * @property {number} [imageGridWidth] Width of the text grid in pixels.
- * @property {number} [imageGridHeight] Height of the text grid in pixels.
- * @property {number} [characterCellWidth] Width, in pixels, of each cell in the grid.
- * @property {number} [characterCellHeight] Height, in pixels, of each cell in the grid.
- * @property {number} [textForegroundColorIndex] Index into the Global Color Table for the text foreground.
- * @property {number} [textBackgroundColorIndex] Index into the Global Color Table for the text background.
- * @property {string} [plainText] The decoded plain text data.
- */
+}
 /**
  * GIF Decoder
  *
@@ -204,64 +101,79 @@ export type ImageGIFPlainTextExtension = {
  * @class
  */
 declare class ImageGIF extends DataBuffer {
+    /** The GIF signature. */
     header: string;
+    /** The GIF version. */
     version: number;
+    /** The width of the image. */
     width: number;
+    /** The height of the image. */
     height: number;
+    /** The bit depth of the image. */
     bitDepth: number;
+    /** The color type of the image. */
     colorType: number;
+    /** The number of colors in the image. */
     colors: number;
+    /** Whether the image has an alpha transparency layer. */
     alpha: boolean;
-    /** @type {number} The size of the global color table, set while decoding the logical screen descriptor. */
-    sizeOfGlobalColorTable: number;
-    /** @type {Uint8Array} */
+    /** The palette of the image. */
     palette: Uint8Array;
-    /** @type {number[]|Uint8Array} */
-    pixels: number[] | Uint8Array;
-    /** @type {Uint8Array} */
+    /** The pixels of the image. */
+    pixels: Uint8Array;
+    /** The transparency of the image. */
     transparency: Uint8Array;
-    /** @type {ImageGIFFrame[]} */
+    /** The frames of the image. */
     frames: ImageGIFFrame[];
-    /** @type {ImageGIFComment[]} */
+    /** The comments of the image. */
     comments: ImageGIFComment[];
-    /** @type {object[]} */
+    /** The application extensions of the image. */
     applicationExtensions: object[];
-    /** @type {ImageGIFImageDescriptor[]} */
+    /** The image descriptors of the image. */
     imageDescriptors: ImageGIFImageDescriptor[];
-    /** @type {ImageGIFPlainTextExtension[]} */
+    /** The plain text extensions of the image. */
     plainTextExtensions: ImageGIFPlainTextExtension[];
+    /** Whether the next byte is an image descriptor. */
     imageNext: boolean;
-    /** @type {ImageGIFOptions} */
+    /** Options for the ImageGIF instance. */
     options: ImageGIFOptions;
-    packed: number | undefined;
-    globalColorTable: number | undefined;
-    colorResolution: number | undefined;
-    sortFlag: number | undefined;
-    backgroundColorIndex: number | undefined;
-    pixelAspectRatio: number | undefined;
+    /** The size of the global color table, set while decoding the logical screen descriptor. */
+    sizeOfGlobalColorTable: number;
+    /** The global color table of the image. */
+    globalColorTable: number;
+    /** The color resolution of the image. */
+    colorResolution: number;
+    /** The sort flag of the image. */
+    sortFlag: number;
+    /** The background color index of the image. */
+    backgroundColorIndex: number;
+    /** The pixel aspect ratio of the image. */
+    pixelAspectRatio: number;
+    /** The packed fields of the image descriptor. */
+    packed: number;
     /**
      * Creates a new ImageGIF.
      *
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     * @param {ImageGIFOptions} [options] Options for this ImageGIF instance.
+     * @param input The data to process.
+     * @param options Options for this ImageGIF instance.
      * @class
      */
     constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: ImageGIFOptions);
     /**
      * Creates a new ImageGIF from file data.
      *
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} data The data of the image to process.
-     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
-     * @returns {ImageGIF} the new ImageGIF instance for the provided file data
+     * @param data The data of the image to process.
+     * @param opts Options for this ImageGIF instance.
+     * @returns The new ImageGIF instance for the provided file data
      * @static
      */
     static fromFile(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: ImageGIFOptions): ImageGIF;
     /**
      * Creates a new ImageGIF from a DataBuffer.
      *
-     * @param {DataBuffer} buffer The DataBuffer of the image to process.
-     * @param {ImageGIFOptions} opts Options for this ImageGIF instance.
-     * @returns {ImageGIF} the new ImageGIF instance for the provided DataBuffer
+     * @param buffer The DataBuffer of the image to process.
+     * @param opts Options for this ImageGIF instance.
+     * @returns The new ImageGIF instance for the provided DataBuffer
      * @static
      */
     static fromBuffer(buffer: DataBuffer, opts?: ImageGIFOptions): ImageGIF;
@@ -320,15 +232,14 @@ declare class ImageGIF extends DataBuffer {
     /**
      * Get the pixel color at a specified x, y location.
      * GIF images are always palette-based (indexed color).
-     *
-     * @param {number} x The horizontal offset to read.
-     * @param {number} y The vertical offset to read.
-     * @returns {Array<number>} the color as [red, green, blue, alpha]
+     * @param x The horizontal offset to read.
+     * @param y The vertical offset to read.
+     * @returns The color as [red, green, blue, alpha]
      * @throws {Error} Pixel data has not been decoded
      * @throws {Error} x is out of bound for the image
      * @throws {Error} y is out of bound for the image
      */
-    getPixel(x: number, y: number): Array<number>;
+    getPixel(x: number, y: number): [number, number, number, number];
 }
 export default ImageGIF;
 //# sourceMappingURL=data-image-gif.d.ts.map

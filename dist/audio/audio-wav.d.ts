@@ -1,783 +1,447 @@
-import DataBuffer from '../data-buffer.js';
-export type DebugLogger = (...args: any) => any;
-export type WavHeader = {
-    /**
-     * The container ID: `RIFF`, `RF64`, `BW64`, `FORM`, `AIFF`, or `AIFC`.
-     */
+import DataBuffer from "../data-buffer.js";
+/** A decoded WAV / AIFF file header. */
+export interface WavHeader {
+    /** The container ID: `RIFF`, `RF64`, `BW64`, `FORM`, `AIFF`, or `AIFC`. */
     chunkID: string;
-    /**
-     * The declared size of the rest of the file in bytes.
-     */
+    /** The declared size of the rest of the file in bytes. */
     size: number;
-    /**
-     * The format ID, e.g. `WAVE`, `AIFF`, or `AIFC`.
-     */
+    /** The format ID, e.g. `WAVE`, `AIFF`, or `AIFC`. */
     format: string;
-    /**
-     * The normalized container type: `WAVE` or `AIFF`.
-     */
+    /** The normalized container type: `WAVE` or `AIFF`. */
     type: string;
-};
-export type WavFormat = {
-    /**
-     * The chunk ID, `fmt `.
-     */
+}
+/** A decoded `fmt ` (format) chunk. Fields after `bitsPerSample` are only present for extended / extensible formats. */
+export interface WavFormat {
+    /** The chunk ID, `fmt `. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The numeric audio format code.
-     */
+    /** The numeric audio format code. */
     audioFormatValue: number;
-    /**
-     * The human-readable audio format label.
-     */
+    /** The human-readable audio format label. */
     audioFormat: string;
-    /**
-     * The number of channels.
-     */
+    /** The number of channels. */
     channels: number;
-    /**
-     * The sample rate in Hz.
-     */
+    /** The sample rate in Hz. */
     sampleRate: number;
-    /**
-     * The average bytes per second.
-     */
+    /** The average bytes per second. */
     byteRate: number;
-    /**
-     * The block alignment (bytes per sample frame).
-     */
+    /** The block alignment (bytes). */
     blockAlign: number;
-    /**
-     * The number of bits per sample.
-     */
+    /** The number of bits per sample. */
     bitsPerSample: number;
-    /**
-     * The size of the extended parameter block, when present.
-     */
+    /** The size of the extended parameter block, when present. */
     extraParamSize?: number;
-    /**
-     * The valid bits per sample (extensible format).
-     */
+    /** The valid bits per sample (extensible format). */
     validBitsPerSample?: number;
-    /**
-     * The channel mask (extensible format).
-     */
+    /** The channel mask (extensible format). */
     channelMask?: number;
-    /**
-     * The human-readable channel mask label.
-     */
+    /** The human-readable channel mask label. */
     channelMaskLabel?: string;
-    /**
-     * The first GUID sub-format field.
-     */
+    /** The first GUID sub-format field. */
     subFormat_1?: number;
-    /**
-     * The second GUID sub-format field.
-     */
+    /** The second GUID sub-format field. */
     subFormat_2?: number;
-    /**
-     * The third GUID sub-format field.
-     */
+    /** The third GUID sub-format field. */
     subFormat_3?: number;
-    /**
-     * The fourth GUID sub-format field.
-     */
+    /** The fourth GUID sub-format field. */
     subFormat_4?: number;
-    /**
-     * The fifth GUID sub-format field.
-     */
+    /** The fifth GUID sub-format field. */
     subFormat_5?: number;
-    /**
-     * The raw extended parameter bytes.
-     */
+    /** The raw extended parameter bytes. */
     extraParams?: Uint8Array;
-};
-export type WavListInfo = {
-    /**
-     * The 4-character info ID.
-     */
+}
+/** A single entry from a LIST `INFO` chunk. */
+export interface WavListInfo {
+    /** The 4-character info ID. */
     id: string;
-    /**
-     * The byte length of the text.
-     */
+    /** The byte length of the text. */
     size: number;
-    /**
-     * The info text.
-     */
+    /** The info text. */
     text: string;
-};
-export type WavListAdtl = {
-    /**
-     * The 4-character sub-chunk ID.
-     */
+}
+/** A single entry from a LIST `adtl` (associated data list) chunk. */
+export interface WavListAdtl {
+    /** The 4-character sub-chunk ID. */
     id: string;
-    /**
-     * The byte length of the sub-chunk.
-     */
+    /** The byte length of the sub-chunk. */
     size: number;
-    /**
-     * The label text, for `labl` sub-chunks.
-     */
+    /** The label text, for `labl` sub-chunks. */
     label?: string;
-    /**
-     * The labeled text, for `ltxt` sub-chunks.
-     */
+    /** The labeled text, for `ltxt` sub-chunks. */
     ltxt?: string;
-};
-export type WavCuePoint = {
-    /**
-     * The unique cue point identifier.
-     */
+}
+/** A single cue point from a `cue ` chunk. */
+export interface WavCuePoint {
+    /** The unique cue point identifier. */
     id: number;
-    /**
-     * The sample offset of the cue in the play order.
-     */
+    /** The sample offset of the cue in the play order. */
     position: number;
-    /**
-     * The data chunk ID the cue refers to (`data` or `slnt`).
-     */
+    /** The data chunk ID the cue refers to (`data` or `slnt`). */
     chunkID: string;
-    /**
-     * The byte offset into the wave list chunk.
-     */
+    /** The byte offset into the wave list chunk. */
     chunkStart: number;
-    /**
-     * The byte offset into the data / slnt chunk.
-     */
+    /** The byte offset into the data / slnt chunk. */
     blockStart: number;
-    /**
-     * The sample offset within the block.
-     */
+    /** The sample offset within the block. */
     sampleOffset: number;
-};
-export type WavCue = {
-    /**
-     * The chunk ID, `cue `.
-     */
+}
+/** A decoded `cue ` chunk. */
+export interface WavCue {
+    /** The chunk ID, `cue `. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The number of cue points that follow.
-     */
+    /** The number of cue points that follow. */
     numberCuePoints: number;
-    /**
-     * The decoded cue points.
-     */
+    /** The decoded cue points. */
     data: WavCuePoint[];
-};
-export type WavResU = {
-    /**
-     * The chunk ID, `ResU`.
-     */
+}
+/** A decoded `ResU` chunk (zlib-compressed JSON used by Logic Pro X). */
+export interface WavResU {
+    /** The chunk ID, `ResU`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The parsed JSON payload, when it could be decompressed and parsed.
-     */
+    /** The parsed JSON payload, when it could be decompressed and parsed. */
     data?: unknown;
-};
-export type WavChunk = {
-    /**
-     * The chunk type label (e.g. `header`, `format`, `data`).
-     */
+}
+/** A parsed chunk entry stored on {@link AudioWAV#chunks}. */
+export interface WavChunk {
+    /** The chunk type label (e.g. `header`, `format`, `data`). */
     type: string;
-    /**
-     * The decoded value; the concrete shape depends on `type`.
-     */
-    value?: any;
-    /**
-     * The raw bytes of the chunk, when retained.
-     */
+    /** The decoded value; the concrete shape depends on `type`. */
+    value?: unknown;
+    /** The raw bytes of the chunk, when retained. */
     chunk?: Uint8Array;
-    /**
-     * Set when the chunk type is recognized but not decoded.
-     */
+    /** Set when the chunk type is recognized but not decoded. */
     unknown?: boolean;
-    /**
-     * A human-readable note for special / opaque chunks.
-     */
+    /** A human-readable note for special / opaque chunks. */
     description?: string;
-};
-export type WavData = {
-    /**
-     * The audio duration in seconds.
-     */
+}
+/** A decoded `data` chunk value (the audio payload itself is not retained, only its computed duration). */
+export interface WavData {
+    /** The audio duration in seconds. */
     duration: number;
-};
-export type WavList = {
-    /**
-     * The chunk ID, `LIST`.
-     */
+}
+/** A decoded `LIST` chunk. */
+export interface WavList {
+    /** The chunk ID, `LIST`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The list type, e.g. `INFO` or `adtl`.
-     */
+    /** The list type, e.g. `INFO` or `adtl`. */
     type: string;
-    /**
-     * The parsed sub-list entries.
-     */
+    /** The parsed sub-list entries. */
     data?: WavListInfo[] | WavListAdtl[];
-};
-export type WavTriggerList = {
-    /**
-     * The referenced list (`cue` or `playlist`).
-     */
-    list: number;
-    /**
-     * The cue point name / playlist entry index.
-     */
+}
+/** A decoded `tlst` (Trigger List) chunk. */
+export interface WavTriggerList {
+    /** The referenced list (`cue` or `playlist`). */
+    list: string;
+    /** The cue point name / playlist entry index. */
     name: string;
-    /**
-     * The trigger type (0: SMPTE, 1: MIDI Command, 2: MIDI SysEx).
-     */
+    /** The trigger type (0: SMPTE, 1: MIDI Command, 2: MIDI SysEx). */
     type: number;
-    /**
-     * Trigger value 1 (SMPTE hours / MIDI channel).
-     */
+    /** Trigger value 1 (SMPTE hours / MIDI channel). */
     triggerOn1: number;
-    /**
-     * Trigger value 2 (SMPTE minutes / MIDI command).
-     */
+    /** Trigger value 2 (SMPTE minutes / MIDI command). */
     triggerOn2: number;
-    /**
-     * Trigger value 3 (SMPTE seconds / MIDI param 1).
-     */
+    /** Trigger value 3 (SMPTE seconds / MIDI param 1). */
     triggerOn3: number;
-    /**
-     * Trigger value 4 (SMPTE frames / MIDI param 2).
-     */
+    /** Trigger value 4 (SMPTE frames / MIDI param 2). */
     triggerOn4: number;
-    /**
-     * The size of additional information.
-     */
+    /** The size of additional information. */
     extra: number;
-    /**
-     * The additional information value.
-     */
+    /** The additional information value. */
     extraData: number;
-    /**
-     * The trigger function (0: Play, 1: Stop, 2: Queue).
-     */
+    /** The trigger function (0: Play, 1: Stop, 2: Queue). */
     function: number;
-};
-export type WavFact = {
-    /**
-     * The number of samples per channel.
-     */
+}
+/** A decoded `fact` chunk. */
+export interface WavFact {
+    /** The number of samples per channel. */
     numberOfSamples: number;
-};
-export type WavPeak = {
-    /**
-     * The peak chunk version.
-     */
+}
+/** A decoded `PEAK` chunk. */
+export interface WavPeak {
+    /** The peak chunk version. */
     version: number;
-    /**
-     * The Unix timestamp of creation.
-     */
+    /** The Unix timestamp of creation. */
     timestamp: number;
-    /**
-     * The pointer to the per-channel PPEAK structs.
-     */
+    /** The pointer to the per-channel PPEAK structs. */
     ppeakPointer: number;
-    /**
-     * The 64-bit alignment padding.
-     */
+    /** The 64-bit alignment padding. */
     bitAlign: number;
-};
-export type WavDisplay = {
-    /**
-     * The Windows clipboard format identifier.
-     */
+}
+/** A decoded `DISP` (Display) chunk. */
+export interface WavDisplay {
+    /** The Windows clipboard format identifier. */
     type: number;
-    /**
-     * The display data value.
-     */
+    /** The display data value. */
     data: number;
-};
-export type WavAcid = {
-    /**
-     * The file type bit mask.
-     */
+}
+/** A decoded `acid` (ACID Loop) chunk. */
+export interface WavAcid {
+    /** The file type bit mask. */
     type: number;
-    /**
-     * The root note.
-     */
+    /** The root note. */
     rootNote: number;
-    /**
-     * An unknown 16-bit value.
-     */
+    /** An unknown 16-bit value. */
     unknown1: number;
-    /**
-     * An unknown 32-bit value.
-     */
+    /** An unknown 32-bit value. */
     unknown2: number;
-    /**
-     * The number of beats.
-     */
+    /** The number of beats. */
     beats: number;
-    /**
-     * The meter denominator (e.g. the 4 in 3/4).
-     */
+    /** The meter denominator (e.g. the 4 in 3/4). */
     meterDenominator: number;
-    /**
-     * The meter numerator (e.g. the 3 in 3/4).
-     */
+    /** The meter numerator (e.g. the 3 in 3/4). */
     meterNumerator: number;
-    /**
-     * The tempo.
-     */
+    /** The tempo. */
     tempo: number;
-};
-export type WavInstrument = {
-    /**
-     * The MIDI note for the sample's original pitch (0-127).
-     */
+}
+/** A decoded `inst` (Instrument) chunk. */
+export interface WavInstrument {
+    /** The MIDI note for the sample's original pitch (0-127). */
     unshiftedNote: number;
-    /**
-     * The fine tuning in cents (-50 to 50).
-     */
+    /** The fine tuning in cents (-50 to 50). */
     fineTuning: number;
-    /**
-     * The suggested volume in decibels.
-     */
+    /** The suggested volume in decibels. */
     gain: number;
-    /**
-     * The lowest usable MIDI note (0-127).
-     */
+    /** The lowest usable MIDI note (0-127). */
     lowNote: number;
-    /**
-     * The highest usable MIDI note (0-127).
-     */
+    /** The highest usable MIDI note (0-127). */
     highNote: number;
-    /**
-     * The lowest usable MIDI velocity (0-127).
-     */
+    /** The lowest usable MIDI velocity (0-127). */
     lowVelocity: number;
-    /**
-     * The highest usable MIDI velocity (0-127).
-     */
+    /** The highest usable MIDI velocity (0-127). */
     highVelocity: number;
-};
-export type WavSampleLoop = {
-    /**
-     * The unique loop ID (may reference a cue point).
-     */
+}
+/** A single sample loop entry from a `smpl` chunk. */
+export interface WavSampleLoop {
+    /** The unique loop ID (may reference a cue point). */
     ID: number;
-    /**
-     * The loop type (0: forward, 1: alternating, 2: backward).
-     */
+    /** The loop type (0: forward, 1: alternating, 2: backward). */
     type: number;
-    /**
-     * The loop start point in samples.
-     */
+    /** The loop start point in samples. */
     start: number;
-    /**
-     * The loop end point in samples.
-     */
+    /** The loop end point in samples. */
     end: number;
-    /**
-     * The fine-tune resolution.
-     */
+    /** The fine-tune resolution. */
     fraction: number;
-    /**
-     * The play count (0 means infinite).
-     */
+    /** The play count (0 means infinite). */
     count: number;
-};
-export type WavSample = {
-    /**
-     * Manufacturer code byte 1.
-     */
+}
+/** A decoded `smpl` (Sample) chunk. */
+export interface WavSample {
+    /** The manufacturer code byte 1. */
     manufacturer1: number;
-    /**
-     * Manufacturer code byte 2.
-     */
+    /** The manufacturer code byte 2. */
     manufacturer2: number;
-    /**
-     * Manufacturer code byte 3.
-     */
+    /** The manufacturer code byte 3. */
     manufacturer3: number;
-    /**
-     * Manufacturer code byte 4.
-     */
+    /** The manufacturer code byte 4. */
     manufacturer4: number;
-    /**
-     * The product / model ID.
-     */
+    /** The product / model ID. */
     product: number;
-    /**
-     * The period of one sample.
-     */
+    /** The period of one sample. */
     samplePeriod: number;
-    /**
-     * The MIDI note played at the sample's current pitch (0-127).
-     */
+    /** The MIDI note played at the sample's current pitch (0-127). */
     midiUnityNote: number;
-    /**
-     * The fraction of a semitone up from the unity note.
-     */
+    /** The fraction of a semitone up from the unity note. */
     midiPitchFraction: number;
-    /**
-     * The SMPTE format (0, 24, 25, 29, or 30).
-     */
+    /** The SMPTE format (0, 24, 25, 29, or 30). */
     SMPTEFormat: number;
-    /**
-     * SMPTE offset byte 1 (hours).
-     */
+    /** The SMPTE offset byte 1 (hours). */
     SMPTEOffset1: number;
-    /**
-     * SMPTE offset byte 2 (minutes).
-     */
+    /** The SMPTE offset byte 2 (minutes). */
     SMPTEOffset2: number;
-    /**
-     * SMPTE offset byte 3 (seconds).
-     */
+    /** The SMPTE offset byte 3 (seconds). */
     SMPTEOffset3: number;
-    /**
-     * SMPTE offset byte 4 (frames).
-     */
+    /** The SMPTE offset byte 4 (frames). */
     SMPTEOffset4: number;
-    /**
-     * The number of sample loops.
-     */
+    /** The number of sample loops. */
     sampleLoopsCount: number;
-    /**
-     * The number of bytes of sampler-specific data.
-     */
+    /** The number of bytes of sampler-specific data. */
     sampleDataSize: number;
-    /**
-     * The parsed sample loops.
-     */
+    /** The parsed sample loops. */
     sampleLoops: WavSampleLoop[];
-    /**
-     * The optional sampler-specific data.
-     */
-    sampleData?: Uint8Array;
-};
-export type WavRoland = {
-    /**
-     * The chunk ID, `RLND`.
-     */
+    /** The optional sampler-specific data. */
+    sampleData: Uint8Array;
+}
+/** A decoded `RLND` (Roland) chunk. */
+export interface WavRoland {
+    /** The chunk ID, `RLND`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The 8-character device label (e.g. `roifspsx`).
-     */
+    /** The 8-character device label (e.g. `roifspsx`). */
     device: string;
-    /**
-     * An unknown byte.
-     */
+    /** An unknown byte. */
     unknown1: number;
-    /**
-     * An unknown byte.
-     */
+    /** An unknown byte. */
     unknown2: number;
-    /**
-     * An unknown byte.
-     */
+    /** An unknown byte. */
     unknown3: number;
-    /**
-     * An unknown byte.
-     */
+    /** An unknown byte. */
     unknown4: number;
-    /**
-     * The pad sample index (0-119).
-     */
+    /** The pad sample index (0-119). */
     sampleIndex: number;
-    /**
-     * The human-readable pad label (`A1` - `J12`).
-     */
+    /** The human-readable pad label (`A1` - `J12`). */
     sampleLabel: string;
-};
-export type WavBext = {
-    /**
-     * The chunk ID, `bext`.
-     */
+}
+/** A decoded `bext` (Broadcast Wave Format extension) chunk. */
+export interface WavBext {
+    /** The chunk ID, `bext`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The description of the sound sequence.
-     */
-    description?: string;
-    /**
-     * The name of the originator.
-     */
-    originator?: string;
-    /**
-     * The reference of the originator.
-     */
-    originatorReference?: string;
-    /**
-     * The origination date (yyyy:mm:dd).
-     */
-    originationDate?: string;
-    /**
-     * The origination time (hh:mm:ss).
-     */
-    originationTime?: string;
-    /**
-     * The first sample count since midnight, low word.
-     */
-    timeReferenceLow?: number;
-    /**
-     * The first sample count since midnight, high word.
-     */
-    timeReferenceHigh?: number;
-    /**
-     * The BWF version.
-     */
-    version?: number;
-    /**
-     * The SMPTE UMID (64 bytes).
-     */
-    umid?: Uint8Array;
-    /**
-     * The integrated loudness value (LUFS x 100).
-     */
-    loudnessValue?: number;
-    /**
-     * The loudness range (LU x 100).
-     */
-    loudnessRange?: number;
-    /**
-     * The maximum true peak level (dBTP x 100).
-     */
-    maxTruePeakLevel?: number;
-    /**
-     * The maximum momentary loudness (LUFS x 100).
-     */
-    maxMomentaryLoudness?: number;
-    /**
-     * The maximum short-term loudness (LUFS x 100).
-     */
-    maxShortTermLoudness?: number;
-    /**
-     * 180 reserved bytes.
-     */
-    reserved?: Uint8Array;
-    /**
-     * The coding history.
-     */
-    codingHistory?: Uint8Array;
-};
-export type WavDS64TableEntry = {
-    /**
-     * The referenced chunk ID.
-     */
+    /** The description of the sound sequence. */
+    description: string;
+    /** The name of the originator. */
+    originator: string;
+    /** The reference of the originator. */
+    originatorReference: string;
+    /** The origination date (yyyy:mm:dd). */
+    originationDate: string;
+    /** The origination time (hh:mm:ss). */
+    originationTime: string;
+    /** The first sample count since midnight, low word. */
+    timeReferenceLow: number;
+    /** The first sample count since midnight, high word. */
+    timeReferenceHigh: number;
+    /** The BWF version. */
+    version: number;
+    /** The SMPTE UMID (64 bytes). */
+    umid: Uint8Array;
+    /** The integrated loudness value (LUFS x 100). */
+    loudnessValue: number;
+    /** The loudness range (LU x 100). */
+    loudnessRange: number;
+    /** The maximum true peak level (dBTP x 100). */
+    maxTruePeakLevel: number;
+    /** The maximum momentary loudness (LUFS x 100). */
+    maxMomentaryLoudness: number;
+    /** The maximum short-term loudness (LUFS x 100). */
+    maxShortTermLoudness: number;
+    /** 180 reserved bytes. */
+    reserved: Uint8Array;
+    /** The coding history. */
+    codingHistory: Uint8Array;
+}
+/** A single table entry from a `ds64` chunk. */
+export interface WavDS64TableEntry {
+    /** The referenced chunk ID. */
     chunkID: string;
-    /**
-     * The low 4 bytes of the chunk size.
-     */
+    /** The low 4 bytes of the chunk size. */
     chunkSizeLow: number;
-    /**
-     * The high 4 bytes of the chunk size.
-     */
+    /** The high 4 bytes of the chunk size. */
     chunkSizeHigh: number;
-};
-export type WavDS64 = {
-    /**
-     * The chunk ID, `ds64`.
-     */
+}
+/** A decoded `ds64` (DataSize 64) chunk used by RF64 files. */
+export interface WavDS64 {
+    /** The chunk ID, `ds64`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The low 4 bytes of the RF64 block size.
-     */
+    /** The low 4 bytes of the RF64 block size. */
     riffSizeLow: number;
-    /**
-     * The high 4 bytes of the RF64 block size.
-     */
+    /** The high 4 bytes of the RF64 block size. */
     riffSizeHigh: number;
-    /**
-     * The low 4 bytes of the data chunk size.
-     */
+    /** The low 4 bytes of the data chunk size. */
     dataSizeLow: number;
-    /**
-     * The high 4 bytes of the data chunk size.
-     */
+    /** The high 4 bytes of the data chunk size. */
     dataSizeHigh: number;
-    /**
-     * The low 4 bytes of the fact chunk sample count.
-     */
+    /** The low 4 bytes of the fact chunk sample count. */
     sampleCountLow: number;
-    /**
-     * The high 4 bytes of the fact chunk sample count.
-     */
+    /** The high 4 bytes of the fact chunk sample count. */
     sampleCountHigh: number;
-    /**
-     * The number of valid entries in the table.
-     */
+    /** The number of valid entries in the table. */
     tableLength: number;
-    /**
-     * The chunk size table.
-     */
+    /** The chunk size table. */
     table: WavDS64TableEntry[];
-};
-export type WavStrcSlice = {
-    /**
-     * An unknown header value (0 or 2).
-     */
+}
+/** A single slice entry from a `strc` chunk. */
+export interface WavStrcSlice {
+    /** An unknown header value (0 or 2). */
     header: number;
-    /**
-     * A seemingly random ID.
-     */
+    /** A seemingly random ID. */
     ID1: number;
-    /**
-     * The upper 32 bits of the slice sample position.
-     */
+    /** The upper 32 bits of the slice sample position. */
     samplePositionUpper: number;
-    /**
-     * The lower 32 bits of the slice sample position.
-     */
+    /** The lower 32 bits of the slice sample position. */
     samplePositionLower: number;
-    /**
-     * The upper 32 bits of the secondary sample position.
-     */
+    /** The lower 32 bits of the secondary sample position. */
     samplePosition2Upper: number;
-    /**
-     * The lower 32 bits of the secondary sample position.
-     */
+    /** The lower 32 bits of the secondary sample position. */
     samplePosition2Lower: number;
-    /**
-     * An unknown value.
-     */
+    /** An unknown value. */
     data3: number;
-    /**
-     * A second seemingly random ID (constant per chunk).
-     */
+    /** A second seemingly random ID (constant per chunk). */
     ID2: number;
-};
-export type WavStrc = {
-    /**
-     * An unknown value (always 28).
-     */
+}
+/** A decoded `strc` (ACID-related) chunk. */
+export interface WavStrc {
+    /** An unknown value (always 28). */
     unknown1: number;
-    /**
-     * The number of 32-byte slice blocks.
-     */
+    /** The number of 32-byte slice blocks. */
     numberOfSlices: number;
-    /**
-     * An unknown value.
-     */
+    /** An unknown value. */
     unknown2: number;
-    /**
-     * An unknown value.
-     */
+    /** An unknown value. */
     unknown3: number;
-    /**
-     * An unknown value (always 1).
-     */
+    /** An unknown value. */
     unknown4: number;
-    /**
-     * An unknown value.
-     */
+    /** An unknown value. */
     unknown5: number;
-    /**
-     * An unknown value.
-     */
+    /** An unknown value. */
     unknown6: number;
-    /**
-     * The parsed slices.
-     */
+    /** The parsed slices. */
     slices: WavStrcSlice[];
-};
-export type AiffCommon = {
-    /**
-     * The chunk ID, `COMM`.
-     */
+}
+/** A decoded AIFF `COMM` (Common) chunk. */
+export interface AiffCommon {
+    /** The chunk ID, `COMM`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The number of channels.
-     */
+    /** The number of channels. */
     channels: number;
-    /**
-     * The number of sample frames.
-     */
+    /** The number of sample frames. */
     sampleFrames: number;
-    /**
-     * The number of bits per sample point (1-32).
-     */
+    /** The number of bits per sample point (1-32). */
     sampleSize: number;
-    /**
-     * The sample rate (decoded from an 80-bit extended float).
-     */
+    /** The sample rate (decoded from an 80-bit extended float). */
     sampleRate: number;
-    /**
-     * The AIFF-C compression type, or empty for AIFF.
-     */
+    /** The AIFF-C compression type, or empty for AIFF. */
     compressionType: string;
-    /**
-     * The AIFF-C compression name, or empty for AIFF.
-     */
+    /** The AIFF-C compression name, or empty for AIFF. */
     compressionTypeName: string;
-};
-export type AiffSoundData = {
-    /**
-     * The chunk ID, `SSND`.
-     */
+}
+/** A decoded AIFF `SSND` (Sound Data) chunk. */
+export interface AiffSoundData {
+    /** The chunk ID, `SSND`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The byte offset to the first sample frame.
-     */
+    /** The byte offset to the first sample frame. */
     offset: number;
-    /**
-     * The block size used for block-aligning the sound data.
-     */
+    /** The block size used for block-aligning the sound data. */
     blockSize: number;
-    /**
-     * The sample frames that make up the sound.
-     */
+    /** The sample frames that make up the sound. */
     soundData: Uint8Array;
-};
-export type AiffFormatVersion = {
-    /**
-     * The chunk ID, `FVER`.
-     */
+}
+/** A decoded AIFF-C `FVER` (Format Version) chunk. */
+export interface AiffFormatVersion {
+    /** The chunk ID, `FVER`. */
     chunkID: string;
-    /**
-     * The chunk size in bytes.
-     */
+    /** The chunk size in bytes. */
     size: number;
-    /**
-     * The format version timestamp (seconds since 1904-01-01).
-     */
+    /** The format version timestamp (seconds since 1904-01-01). */
     timestamp: number;
-    /**
-     * The human-readable version name.
-     */
+    /** The human-readable version name. */
     versionName: string;
-};
+}
 /**
  * AudioWAV - WAVE Audio Utility
  * The WAVE file format is a subset of Microsoft's RIFF specification for the storage of multimedia files.
@@ -791,36 +455,45 @@ export type AiffFormatVersion = {
  * @augments DataBuffer
  */
 declare class AudioWAV extends DataBuffer {
+    /** The container type, `WAVE` or `AIFF`. */
     container: string;
+    /** The file type, `WAVE` or `AIFF`. */
     type: string;
-    /** @type {WavChunk[]} */
+    /** The parsed chunks. */
     chunks: WavChunk[];
+    /** The options for the AudioWAV instance. */
     options: {
         roundOddChunks: boolean;
     };
     /**
      * Creates a new AudioWAV.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} input The data to process.
-     * @param {object} [opts] Options for this AudioWAV instance.
+     * @param input The data to process.
+     * @param opts Options for this AudioWAV instance.
      * @class
      */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: object);
+    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: {
+        roundOddChunks?: boolean;
+    });
     /**
      * Creates a new AudioWAV from file data.
-     * @param {Buffer} data The data of the file to process.
-     * @param {object} [options] Options for returned AudioWAV instance.
-     * @returns {AudioWAV} the new AudioWAV instance for the provided file data
+     * @param data The data of the file to process.
+     * @param options Options for returned AudioWAV instance.
+     * @returns the new AudioWAV instance for the provided file data
      * @static
      */
-    static fromFile(data: Buffer, options?: object): AudioWAV;
+    static fromFile(data: Buffer, options?: {
+        roundOddChunks?: boolean;
+    }): AudioWAV;
     /**
      * Creates a new AudioWAV from a DataBuffer.
-     * @param {DataBuffer} buffer The DataBuffer of the file to process.
-     * @param {object} [options] Options for returned AudioWAV instance.
-     * @returns {AudioWAV} the new AudioWAV instance for the provided DataBuffer
+     * @param buffer The DataBuffer of the file to process.
+     * @param options Options for returned AudioWAV instance.
+     * @returns the new AudioWAV instance for the provided DataBuffer
      * @static
      */
-    static fromBuffer(buffer: DataBuffer, options?: object): AudioWAV;
+    static fromBuffer(buffer: DataBuffer, options?: {
+        roundOddChunks?: boolean;
+    }): AudioWAV;
     /**
      * Parse the WAV file, decoding the supported chunks.
      */
@@ -832,22 +505,22 @@ declare class AudioWAV extends DataBuffer {
      * Signature (Decimal): [82, 73, 70, 70, ..., ..., ..., ..., 87, 65, 86, 69]
      * Signature (Hexadecimal): [52, 49, 46, 46, ..., ..., ..., ..., 57, 41, 56, 45]
      * Signature (ASCII): [R, I, F, F, ..., ..., ..., ..., W, A, V, E]
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array} chunk The data to process.
-     * @static
-     * @returns {WavHeader} The decoded values.
+     * @param chunk The data to process.
+     * @returns The decoded values.
      * @throws {Error} Invalid WAV header
+     * @static
      */
     static decodeHeader(chunk: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): WavHeader;
     /**
      * Enocdes JSON values to a valid Wave Header chunk Buffer.
-     * @param {object} data - The values to encode to the header chunk chunk.
-     * @param {string} [data.riff] - RIFF Header, should contains the string `RIFF`, `RF64`, or `BW64` in ASCII form.
-     * @param {number} data.size - This is the size of the entire file in bytes minus 8 bytes for the 2 fields not included in this count. RF64 sets this to -1 = 0xFFFFFFFF as it doesn't use this to support larger sizes in the DS64 chunk.
-     * @param {string} [data.format] - WAVE Header, the string `WAVE` in ASCII form.
-     * @returns {Buffer} The newley encoded header chunk.
+     * @param data The values to encode to the header chunk chunk.
+     * @param data.riff RIFF Header, should contains the string `RIFF`, `RF64`, or `BW64` in ASCII form.
+     * @param data.size This is the size of the entire file in bytes minus 8 bytes for the 2 fields not included in this count. RF64 sets this to -1 = 0xFFFFFFFF as it doesn't use this to support larger sizes in the DS64 chunk.
+     * @param data.format WAVE Header, the string `WAVE` in ASCII form.
+     * @returns The newley encoded header chunk.
      * @static
      */
-    static encodeHeader({ riff, size, format }: {
+    static encodeHeader({ riff, size, format, }: {
         riff?: string;
         size: number;
         format?: string;
@@ -876,27 +549,27 @@ declare class AudioWAV extends DataBuffer {
      * Bits per Sample     2 bytes
      * [Extra Param Size]  2 bytes
      * [Extra Params]      n bytes
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavFormat} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
-    static decodeFMT(chunk: string | Buffer | Uint8Array): WavFormat;
+    static decodeFMT(chunk: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): WavFormat;
     /**
      * Enocdes JSON values to a valid `fmt ` chunk Buffer.
      *
      * Defaults are set to Red Book Compact Disc Digital Audio (CDDA or CD-DA) / Audio CD standards.
      *
      * RF64 specific fields are currently unsupported.
-     * @param {object} [data] The values to encode to the `fmt ` chunk.
-     * @param {number} [data.audioFormatValue] Format of the audio data, 1 is PCM and values other than 1 indicate some form of compression. See `decodeFMT` for a listing
-     * @param {number} [data.channels] Mono = 1, Stereo = 2, etc.
-     * @param {number} [data.sampleRate] 8000, 44100, 96000, etc.
-     * @param {number} [data.byteRate] Sample Rate * Channels * Bits per Sample / 8
-     * @param {number} [data.blockAlign] The number of bytes for one sample including all channels. Channels * Bits per Sample / 8
-     * @param {number} [data.bitsPerSample] 8 bits = 8, 16 bits = 16, etc.
-     * @param {number} [data.extraParamSize] The size of the extra paramteres to follow, or 0.
-     * @param {number} [data.extraParams] Any extra data to encode.
-     * @returns {Buffer} The newley encoded `fmt ` chunk.
+     * @param data The values to encode to the `fmt ` chunk.
+     * @param data.audioFormatValue Format of the audio data, 1 is PCM and values other than 1 indicate some form of compression. See `decodeFMT` for a listing
+     * @param data.channels Mono = 1, Stereo = 2, etc.
+     * @param data.sampleRate 8000, 44100, 96000, etc.
+     * @param data.byteRate Sample Rate * Channels * Bits per Sample / 8
+     * @param data.blockAlign The number of bytes for one sample including all channels. Channels * Bits per Sample / 8
+     * @param data.bitsPerSample 8 bits = 8, 16 bits = 16, etc.
+     * @param data.extraParamSize The size of the extra paramteres to follow, or 0.
+     * @param data.extraParams Any extra data to encode.
+     * @returns The newley encoded `fmt ` chunk.
      * @static
      */
     static encodeFMT(data?: {
@@ -913,26 +586,26 @@ declare class AudioWAV extends DataBuffer {
      * Decode the LIST (LIST Information) chunk.
      *
      * A LIST chunk defines a list of sub-chunks and has the following format.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavList} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
-    static decodeLIST(chunk: string | Buffer | Uint8Array): WavList;
+    static decodeLIST(chunk: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): WavList;
     /**
      * Decode the LIST INFO chunks.
-     * @param {DataBuffer} buffer List DataBuffer
-     * @returns {WavListInfo[]} The parsed list.
+     * @param buffer List DataBuffer
+     * @returns The parsed list.
      */
     static decodeLISTINFO(buffer: DataBuffer): WavListInfo[];
     /**
      * Decode the LIST adtl chunks.
-     * @param {DataBuffer} buffer List DataBuffer
-     * @returns {WavListAdtl[]} The parsed list.
+     * @param buffer List DataBuffer
+     * @returns The parsed list.
      */
     static decodeLISTadtl(buffer: DataBuffer): WavListAdtl[];
     /**
      * Decode the data (Audio Data) chunk.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
+     * @param chunk Data Blob
      * @static
      */
     static decodeDATA(chunk: string | Buffer | Uint8Array): void;
@@ -944,8 +617,8 @@ declare class AudioWAV extends DataBuffer {
      * Specifies a list of triggers which can be used to trigger playback of a series of cue points or Playlist entries.
      *
      * There's a historical bug in dwName (which is in fact an index, and the bug is that it's actually Index-1).
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavTriggerList} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeTLST(chunk: string | Buffer | Uint8Array): WavTriggerList;
@@ -957,8 +630,8 @@ declare class AudioWAV extends DataBuffer {
      *
      * According to the fact chunk's initial specification, the data portion of the fact chunk will contain only one 4-byte number that specifies the number of samples in the data chunk of the Wave file.
      * This number, when combined with the samples per second value in the format chunk of the Wave file, can be used to compute the length of the audio data in seconds.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavFact} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      * @see {@link https://www.recordingblogs.com/wiki/fact-chunk-of-a-wave-file | Fact chunk (of a Wave file)}
      * @see {@link http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html | Audio File Format Specifications}
@@ -966,8 +639,8 @@ declare class AudioWAV extends DataBuffer {
     static decodeFACT(chunk: string | Buffer | Uint8Array): WavFact;
     /**
      * Decode the PEAK chunk.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavPeak} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      * @see {@link https://code.google.com/archive/p/awesome-wav/wikis/WAVFormat.wiki|awesome-wav - WAVFormat.wiki}
      */
@@ -984,8 +657,8 @@ declare class AudioWAV extends DataBuffer {
      * This text should be short so that it can be easily displayed in menu bars and under icons.
      * Note: do not use a CF_TEXT for a description of the data.
      * Bibliographic data chunks will be added to support the standard MARC (Machine Readable Cataloging) data.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavDisplay} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      * @see {@link http://netghost.narod.ru/gff/vendspec/micriff/ms_riff.txt|New Multimedia Data Types and Data Techniques}
      * @see {@link https://docs.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats|Standard Clipboard Formats}
@@ -1000,8 +673,8 @@ declare class AudioWAV extends DataBuffer {
      *
      *  Although the phrase "ACID loops" technically only refers to loops which have been "acidized", some people use the term to refer to loops in general, even when used with other software packages.
      * @static
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavAcid} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @memberof AudioWAV
      */
     static decodeACID(chunk: string | Buffer | Uint8Array): WavAcid;
@@ -1010,8 +683,8 @@ declare class AudioWAV extends DataBuffer {
      *
      * When a wave file is used as wave samples in a MIDI synthesizer,
      * the instrument chunk helps the MIDI synthesizer define the sample pitch & relative volume of the samples.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavInstrument} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeINST(chunk: string | Buffer | Uint8Array): WavInstrument;
@@ -1019,8 +692,8 @@ declare class AudioWAV extends DataBuffer {
      * Decode the smpl (Sample) chunk.
      *
      * The sample chunk allows a MIDI sampler to use the Wave file as a collection of samples.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavSample} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeSMPL(chunk: string | Buffer | Uint8Array): WavSample;
@@ -1030,8 +703,8 @@ declare class AudioWAV extends DataBuffer {
      * Useful for use on SP-404 / SP-404SX / SP-404A samplers, perhaps others.
      *
      * This chunk is sized and padded with zeros to ensure that the the sample data starts exactly at offset 512.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavRoland} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeRLND(chunk: string | Buffer | Uint8Array): WavRoland;
@@ -1044,34 +717,27 @@ declare class AudioWAV extends DataBuffer {
      *
      * This chunk is sized and padded with zeros to ensure that the the sample data starts exactly at offset 512.
      * @static
-     * @param {object} data The JSON values to set in the RLND chunk.
-     * @param {string} data.device An 8 character string representing the device label. SP-404SX Wave Converter v1.01 on macOS sets this value to `roifspsx`.
-     * @param {number} [data.unknown1] Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x04`.
-     * @param {number} [data.unknown2] Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
-     * @param {number} [data.unknown3] Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
-     * @param {number} [data.unknown4] Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
-     * @param {number|string} data.sampleIndex The pad the sample plays on, between `0` and `119` as a number or the pad label, `A1` - `J12`. Only the SP404SX (device === `roifspsx`) provided values can be converted from string corrently, and if it is not found it will defailt to `0` / `A1`.
-     * @returns {Buffer<ArrayBuffer>} The new RLND chunk.
+     * @param data The JSON values to set in the RLND chunk.
+     * @param data.device An 8 character string representing the device label. SP-404SX Wave Converter v1.01 on macOS sets this value to `roifspsx`.
+     * @param data.unknown1 Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x04`.
+     * @param data.unknown2 Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
+     * @param data.unknown3 Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
+     * @param data.unknown4 Unknown, SP-404SX Wave Converter v1.01 on macOS sets this value to `0x00`.
+     * @param data.sampleIndex The pad the sample plays on, between `0` and `119` as a number or the pad label, `A1` - `J12`. Only the SP404SX (device === `roifspsx`) provided values can be converted from string corrently, and if it is not found it will defailt to `0` / `A1`.
+     * @returns The new RLND chunk.
      * @static
      * @see {@link https://www.roland.com/global/support/by_product/sp-404sx/updates_drivers/|SP-404SX Support Page}
      */
-    static encodeRLND(data: {
-        device: string;
-        unknown1?: number;
-        unknown2?: number;
-        unknown3?: number;
-        unknown4?: number;
-        sampleIndex: number | string;
-    }): Buffer<ArrayBuffer>;
+    static encodeRLND(data: WavRoland): Buffer;
     /**
      * Decode the JUNK (Padding) chunk.
      *
      * To align RIFF chunks to certain boundaries (i.e. 2048 bytes for CD-ROMs) the RIFF specification includes a JUNK chunk.
      * The contents are to be skipped when reading.
      * When writing RIFFs, JUNK chunks should not have an odd Size.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @param {object} options Decoding options.
-     * @param {boolean} options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
+     * @param chunk Data Blob
+     * @param options Decoding options.
+     * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
      * @static
      */
     static decodeJUNK(chunk: string | Buffer | Uint8Array, options: {
@@ -1079,16 +745,16 @@ declare class AudioWAV extends DataBuffer {
     }): void;
     /**
      * Decode the `PAD ` (Padding) chunk.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
+     * @param chunk Data Blob
      * @static
      */
     static decodePAD(chunk: string | Buffer | Uint8Array): void;
     /**
      * Decode the bext (Broadcast Wave Format (BWF) Broadcast Extension) chunk.
      * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @param {object} options Decoding options.
-     * @param {boolean} options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
-     * @returns {WavBext} The decoded values.
+     * @param options Decoding options.
+     * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
+     * @returns The decoded values.
      * @static
      * @see {@link https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue|Cue Chunk}
      * @see {@link https://tech.ebu.ch/docs/tech/tech3285.pdf|Spec}
@@ -1103,23 +769,23 @@ declare class AudioWAV extends DataBuffer {
      * For example, the beginning and end of a verse in a song may have cue points to make them easier to find.
      * The cue chunk is optional and if included, a single cue chunk should specify all cue points for the "WAVE" chunk.
      * No more than one cue chunk is allowed in a "WAVE" chunk.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavCue} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      * @see {@link https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue|Cue Chunk}
      */
     static decodeCue(chunk: string | Buffer | Uint8Array): WavCue;
     /**
      * Decode the 'ResU' chunk, a ZIP compressed JSON Data containg Time Signature, Tempo and other data for Logic Pro X.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavResU} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeResU(chunk: string | Buffer | Uint8Array): WavResU;
     /**
      * DataSize 64 Parsing
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavDS64} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @see {@link https://tech.ebu.ch/docs/tech/tech3306v1_0.pdf|RF64: An extended File Format for Audio}
      * @static
      */
@@ -1129,16 +795,16 @@ declare class AudioWAV extends DataBuffer {
      *
      * When a wave file is used as wave samples in a MIDI synthesizer,
      * the instrument chunk helps the MIDI synthesizer define the sample pitch & relative volume of the samples.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {WavStrc} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @static
      */
     static decodeSTRC(chunk: string | Buffer | Uint8Array): WavStrc;
     /**
      * Decode the COMM (Common) chunk.
      * The Common Chunk describes fundamental parameters of the sampled sound.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {AiffCommon} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @see {@link https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/AIFF.html|Audio File Format Specifications}
      * @static
      */
@@ -1149,8 +815,8 @@ declare class AudioWAV extends DataBuffer {
      * Offset:     4 bytes
      * Block Size: 4 bytes
      * Sound Data: n bytes
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {AiffSoundData} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @see {@link https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/AIFF.html|Audio File Format Specifications}
      * @static
      */
@@ -1161,8 +827,8 @@ declare class AudioWAV extends DataBuffer {
      * The Format Version Chunk contains a date field to indicate the format rules for an AIFF-C specification.
      * The timestamp holds the number of seconds since January 1, 1904.
      * The FVER chunk appears only in AIFF-C files.
-     * @param {string|Buffer|Uint8Array} chunk Data Blob
-     * @returns {AiffFormatVersion} The decoded values.
+     * @param chunk Data Blob
+     * @returns The decoded values.
      * @see {@link https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/AIFF.html|Audio File Format Specifications}
      * @static
      */

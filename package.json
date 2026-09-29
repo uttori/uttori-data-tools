@@ -51,88 +51,87 @@
     "typescript": "^7.0.2"
   },
   "files": [
-    "dist/*",
-    "src/*"
+    "dist/*"
   ],
-  "module": "src/index.js",
+  "module": "dist/index.js",
   "type": "module",
   "types": "dist/index.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./src/index.js",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./data-bitstream": {
-      "import": "./src/data-bitstream.js",
+      "import": "./dist/data-bitstream.js",
       "types": "./dist/data-bitstream.d.ts"
     },
     "./data-buffer-list": {
-      "import": "./src/data-buffer-list.js",
+      "import": "./dist/data-buffer-list.js",
       "types": "./dist/data-buffer-list.d.ts"
     },
     "./data-buffer": {
-      "import": "./src/data-buffer.js",
+      "import": "./dist/data-buffer.js",
       "types": "./dist/data-buffer.d.ts"
     },
     "./data-formating": {
-      "import": "./src/data-formating.js",
+      "import": "./dist/data-formating.js",
       "types": "./dist/data-formating.d.ts"
     },
     "./data-hash-crc32": {
-      "import": "./src/data-hash-crc32.js",
+      "import": "./dist/data-hash-crc32.js",
       "types": "./dist/data-hash-crc32.d.ts"
     },
     "./data-helpers": {
-      "import": "./src/data-helpers.js",
+      "import": "./dist/data-helpers.js",
       "types": "./dist/data-helpers.d.ts"
     },
     "./data-stream": {
-      "import": "./src/data-stream.js",
+      "import": "./dist/data-stream.js",
       "types": "./dist/data-stream.d.ts"
     },
     "./underflow-error": {
-      "import": "./src/underflow-error.js",
+      "import": "./dist/underflow-error.js",
       "types": "./dist/underflow-error.d.ts"
     },
     "./diff/diff": {
-      "import": "./src/diff/diff.js",
+      "import": "./dist/diff/diff.js",
       "types": "./dist/diff/diff.d.ts"
     },
     "./diff/myers": {
-      "import": "./src/diff/myers.js",
+      "import": "./dist/diff/myers.js",
       "types": "./dist/diff/myers.d.ts"
     },
     "./diff/textdiff": {
-      "import": "./src/diff/textdiff.js",
+      "import": "./dist/diff/textdiff.js",
       "types": "./dist/diff/textdiff.d.ts"
     },
     "./encodings/shift-jis": {
-      "import": "./src/encodings/shift-jis.js",
+      "import": "./dist/encodings/shift-jis.js",
       "types": "./dist/encodings/shift-jis.d.ts"
     },
     "./image/data-image-png": {
-      "import": "./src/image/data-image-png.js",
+      "import": "./dist/image/data-image-png.js",
       "types": "./dist/image/data-image-png.d.ts"
     },
     "./image/data-image-gif": {
-      "import": "./src/image/data-image-gif.js",
+      "import": "./dist/image/data-image-gif.js",
       "types": "./dist/image/data-image-gif.d.ts"
     },
     "./image/gif_lzw": {
-      "import": "./src/image/gif_lzw.js",
+      "import": "./dist/image/gif_lzw.js",
       "types": "./dist/image/gif_lzw.d.ts"
     },
     "./patch/data-patch-ips": {
-      "import": "./src/patch/data-patch-ips.js",
+      "import": "./dist/patch/data-patch-ips.js",
       "types": "./dist/patch/data-patch-ips.d.ts"
     },
     "./audio/audio-wav": {
-      "import": "./src/audio/audio-wav.js",
+      "import": "./dist/audio/audio-wav.js",
       "types": "./dist/audio/audio-wav.d.ts"
     },
     "./audio/audio-midi": {
-      "import": "./src/audio/audio-midi.js",
+      "import": "./dist/audio/audio-midi.js",
       "types": "./dist/audio/audio-midi.d.ts"
     }
   },
@@ -151,9 +150,10 @@
     "per-file": true,
     "check-coverage": false,
     "include": [
-      "src/**/*.js"
+      "src/**/*.ts"
     ],
-    "exclude": []
+    "exclude": [],
+    "exclude-after-remap": true
   },
   "release-it": {
     "github": {
@@ -163,6 +163,7 @@
   "scripts": {
     "docs": "node build/make-docs.js",
     "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
     "fmt:check": "oxfmt --check src",
     "fmt": "oxfmt src",
     "make-browser": "rollup -c rollup.config.js",
@@ -170,6 +171,8 @@
     "make-types": "tsc --module nodenext --project ./tsconfig.json",
     "make": "npm run make-types && npm run docs",
     "release": "release-it",
+    "pretest": "tsc --module nodenext --project ./tsconfig.json --noEmitOnError false || [ $? -eq 2 ]",
+    "pretest-debug": "tsc --module nodenext --project ./tsconfig.json --noEmitOnError false || [ $? -eq 2 ]",
     "test": "NODE_ENV=test c8 ava",
     "test-debug": "UTTORI_DATA_DEBUG=true DEBUG=* NODE_ENV=test ava --serial --concurrency=1",
     "serve-demo": "npx http-server demo -p 8080 -o",

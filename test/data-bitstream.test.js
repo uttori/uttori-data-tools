@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBitstream } from '../src/index.js';
+import { DataBitstream } from '../dist/index.js';
 
 /**
  * Creates a DataBitstream from an array of bytes.

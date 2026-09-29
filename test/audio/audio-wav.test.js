@@ -1,6 +1,6 @@
 import test from 'ava';
 import { promises as fs } from 'fs';
-import { AudioWAV, DataBuffer, DataBufferList } from '../../src/index.js';
+import { AudioWAV, DataBuffer, DataBufferList } from '../../dist/index.js';
 
 test('constructor(list, options): can initialize', async (t) => {
   const data = await fs.readFile('./test/audio/assets/Kount Challenge November Drums.wav');
@@ -433,7 +433,7 @@ test('AudioWAV.decodeChunk(): can decode a `tlst` chunk and an edge case LIST ad
     extra: 0,
     extraData: 0,
     function: 9452799,
-    list: 1,
+    list: '1',
     name: 'cue ',
     triggerOn1: 1,
     triggerOn2: 0,

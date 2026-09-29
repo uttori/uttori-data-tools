@@ -19,23 +19,23 @@
  * S[1]: Sign
  *
  * Value: (-1)^s * 2^(e - 129) * (1.f)
- * @param {Uint8Array} uint8 The data to process to a float48 value.
- * @returns {number} The read value as a number.
+ * @param uint8 The data to process to a float48 value.
+ * @returns The read value as a number.
  * @see {@link http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real|Turbo Pascal Real}
  */
-export declare const float48: (uint8: Uint8Array) => number;
+export declare const float48: (uint8: Uint8Array | number[]) => number;
 /**
  * Convert the current buffer into an IEEE 80 bit extended float value.
- * @param {Uint8Array} uint8 The raw data to convert to a float80.
- * @returns {number} The read value as a number.
+ * @param uint8 The raw data to convert to a float80.
+ * @returns The read value as a number.
  * @see {@link https://en.wikipedia.org/wiki/Extended_precision|Extended_Precision}
  */
 export declare const float80: (uint8: Uint8Array) => number;
 /**
  * Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
  * Uses `>>> 0` to force unsigned 32-bit mantissas.
- * @param {Uint8Array | number[]} uint8 10-byte extended float.
- * @returns {number} The converted value.
+ * @param uint8 10-byte extended float.
+ * @returns The converted value.
  * @see {@link https://en.wikipedia.org/wiki/IEEE_754|IEEE 754}
  */
 export declare const convertFromIeeeExtended: (uint8: Uint8Array | number[]) => number;

@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBuffer, DataBufferList } from '../src/index.js';
+import { DataBuffer, DataBufferList } from '../dist/index.js';
 
 test('constructor', (t) => {
   const list = new DataBufferList([DataBuffer.allocate(3), DataBuffer.allocate(3)]);

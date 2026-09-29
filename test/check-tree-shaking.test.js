@@ -34,17 +34,15 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
   // DataBuffer now includes diff functionality (diff.js and myers.js)
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
     'data-helpers.js',
     'myers.js',
     'diff.js',
+    'underflow-error.js',
     'data-buffer.js',
-    'data-hash-crc32.js',
     'data-buffer-list.js',
     'data-stream.js',
-    'audio-wav.js',
     '3-of-3.js',
   ]);
 });
@@ -61,17 +59,15 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
     'data-helpers.js',
     'myers.js',
     'diff.js',
+    'underflow-error.js',
     'data-buffer.js',
-    'data-hash-crc32.js',
     'data-buffer-list.js',
     'data-stream.js',
     'data-bitstream.js',
-    'audio-wav.js',
     '4-of-1.js',
   ]);
 });
@@ -88,15 +84,8 @@ test('Tree Shaking: { CRC32 }', async (t) => {
     format: 'es',
   });
 
-  // Sum should be 1 + number of expected modules (removing 'commonjsHelpers.js' with slice)
-  // DataBuffer now includes diff functionality (diff.js and myers.js)
-  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()).slice(1), [
-    'data-helpers.js',
-    'myers.js',
-    'diff.js',
-    'data-buffer.js',
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
     'data-hash-crc32.js',
-    'audio-wav.js',
     '3-of-2.js',
   ]);
 });
@@ -135,14 +124,15 @@ test('Tree Shaking: { ImagePNG, DataBuffer, DataBufferList, DataStream }', async
 
   // Zlib sum should be (1 (input) + 3 (data tools) + 1 shake-me) number of expected modules
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
-    'underflow-error.js',
     'data-helpers.js',
     'myers.js',
     'diff.js',
+    'underflow-error.js',
     'data-buffer.js',
     'data-hash-crc32.js',
+    'bitmap-text.js',
+    'rgba-surface.js',
     'data-image-png.js',
-    'audio-wav.js',
     'imagepng.js',
   ]);
 });

@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import { GIFLZW } from '../../src/index.js';
+import { GIFLZW } from '../../dist/index.js';
 
 test('pack: computes the output stream correctly', (t) => {
   const lzw = new GIFLZW();

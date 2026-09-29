@@ -3,54 +3,56 @@
  * @callback DebugLogger
  * @param {...*} args The arguments to log.
  */
-export type DebugLogger = (...args: any) => any;
 /**
  * GIF LZW Compression
  * The compression method GIF uses is a variant of LZW (Lempel-Ziv-Welch) compression.
  * @class
  */
 declare class GIFLZW {
+    /** The input data. */
     input: number[];
-    /** @type {number[]} */
+    /** The output data. */
     output: number[];
+    /** The current offset in the output data. */
     offset: number;
+    /** The current bit offset in the output data. */
     bitOffset: number;
     /**
      * Creates a new GIFLZW instance.
-     * @param {number[]} input The input data
+     * @param input The input data
      */
     constructor(input?: number[]);
     /**
      * Initialize the compression or decompression dictionary based on the code size.
-     * @param {number} size Size of lookup, `(1 << Code Size) + 2`, the extra two are Clear Code & End of Information
-     * @param {boolean} [compress] Type of dictionary returned, compression when true, decompression when false. Defaults to true.
-     * @returns {Record<number|string, number|string>} The built to size dictionary.
+     * @param size Size of lookup, `(1 << Code Size) + 2`, the extra two are Clear Code & End of Information
+     * @param compress Type of dictionary returned, compression when true, decompression when false. Defaults to true.
+     * @returns The built to size dictionary.
      */
     buildDictionary(size: number, compress?: boolean): Record<number | string, number | string>;
     /**
      * Pack the colors as a series of bits, based on the codeSize.
-     * @param {number} codeLength The code length
-     * @param {number} code The code
+     * @param codeLength The code length
+     * @param code The code
      */
     pack(codeLength: number, code: number): void;
     /**
      * Unpack
-     * @param {number} codeLength Code Length
-     * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true, using the input.
-     * @returns {number} The unpacked code
+     * @param codeLength Code Length
+     * @param useInput Unpacking the `input` or the `output`. Defaults to true, using the input.
+     * @returns The unpacked code
      */
     unpack(codeLength: number, useInput?: boolean): number;
     /**
      * Compress data.
-     * @param {number} codeSize Code Size
-     * @returns {number[]} The compressed output
+     * @param codeSize Code Size
+     * @returns The compressed output
      */
     compress(codeSize: number): number[];
     /**
      * Decompress data.
-     * @param {number} codeSize Code Size
-     * @param {boolean} [useInput] Unpacking the `input` or the `output`. Defaults to true.
-     * @returns {string} The decompressed output
+     * @param codeSize Code Size
+     * @param useInput Unpacking the `input` or the `output`. Defaults to true.
+     * @returns The decompressed output
      */
     decompress(codeSize: number, useInput?: boolean): string;
 }

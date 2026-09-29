@@ -6,9 +6,136 @@ All notable changes to this project will be documented in this file. This projec
 
 - 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
 
-## [4.2.0](https://github.com/uttori/uttori-data-tools/compare/v4.1.0...v4.2.0) - 2026-09-24
+## [5.0.0](https://github.com/uttori/uttori-data-tools/compare/v4.1.0...v5.0.0) - 2026-09-24
 
-- 🧰 Add `CRC32.compute` for unsigned CRC-32/ISO-HDLC and `CRC32.crc32c` for Castagnoli CRC-32C, optimize
+- 💥 Now using TypeScript
+
+CRC32:
+
+- 💥 CRC32 now hashes `Buffer` inputs without copying; callers requiring snapshot behavior must copy or synchronize input data explicitly
+- 💥 Internal slicing tables are snapshots; mutating exported lookup tables no longer changes checksum calculations
+- 🧰 Add `CRC32.compute` for unsigned CRC-32 / ISO-HDLC and `CRC32.crc32c` for Castagnoli CRC-32C, optimize
+- 🧰 Add `CRC32.computeBytes` & `CRC32.crc32cBytes` for already-normalized `Uint8Array` & `Buffer` inputs, skipping input conversion and runtime validation
+- 🛠 Optimize CRC-32 / ISO-HDLC with slicing-by-8, private `Uint32Array` lookup tables, cached table references & loop lengths
+- 🛠 Optimize CRC-32C / Castagnoli table lookups & loop bounds while preserving `zeroChecksum` handling without modifying input data
+- 🛠 Avoid temporary `DataBuffer` instances for `Buffer`, `Uint8Array` & existing `DataBuffer` inputs, and reuse a lazily initialized `TextEncoder` for UTF-8 strings
+- 🎁 Add regression tests for reference checksums, random inputs, slicing boundaries, nonzero-offset views, UTF-8 strings, invalid inputs, return formats & checksum zeroing
+
+ImagePNG:
+
+- 💥 Change `ImagePNG.pixels` to unpacked native samples: `Uint8Array` for 1 / 2 / 4 / 8-bit samples and palette indexes, `Uint16Array` for 16-bit samples
+- 💥 Copy PNG input by default, use `copyInput: false` to explicitly borrow the original byte view
+- 🧰 Add `ImagePNG.encodeIndexed` & `ImagePNG.createIndexedPng` for writing 1 / 2 / 4 / 8-bit indexed PNGs without palette reordering, quantization or duplicate color removal
+- 🧰 Add `ImagePNG.encodeRGBA` for writing RGBA8 PNGs, with configurable compression levels and `none`, `sub` or `adaptive` filtering for both encoders
+- 🧰 Add `ImagePNG.rewriteIndexed` & `ImagePNG.rewriteIndexedPng` for palette, pixel and canvas edits, preserving exact bytes for unchanged edits and original `IDAT` bytes, including Adam7, for palette-only changes
+- 🧰 Preserve safe-to-copy ancillary chunks during indexed edits, with explicit retention available for unsafe chunks after caller validation
+- 🧰 Add `ImagePNG.toIndexed`, `ImagePNG.toRGBA` & `ImagePNG.getPixelInto` for explicit indexed / RGBA conversion and reusable pixel output buffers
+- 🧰 Add configurable input, pixel, inflated data, output and chunk count limits, with optional rejection of 16-bit input
+- 🧰 Detect animated PNGs and reject them by default, with an explicit `animation: 'default-image'` option for reading the default image without decoding animation frames
+- 🧰 Add `RgbaSurface` for RGBA fills, clipped copy and source-over blits, cloning, cropping, flipping, nearest-neighbor scaling in both directions and clipped line drawing, including overlapping buffer support
+- 🧰 Add `BitmapText` and surface text methods for measurable 5×7 captions, multiline layout, integer scaling, ASCII lowercase mapping and unsupported character fallback
+- 🛠 Cache decoded pixels with `_decoded`, add forced decoding and explicit invalidation, and reset metadata and cached pixels when parsing again
+- 🛠 Reduce PNG allocations with reusable scanline buffers, IDAT payload views and bulk row copies, and calculate numeric CRCs without hexadecimal conversion
+- 🛠 Keep PNG decoding, encoding and indexed editing in `ImagePNG`, reusing `DataBuffer` for binary reads, writes and cursor operations
+- 🪲 Validate chunk CRCs, lengths, ordering, required chunks, palette references and color type / bit depth combinations instead of accepting malformed PNG data
+- 🪲 Fix non-interlaced scanline destination offsets and unpack 1 / 2 / 4-bit grayscale samples and palette indexes without treating packed samples as whole bytes
+- 🪲 Fix Adam7 sample placement and packed row handling, including tiny images, odd dimensions and empty passes
+- 🪲 Fix 16-bit pixel conversion and grayscale / truecolor transparency, comparing native transparency keys before rounding samples to RGBA8
+- 🪲 Reject invalid filters, truncated or oversized inflated data, incomplete zlib streams and trailing or concatenated compressed streams without exposing partially decoded pixels
+- 🪲 Fix `pHYs` metadata to retain its original pixels-per-unit values instead of converting to inches while retaining the meter unit label
+- 🧹 Update TypeScript types and JSDoc for the extended image APIs
+
+DataBuffer:
+
+- 🛠 Optimize `DataBuffer` numeric reads & peeks with a cached, bounded `DataView` that refreshes when the backing data changes
+- 🛠 Optimize `compare()` with early range checks and fewer allocations, preserving non-empty region matching
+- 🛠 Remove redundant byte copies from copy operations & `diff()`, and cache native endianness detection & the checksum brand once per module
+- 🛠 Standardize case-insensitive encoding names & aliases across string reads, peeks & writes; unknown encodings now consistently throw
+- 🪲 Fix bounds validation for negative, fractional, non-finite & unsafe offsets and lengths, preventing reads outside the supplied view
+- 🪲 Fix reads bypassing committed-data bounds in writing mode while preserving growable writes & separate staging
+- 🪲 Fix advancing writes to end at the supplied offset plus the number of bytes written, preserving the cursor when `advance` is `false`
+- 🪲 Fix overlapping `writeBytes()` calls corrupting unread source values or indefinitely extending the staging array
+- 🪲 Fix failed 24bit reads partially advancing the cursor; validate all three bytes before reading
+- 🪲 Fix string length handling: zero reads nothing, omitted lengths read the remainder from the supplied offset, and `null` reads through the terminator
+- 🪲 Fix string decoding crossing field boundaries or incorrectly advancing the cursor; failed decodes now leave the cursor unchanged
+- 🪲 Fix malformed & incomplete UTF-8 decoding with `U+FFFD` replacement, and unpaired surrogate encoding consuming the next character
+- 🪲 Fix UTF-16 BOM detection & writing, preserve the first character when no BOM is present, and consistently reject incomplete code units & invalid surrogate pairs when decoding
+- 🪲 Fix large-string decoding exceeding argument limits by assembling output in bounded chunks
+- 🪲 Fix `copy()`, `slice()`, `read()`, `peek()`, `readBuffer()` & `peekBuffer()` returning shared storage inconsistently between `Buffer` & `Uint8Array`
+- 🪲 Fix Float48 reads ignoring explicit endianness and UInt32 writes staging a negative high byte
+- 🪲 Fix `commit()` leaving `lengthInBytes` stale and release the cached numeric view when committed data is replaced
+- 🪲 Reject invalid constructor sizes, spoofed typed-array inputs & invalid movement / write ranges before mutating state
+- 🧹 Documentation & Types corrections for string lengths, copy ownership, staging, wider typed arrays & single-byte `peekBit()` behavior
+- 🎁 Update existing test expectations & expand `DataBuffer` coverage including invalid ranges, malformed strings, overlapping writes, copy isolation, cache invalidation & staging compatibility
+
+### CRC32 Benchmarks
+
+Original implementation compared with the full optimized JavaScript implementation using the existing `compute` & `crc32c` APIs, not the new byte-only helpers.
+
+Measured with Node.js v22 on Linux x64.
+
+Per-call results are medians of nine samples. The 1 million-call result is a median of five samples. The 50 million-call result is one measured batch, not an extrapolation. Speedups are calculated before rounding.
+
+| Operation / Input | Original | Optimized | Speedup |
+| --- | ---: | ---: | ---: |
+| `compute`, 32-byte `Buffer` | 1,707.6 ns/call | 33.0 ns/call | 51.7× |
+| `compute`, 256-byte `Buffer` | 7,837.2 ns/call | 212.7 ns/call | 36.9× |
+| `compute`, 1 KiB `Buffer` | 12,010.1 ns/call | 805.7 ns/call | 14.9× |
+| `compute`, 4 KiB `Buffer` | 54,029.1 ns/call | 3,236.9 ns/call | 16.7× |
+| `compute`, 64 KiB `Buffer` | 761,036.6 ns/call | 54,433.7 ns/call | 14.0× |
+| `compute`, 32-byte ASCII string | 2,149.5 ns/call | 824.3 ns/call | 2.6× |
+| `crc32c`, 32-byte `Buffer` | 1,067.2 ns/call | 34.1 ns/call | 31.3× |
+| `crc32c`, 4 KiB `Buffer` | 8,946.9 ns/call | 4,020.1 ns/call | 2.2× |
+| `crc32c`, 4 KiB `Buffer`, `zeroChecksum = true` | 9,423.9 ns/call | 3,548.8 ns/call | 2.7× |
+| `compute`, 32-byte `Buffer`, 1 million calls | 1.320 s total | 0.037 s total | 36.1× |
+| `compute`, 32-byte `Buffer`, 50 million calls | 72.872 s total | 1.959 s total | 37.2× |
+
+### ImagePNG Benchmarks
+
+Historical measurements from the initial implementation, before the later `ImagePNG` / `DataBuffer` revisions.
+
+Median milliseconds per operation over 9 timed rounds after warm-up.
+
+Measured with Node.js v22 on Linux x64, using Pako v1.0.11.
+
+| Operation / Input | Original (ms) | Optimized (ms) | Speedup |
+|---|---:|---:|---:|
+| Decode RGBA8 64×64 tiles | 0.500 | 0.091 | 5.51× |
+| Decode RGBA8 256×256 tiles | 7.516 | 0.789 | 9.52× |
+| Decode RGBA8 512×512 noise | 34.327 | 7.756 | 4.43× |
+| Decode indexed1 512×512 | 3.798 | 0.970 | 3.92× |
+| Decode indexed4 512×512 | 4.536 | 1.060 | 4.28× |
+| Decode indexed8 512×512 | 14.508 | 1.007 | 14.41× |
+| Decode Adam7 indexed4 512×512 | 4.530 | 1.456 | 3.11× |
+| Rewrite palette-only Adam7 512×512 | 9.292 | 3.779 | 2.46× |
+| Rewrite unchanged Adam7 512×512 | 7.418 | 3.642 | 2.04× |
+| Preview RGBA8 1024×512 → 256×128 | 3.150 | 1.735 | 1.82× |
+| Surface fill 1024×512 | No baseline | 0.049 | — |
+| Surface nearest downscale 1024×512 → 256×128 | No baseline | 0.069 | — |
+| Surface nearest upscale 128×64 → 512×256 | No baseline | 0.267 | — |
+| Surface self-blit 1024×512 | No baseline | 0.621 | — |
+| Caption measure + draw | No baseline | 0.013 | — |
+
+### DataBuffer Benchmarks
+
+Measured with Node.js v22 on Linux x64
+
+Median batch durations from five measured samples after three warmup batches, with separate processes for each implementation / workload and bounds validation enabled in the updated implementation.
+
+The early-mismatch result reflects avoided wrapper construction, growing-array writes showed no meaningful improvement.
+
+| Operation / Input | Operations per sample | Original | Optimized | Speedup |
+| --- | ---: | ---: | ---: | ---: |
+| UInt32 BE reads | 10,000,000 | 1,025.7 ms | 152.1 ms | 6.75× |
+| UInt32 LE reads | 10,000,000 | 988.2 ms | 147.0 ms | 6.72× |
+| Float64 LE reads | 10,000,000 | 986.2 ms | 117.1 ms | 8.42× |
+| Equal 64-byte `Buffer` region comparisons | 1,000,000 | 1,507.2 ms | 102.5 ms | 14.71× |
+| Equal 64-byte `DataBuffer` region comparisons | 1,000,000 | 1,291.2 ms | 97.4 ms | 13.25× |
+| `Buffer` comparison, first byte differs | 1,000,000 | 1,207.5 ms | 11.7 ms | 103.53× |
+| Grow a new 4 MiB staging array, 256-byte writes | 3 files | 270.4 ms | 271.7 ms | 1.00× |
+| Copy 64 KiB | 2,000 | 27.6 ms | 11.7 ms | 2.36× |
+| Decode a valid 1,216-byte UTF-8 string | 10,000 | 85.0 ms | 68.2 ms | 1.25× |
+
 
 ## [4.1.0](https://github.com/uttori/uttori-data-tools/compare/v4.0.0...v4.1.0) - 2026-09-24
 

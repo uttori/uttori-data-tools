@@ -1,4 +1,4 @@
-import { DataBuffer, ImagePNG } from '../../src/index.js';
+import { DataBuffer, ImagePNG } from '../../dist/index.js';
 
 const main = () => {
   const png = new ImagePNG(new DataBuffer());

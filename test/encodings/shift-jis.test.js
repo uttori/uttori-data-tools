@@ -1,7 +1,7 @@
 import fs from 'fs';
 import test from 'ava';
-import { DataBuffer } from '../../src/index.js';
-import { parse } from '../../src/encodings/shift-jis.js';
+import { DataBuffer } from '../../dist/index.js';
+import { parse } from '../../dist/encodings/shift-jis.js';
 
 test('can decode Shift-JIS to Unicode', (t) => {
   const file = fs.readFileSync('./test/data/shift-jis.txt');

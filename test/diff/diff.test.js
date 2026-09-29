@@ -1,6 +1,6 @@
 import test from 'ava';
-import { hunks, edits } from '../../src/diff/diff.js';
-import { Op } from '../../src/diff/diff.js';
+import { hunks, edits } from '../../dist/diff/diff.js';
+import { Op } from '../../dist/diff/diff.js';
 
 test('edits: should find differences between arrays', (t) => {
   const x = ['a', 'b', 'c'];
