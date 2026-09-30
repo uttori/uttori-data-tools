@@ -423,6 +423,40 @@ The largest gains reflect removal of quadratic element interning, not equivalent
 | `textEdits()`, two 500,000-character matching lines | 5.801592 | 0.053949 | 107.54× faster |
 | Myers directly, 500 disjoint strings per side | 6.137099 | 6.571926 | 1.07× slower |
 
+### Helper Benchmarks
+
+Measured with Node.js v22 on Linux x64.
+
+Median time per operation from seven warmed samples, with alternating implementation order & independently calibrated batches targeting 25 ms. Ratios are calculated before rounding.
+
+Original IPS application timings include the required `commit()`, and debug-disabled IPS parsing retains the original eager debug-table construction.
+
+Every timed case checks equal observable outputs first; correctness-changing inputs are excluded from speed comparisons. Allocation-sensitive gains, especially bounded hex-table copies & bulk RLE application, can vary between runs. The 8-bit peek is approximately 10.0% slower with the added validation retained.
+
+| Operation / Input | Original | Optimized | Result |
+| --- | ---: | ---: | ---: |
+| Bitstream `peek(8)`, cursor zero | 13.4 ns | 14.8 ns | 1.10× slower |
+| Bitstream `peek(24)`, cursor zero | 18.9 ns | 16.1 ns | 1.17× faster |
+| Bitstream `peek(32)`, cursor zero | 24.4 ns | 17.1 ns | 1.43× faster |
+| Bitstream `peekLSB(32)`, cursor zero | 118.9 ns | 32.2 ns | 3.69× faster |
+| Bitstream `peekLSB(40)`, cursor zero | 166.4 ns | 123.7 ns | 1.35× faster |
+| `float48`, valid ordinary values | 181.8 ns | 75.8 ns | 2.40× faster |
+| `float80`, valid ordinary values | 341.3 ns | 157.3 ns | 2.17× faster |
+| `convertFromIeeeExtended`, valid ordinary values | 201.5 ns | 155.3 ns | 1.30× faster |
+| `formatTable`, 41 × 4 cells | 40.92 µs | 32.92 µs | 1.24× faster |
+| `formatTableLine`, eight 64-character columns | 3.02 µs | 504.5 ns | 5.98× faster |
+| `hexTable`, 640-byte input / 40 visible rows | 48.12 µs | 24.24 µs | 1.99× faster |
+| `hexTable`, 4 MiB input / 40 visible rows | 1105.90 µs | 25.36 µs | 43.61× faster |
+| `formatDiffHex`, 256 matches with bits | 37.90 µs | 20.63 µs | 1.84× faster |
+| `formatDiffHex`, 256 replacements with bits | 98.55 µs | 47.13 µs | 2.09× faster |
+| `formatDiffHunks`, 256 bytes | 21.26 µs | 12.63 µs | 1.68× faster |
+| `formatMyersGraph`, 40 × 40 path | 647.86 µs | 145.41 µs | 4.46× faster |
+| IPS create, sparse 64 KiB file | 271.79 µs | 121.11 µs | 2.24× faster |
+| IPS encode, 32 KiB literal | 402.17 µs | 131.39 µs | 3.06× faster |
+| IPS parse, 32 KiB literal / debug disabled | 1021.09 µs | 147.68 µs | 6.91× faster |
+| IPS apply, 32 KiB literal | 1950.60 µs | 117.47 µs | 16.60× faster |
+| IPS apply, 65,535-byte RLE run | 2181.49 µs | 5.84 µs | 373.77× faster |
+
 ## [4.1.0](https://github.com/uttori/uttori-data-tools/compare/v4.0.0...v4.1.0) - 2026-09-24
 
 - 🛠 Switch from `zlib` to `pako` for the same experience in Node & Browser
