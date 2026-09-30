@@ -1,7 +1,8 @@
 import test from 'ava';
+import { spawnSync } from 'node:child_process';
+import { formatTableLine } from '../dist/data-formating.js';
 import {
   DataBuffer,
-  DataStream,
   formatBytes,
   hexTable,
   formatTable,
@@ -12,6 +13,7 @@ import {
   formatDiffHunks,
   formatMyersGraph,
   hunks,
+  diffBuffer,
 } from '../dist/index.js';
 import Myers from '../dist/diff/myers.js';
 
@@ -33,7 +35,7 @@ test('formatBytes: custom values', (t) => {
 });
 
 test('hexTable: sane defaults', (t) => {
-  const stream = DataStream.fromData(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85, 0x81, 0x02, 0x18, 0x53, 0x80, 0x67, 0x01, 0x00, 0x00, 0x00, 0x01, 0x73, 0x6F, 0x24, 0x11, 0x4D, 0x9B, 0x74, 0xC2, 0xBF, 0x84, 0x1C, 0x4B, 0xB4, 0xE1, 0x4D, 0xBB, 0x8B, 0x53, 0xAB, 0x84, 0x15, 0x49, 0xA9, 0x66, 0x53, 0xAC, 0x81, 0xA1, 0x4D, 0xBB, 0x8B, 0x53, 0xAB, 0x84, 0x16, 0x54, 0xAE, 0x6B, 0x53, 0xAC, 0x81, 0xF1, 0x4D, 0xBB, 0x8C, 0x53, 0xAB, 0x84, 0x12, 0x54, 0xC3, 0x67, 0x53, 0xAC, 0x82, 0x01, 0x9C, 0x4D, 0xBB, 0x8E, 0x53, 0xAB, 0x84, 0x1C, 0x53, 0xBB, 0x6B, 0x53, 0xAC, 0x84, 0x01, 0x73, 0x6D, 0xD8, 0xEC, 0x01, 0x00, 0x00, 0x00]));
+  const stream = new DataBuffer(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85, 0x81, 0x02, 0x18, 0x53, 0x80, 0x67, 0x01, 0x00, 0x00, 0x00, 0x01, 0x73, 0x6F, 0x24, 0x11, 0x4D, 0x9B, 0x74, 0xC2, 0xBF, 0x84, 0x1C, 0x4B, 0xB4, 0xE1, 0x4D, 0xBB, 0x8B, 0x53, 0xAB, 0x84, 0x15, 0x49, 0xA9, 0x66, 0x53, 0xAC, 0x81, 0xA1, 0x4D, 0xBB, 0x8B, 0x53, 0xAB, 0x84, 0x16, 0x54, 0xAE, 0x6B, 0x53, 0xAC, 0x81, 0xF1, 0x4D, 0xBB, 0x8C, 0x53, 0xAB, 0x84, 0x12, 0x54, 0xC3, 0x67, 0x53, 0xAC, 0x82, 0x01, 0x9C, 0x4D, 0xBB, 0x8E, 0x53, 0xAB, 0x84, 0x1C, 0x53, 0xBB, 0x6B, 0x53, 0xAC, 0x84, 0x01, 0x73, 0x6D, 0xD8, 0xEC, 0x01, 0x00, 0x00, 0x00]));
   t.is(hexTable(stream), `| 76543210 | 00010203 04050607 08090A0B 0C0D0E0F | 0123456789ABCDEF |
 |----------|-------------------------------------|------------------|
 | 00000000 | 1A45DFA3 A3428681 0142F781 0142F281 |  E...B.. B.. B.. |
@@ -47,7 +49,7 @@ test('hexTable: sane defaults', (t) => {
 });
 
 test('hexTable: custom output options even', (t) => {
-  const stream = DataStream.fromData(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85]));
+  const stream = new DataBuffer(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85]));
   const output = hexTable(
     stream,
     0x10,
@@ -77,7 +79,7 @@ test('hexTable: custom output options even', (t) => {
 });
 
 test('hexTable: custom output options odd', (t) => {
-  const stream = DataStream.fromData(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85]));
+  const stream = new DataBuffer(Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01, 0x42, 0xF2, 0x81, 0x04, 0x42, 0xF3, 0x81, 0x08, 0x42, 0x82, 0x88, 0x6D, 0x61, 0x74, 0x72, 0x6F, 0x73, 0x6B, 0x61, 0x42, 0x87, 0x81, 0x04, 0x42, 0x85]));
   const output = hexTable(
     stream,
     0x10,
@@ -182,7 +184,7 @@ test('formatTable: can create a table with Emoji', (t) => {
 test('formatDiffHex: identical bytes show single row', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
@@ -194,7 +196,7 @@ test('formatDiffHex: identical bytes show single row', (t) => {
 test('formatDiffHex: single byte change shows three rows', (t) => {
   const buf1 = new DataBuffer([0x20, 0x41, 0x42, 0x43]);
   const buf2 = new DataBuffer([0xFF, 0x41, 0x42, 0x43]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
@@ -206,7 +208,7 @@ test('formatDiffHex: single byte change shows three rows', (t) => {
 test('formatDiffHex: multiple byte changes', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA, 0x05, 0xBB]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
@@ -218,7 +220,7 @@ test('formatDiffHex: multiple byte changes', (t) => {
 test('formatDiffHex: with offset disabled', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02]);
   const buf2 = new DataBuffer([0x01, 0x02]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showOffset: false, showBits: false });
 
@@ -229,7 +231,7 @@ test('formatDiffHex: with offset disabled', (t) => {
 test('formatDiffHex: with ASCII disabled', (t) => {
   const buf1 = new DataBuffer([0x41, 0x42, 0x43, 0x44]); // ABCD
   const buf2 = new DataBuffer([0x41, 0x42, 0x43, 0x44]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showAscii: false, showBits: false });
 
@@ -240,7 +242,7 @@ test('formatDiffHex: with ASCII disabled', (t) => {
 test('formatDiffHex: with bits enabled shows binary', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02]);
   const buf2 = new DataBuffer([0x01, 0x02]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: true });
 
@@ -251,7 +253,7 @@ test('formatDiffHex: with bits enabled shows binary', (t) => {
 test('formatDiffHex: bit changes show XOR markers', (t) => {
   const buf1 = new DataBuffer([0x42]); // 01000010
   const buf2 = new DataBuffer([0x52]); // 01010010
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: true });
 
@@ -262,7 +264,7 @@ test('formatDiffHex: bit changes show XOR markers', (t) => {
 test('formatDiffHex: custom bytes per row', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { bytesPerRow: 4, showBits: false });
 
@@ -274,7 +276,7 @@ test('formatDiffHex: custom bytes per row', (t) => {
 test('formatDiffHex: negative delta', (t) => {
   const buf1 = new DataBuffer([0xFF]);
   const buf2 = new DataBuffer([0x20]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
@@ -292,7 +294,7 @@ test('formatDiffHex: empty edits', (t) => {
 test('formatDiffHex: insert operations', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
@@ -303,7 +305,7 @@ test('formatDiffHex: insert operations', (t) => {
 test('formatDiffHex: handles partial rows correctly', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { bytesPerRow: 16, showBits: false });
 
@@ -314,13 +316,14 @@ test('formatDiffHex: handles partial rows correctly', (t) => {
 test('formatDiffHex: standalone delete operation (not followed by insert)', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
   const buf2 = new DataBuffer([0x01, 0x03]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false });
 
   // Should show the deleted byte (0x02)
   t.true(output.includes('02'));
-  // Standalone delete should be shown as match (x ➜ x)
+  t.true(output.includes('--'));
+  // Standalone delete should preserve surrounding matches and show an absent resulting byte
   t.true(output.includes('01') && output.includes('03'));
 });
 
@@ -328,7 +331,7 @@ test('formatDiffHex: non-printable ASCII characters (< 0x20 or > 0x7E)', (t) => 
   // Test with non-printable characters: 0x1F (< 0x20) and 0xFF (> 0x7E)
   const buf1 = new DataBuffer([0x1F, 0x20, 0x7E, 0xFF]);
   const buf2 = new DataBuffer([0x1F, 0x20, 0x7E, 0xFF]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showAscii: true, showBits: false });
 
@@ -340,7 +343,7 @@ test('formatDiffHex: non-printable ASCII characters (< 0x20 or > 0x7E)', (t) => 
 test('formatDiffHex: showOffset false in three-row format (hasChanges)', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02]);
   const buf2 = new DataBuffer([0xFF, 0x02]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showOffset: false, showBits: false });
 
@@ -356,7 +359,7 @@ test('formatDiffHex: showBits false in match case (three-row format)', (t) => {
   // The match case with showBits: false should skip adding bits to row2Bits (line 548 false branch)
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: false, bytesPerRow: 4 });
 
@@ -375,7 +378,7 @@ test('formatDiffHex: showBits true in match case (three-row format)', (t) => {
   // The match case with showBits: true should add bits to row2Bits (line 548 true branch)
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA]);
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const output = formatDiffHex(edits, { showBits: true, bytesPerRow: 4 });
 
@@ -713,4 +716,308 @@ test('formatMyersGraph: path building break condition', (t) => {
   t.true(output.includes('o'));
   // Should show path
   t.true(output.length > 0);
+});
+
+test('formatBytes: negative, fractional, and out-of-suffix-range values', (t) => {
+  t.is(formatBytes(-1024), '-1 KB');
+  t.is(formatBytes(-0.5), '-0.5 Bytes');
+  t.is(formatBytes(0.5), '0.5 Bytes');
+  t.is(formatBytes(-0), '0 Bytes');
+  t.is(formatBytes(2048, 2, 1024, ['Bytes']), '2048 Bytes');
+  t.true(formatBytes(Number.MAX_VALUE).endsWith(' YB'));
+  t.false(formatBytes(Number.MAX_VALUE).includes('undefined'));
+  t.is(formatBytes(1024 ** 5 - 0.125, 0).split(' ').pop(), 'TB');
+});
+
+test('formatBytes: rejects invalid configuration even for zero input', (t) => {
+  for (const input of [Number.NaN, Infinity, -Infinity]) {
+    t.throws(() => formatBytes(input), { instanceOf: RangeError });
+  }
+  for (const decimals of [-1, 1.5, 101, Number.NaN, Infinity]) {
+    t.throws(() => formatBytes(0, decimals), { instanceOf: RangeError });
+  }
+  for (const bytes of [0, 1, -1, Infinity, Number.NaN]) {
+    t.throws(() => formatBytes(0, 2, bytes), { instanceOf: RangeError });
+  }
+  t.throws(() => formatBytes(0, 2, 1024, []), { instanceOf: RangeError });
+});
+
+test('hexTable: starts at the DataBuffer cursor without changing it', (t) => {
+  const data = new DataBuffer([0x11, 0x22, 0x33, 0x44]);
+  data.seek(2);
+  const output = hexTable(data, 0x20, { columns: 2, grouping: 1, maxRows: 1 });
+  t.true(output.includes('| 00000020 | 33 44 | 3D |'));
+  t.is(data.offset, 2);
+  t.deepEqual(Array.from(data.data), [0x11, 0x22, 0x33, 0x44]);
+});
+
+test('hexTable: default headers follow custom column counts and rows end at the same width', (t) => {
+  for (const columns of [1, 2, 3, 4, 7, 8, 16, 20]) {
+    const output = hexTable(new DataBuffer([0x41]), 0, { columns, grouping: 3, maxRows: 1 });
+    const lines = output.split('\n');
+    t.is(lines.length, 3);
+    t.is(lines[0].length, lines[1].length);
+    t.is(lines[1].length, lines[2].length);
+  }
+  const output = hexTable(new DataBuffer([0x41]), 0, { columns: 4, grouping: 2, maxRows: 0 });
+  t.is(output.split('\n').length, 2);
+  t.true(output.includes('0001 0203'));
+});
+
+test('hexTable: preserves complete strings returned by custom ASCII formatters', (t) => {
+  const output = hexTable(new DataBuffer([0x41]), 0, { columns: 1, grouping: 1, maxRows: 1 },
+    { offset: '00', value: ['00'], ascii: 'A' },
+    { offset: () => '00', value: () => '41', ascii: () => '[A]' });
+  t.true(output.includes('| [A] |'));
+});
+
+test('hexTable: tuple formatter flags persist and callback mutations are isolated', (t) => {
+  const data = new DataBuffer([0x41, 0x42]);
+  const output = hexTable(data, 0, { columns: 2, grouping: 1, maxRows: 1 },
+    { offset: '00', value: ['00', '01'], ascii: 'AB' },
+    {
+      offset: () => '00',
+      value: (value) => value.toString(16),
+      ascii: (_value, flags, copy) => {
+        const count = (flags.count ?? 0) + 1;
+        copy.data[0] = 0;
+        return [String(count), { count }];
+      },
+    });
+  t.true(output.includes('| 12 |'));
+  t.deepEqual(Array.from(data.data), [0x41, 0x42]);
+  t.is(data.offset, 0);
+});
+
+test('hexTable: validates dimensions and display offsets', (t) => {
+  const data = new DataBuffer([0x41]);
+  for (const invalid of [-1, 0.5, Infinity, Number.NaN]) {
+    t.throws(() => hexTable(data, invalid), { instanceOf: RangeError });
+    t.throws(() => hexTable(data, 0, { columns: invalid, grouping: 1, maxRows: 1 }), { instanceOf: RangeError });
+    t.throws(() => hexTable(data, 0, { columns: 1, grouping: invalid, maxRows: 1 }), { instanceOf: RangeError });
+  }
+  t.throws(() => hexTable(data, 0, { columns: 0, grouping: 1, maxRows: 1 }), { instanceOf: RangeError });
+  t.throws(() => hexTable(data, 0, { columns: 1, grouping: 0, maxRows: 1 }), { instanceOf: RangeError });
+  t.throws(() => hexTable(data, 0, { columns: 1, grouping: 1, maxRows: -1 }), { instanceOf: RangeError });
+  t.notThrows(() => hexTable(data, 0, { columns: 1, grouping: 1, maxRows: Infinity }));
+});
+
+test('formatTable: empty inputs and rows have no malformed frame', (t) => {
+  t.is(formatTable([]), '');
+  t.is(formatTable([[], []]), '');
+  t.is(formatTable([], { title: 'Nothing' }), '');
+});
+
+test('formatTable: pads ragged rows without mutating frozen input', (t) => {
+  const data = Object.freeze([Object.freeze(['A', 'B']), Object.freeze(['x']), Object.freeze([])]);
+  const output = formatTable(data);
+  t.is(output, '+---+---+\n| A | B |\n+---+---+\n| x |   |\n|   |   |\n+---+---+');
+  t.is(data[1].length, 1);
+  t.is(data[2].length, 0);
+});
+
+test('formatTable: titles wider than the body and multiline values retain the frame', (t) => {
+  const output = formatTable([['A', 'B'], ['x\ny', 'z']], { title: 'A title much wider than this table\nSecond title line' });
+  const lines = output.split('\n');
+  t.true(lines.every((line) => line.length === lines[0].length));
+  t.true(output.includes('Second title line'));
+  t.true(output.includes('| y '));
+});
+
+test('formatTable: normalizes cells exactly once without structured cloning', (t) => {
+  let calls = 0;
+  const cell = { toString: () => { calls++; return 'value'; } };
+  const output = formatTable([['Header'], [cell]]);
+  t.true(output.includes('value'));
+  t.is(calls, 1);
+  t.notThrows(() => formatTable([['Function'], [() => 'hello']]));
+});
+
+test('formatTable: invalid padding fails before rendering', (t) => {
+  for (const padding of [-1, 0.5, Number.NaN, Infinity]) {
+    t.throws(() => formatTable([['A']], { padding }), { instanceOf: RangeError });
+  }
+  t.is(formatTable([['A']], { padding: 0 }), '+-+\n|A|\n+-+\n+-+');
+});
+
+test('formatDiffHex: standalone zero-byte insertions and deletions remain visible', (t) => {
+  const deleted = formatDiffHex([{ op: 1, x: 0, y: 0 }], { bytesPerRow: 1, showAscii: false, showBits: false });
+  const inserted = formatDiffHex([{ op: 2, x: 0, y: 0 }], { bytesPerRow: 1, showAscii: false, showBits: false });
+  t.is(deleted, '00000000 | 00\n          -00\n00000000 | --');
+  t.is(inserted, '00000000 | --\n          +00\n00000000 | 00');
+});
+
+test('formatDiffHex: complete delete/insert runs pair in order', (t) => {
+  const edits = [
+    { op: 1, x: 1, y: 1 }, { op: 1, x: 2, y: 2 }, { op: 1, x: 3, y: 3 },
+    { op: 2, x: 4, y: 4 }, { op: 2, x: 5, y: 5 }, { op: 2, x: 6, y: 6 },
+  ];
+  const output = formatDiffHex(edits, { bytesPerRow: 3, showAscii: false, showBits: false });
+  t.is(output, '00000000 | 01 02 03\n          +03+03+03\n00000000 | 04 05 06');
+  const reverseOrder = formatDiffHex([...edits.slice(3), ...edits.slice(0, 3)], { bytesPerRow: 3, showAscii: false, showBits: false });
+  t.is(reverseOrder, output);
+});
+
+test('formatDiffHex: original and resulting offsets count their own consumed bytes', (t) => {
+  const output = formatDiffHex([
+    { op: 2, x: 0x99, y: 0x99 },
+    { op: 0, x: 0x11, y: 0x11 },
+    { op: 0, x: 0x22, y: 0x22 },
+    { op: 0, x: 0x33, y: 0x33 },
+  ], { bytesPerRow: 2, showBits: false, showAscii: false });
+  const lines = output.split('\n');
+  t.true(lines[0].startsWith('00000000 | -- 11'));
+  t.true(lines[2].startsWith('00000000 | 99 11'));
+  t.true(lines[3].startsWith('00000001 | 22 33'));
+  t.true(lines[5].startsWith('00000002 | 22 33'));
+});
+
+test('formatDiffHex: signs align with byte cells when offsets are disabled', (t) => {
+  const output = formatDiffHex([{ op: 1, x: 0xFF, y: 0xFF }, { op: 2, x: 0x20, y: 0x20 }],
+    { bytesPerRow: 1, showOffset: false, showBits: false, showAscii: false });
+  t.is(output, ' FF\n-DF\n 20');
+  t.is(formatDiffHex([{ op: 0, x: 1, y: 1 }], { bytesPerRow: 1, showOffset: false, showBits: false, showAscii: false }), '01');
+});
+
+test('formatDiffHex: absent bytes show absent bits rather than invented zeroes', (t) => {
+  const output = formatDiffHex([{ op: 1, x: 0, y: 0 }], { bytesPerRow: 1, showBits: true, showAscii: false });
+  t.true(output.includes('--------'));
+  t.true(output.includes('^^^^^^^^'));
+});
+
+test('formatDiffHex: rejects invalid widths, operations, and byte values', (t) => {
+  for (const bytesPerRow of [0, -1, 0.5, Number.NaN, Infinity]) {
+    t.throws(() => formatDiffHex([], { bytesPerRow }), { instanceOf: RangeError });
+  }
+  for (const value of [-1, 256, 0.5, Number.NaN, Infinity, 'A', null]) {
+    t.throws(() => formatDiffHex([{ op: 1, x: value, y: value }]), { instanceOf: RangeError });
+    t.throws(() => formatDiffHex([{ op: 2, x: value, y: value }]), { instanceOf: RangeError });
+  }
+  t.throws(() => formatDiffHex([{ op: 9, x: 1, y: 1 }]), { instanceOf: RangeError });
+  t.throws(() => formatDiffHex([{ op: 0, x: 1, y: 2 }]), { instanceOf: RangeError });
+});
+
+test('formatDiffHunks: partial options, zero context, and byte-based positions', (t) => {
+  const data = [{ posX: 10, posY: 20, edits: [
+    { op: 0, x: 0x41, y: 0x41 }, { op: 1, x: 0x42, y: 0x42 },
+    { op: 2, x: 0x43, y: 0x43 }, { op: 0, x: 0x44, y: 0x44 },
+  ] }];
+  t.is(formatDiffHunks(data, {}), formatDiffHunks(data));
+  t.is(formatDiffHunks(data, { context: 0 }), '@@ -11,1 +21,1 @@\n-42  B\n+43  C');
+});
+
+test('formatDiffHunks: malformed byte values retain placeholders and accurate counts', (t) => {
+  const output = formatDiffHunks([{ posX: 0, posY: 0, edits: [{ op: 1, x: 'bad', y: 'bad' }, { op: 2, x: 256, y: 256 }] }]);
+  t.is(output, '@@ -0,1 +0,1 @@\n-??  .\n+??  .');
+  for (const context of [-1, 0.5, Infinity, Number.NaN]) {
+    t.throws(() => formatDiffHunks([], { context }), { instanceOf: RangeError });
+  }
+  t.throws(() => formatDiffHunks([{ posX: 0, posY: 0, edits: [{ op: 9, x: 1, y: 1 }] }]), { instanceOf: RangeError });
+});
+
+test('formatMyersGraph: partial options retain default labels and allocations are bounded', (t) => {
+  const output = formatMyersGraph([false], [false], ['A'], ['A'], { showFull: true });
+  t.regex(output, /^\s+0/);
+  t.throws(() => formatMyersGraph([], [], [], [], { maxCells: 7 }), { instanceOf: RangeError });
+  t.notThrows(() => formatMyersGraph([], [], [], [], { maxCells: 8 }));
+  for (const maxCells of [0, -1, 1.5, Number.NaN, Infinity]) {
+    t.throws(() => formatMyersGraph([], [], [], [], { maxCells }), { instanceOf: RangeError });
+  }
+  t.throws(() => formatMyersGraph(Array(400).fill(false), Array(400).fill(false), Array(400).fill('A'), Array(400).fill('A')), { instanceOf: RangeError });
+});
+
+test('hexTable: padding does not call the value formatter with invented bytes', (t) => {
+  const values = [];
+  const output = hexTable(new DataBuffer([0x41]), 0, { columns: 2, grouping: 1, maxRows: 1 },
+    { offset: '00', value: ['000', '001'], ascii: 'AB' },
+    { offset: () => '00', value: (value) => { values.push(value); return value.toString(16).padStart(3, '0'); }, ascii: () => 'A' });
+  t.deepEqual(values, [0x41]);
+  const lines = output.split('\n');
+  t.is(lines[0].length, lines[2].length);
+});
+
+test('hexTable: default formatting copies only visible bytes from a large input', (t) => {
+  class TrackingBuffer extends DataBuffer {
+    slice(position, length) {
+      t.is(position, 10);
+      t.is(length, 16);
+      return super.slice(position, length);
+    }
+    copy() { t.fail('The default formatter should not copy the full input.'); }
+  }
+  const data = new TrackingBuffer(new Uint8Array(1024 * 1024));
+  data.seek(10);
+  t.notThrows(() => hexTable(data, 0, { columns: 8, grouping: 4, maxRows: 2 }));
+  t.is(data.offset, 10);
+});
+
+test('formatMyersGraph: rejects oversized grids before reading any path vector entries', (t) => {
+  const rx = new Proxy([], { get() { t.fail('Size validation must precede path tracing.'); } });
+  t.throws(() => formatMyersGraph(rx, [], Array(100000).fill('A'), [], { maxCells: 8 }), { instanceOf: RangeError });
+});
+
+test('formatDiffHex: randomized rendered rows reconstruct both original byte sequences', (t) => {
+  let seed = 0xD1FF;
+  const next = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
+  const decodeRow = (row) => row.slice(11).trim().split(/\s+/).filter((value) => value && value !== '--').map((value) => Number.parseInt(value, 16));
+  for (let sample = 0; sample < 200; sample++) {
+    const original = new DataBuffer(Uint8Array.from({ length: next() % 25 }, () => next() >>> 28));
+    const modified = new DataBuffer(Uint8Array.from({ length: next() % 25 }, () => next() >>> 28));
+    const output = formatDiffHex(diffBuffer(original, modified), { bytesPerRow: 1 + next() % 8, showBits: false, showAscii: false });
+    const before = [];
+    const after = [];
+    const lines = output ? output.split('\n') : [];
+    for (let i = 0; i < lines.length;) {
+      t.is(Number.parseInt(lines[i].slice(0, 8), 16), before.length);
+      const a = decodeRow(lines[i]);
+      const changed = i + 1 < lines.length && !/^[0-9a-f]{8} \| /.test(lines[i + 1]);
+      const b = changed ? decodeRow(lines[i + 2]) : a;
+      if (changed) t.is(Number.parseInt(lines[i + 2].slice(0, 8), 16), after.length);
+      before.push(...a);
+      after.push(...b);
+      i += changed ? 3 : 1;
+    }
+    t.deepEqual(before, Array.from(original.data), `original ${sample}`);
+    t.deepEqual(after, Array.from(modified.data), `modified ${sample}`);
+  }
+});
+
+test('formatTableLine: all separator variants retain valid frames and reject invalid sizes', (t) => {
+  const options = { padding: 1, theme: formatTableThemeUnicode, align: [], title: '' };
+  for (const [type, expected] of [
+    ['top', '╔═══╦═══╗'], ['bottom', '╚═══╩═══╝'], ['title_top', '╔═══════╗'],
+    ['title_bottom', '╠═══╦═══╣'], ['middle', '╠═══╬═══╣'],
+  ]) t.is(formatTableLine([1, 1], type, options), expected);
+  t.is(formatTableLine([], 'top', options), '');
+  for (const invalid of [-1, 0.5, Number.NaN, Infinity]) {
+    t.throws(() => formatTableLine([invalid], 'top', options), { instanceOf: RangeError });
+    t.throws(() => formatTableLine([1], 'top', { ...options, padding: invalid }), { instanceOf: RangeError });
+  }
+});
+
+test('formatMyersGraph: wide column numbers align with their grid nodes', (t) => {
+  const count = 10000;
+  const output = formatMyersGraph(Array(count).fill(true), [], Array(count).fill('A'), [], { maxCells: 130000 });
+  const [labels, nodes] = output.split('\n');
+  t.is(labels.indexOf('10000') + 4, nodes.lastIndexOf('o'));
+});
+
+test('module imports: helpers work when process and Buffer globals are absent', (t) => {
+  const url = (name) => new URL(`../dist/${name}.js`, import.meta.url).href;
+  const script = `
+    globalThis.process = undefined;
+    globalThis.Buffer = undefined;
+    const { default: DataBuffer } = await import(${JSON.stringify(url('data-buffer'))});
+    const { default: DataBitstream } = await import(${JSON.stringify(url('data-bitstream'))});
+    const { default: IPS } = await import(${JSON.stringify(url('patch/data-patch-ips'))});
+    const { hexTable, formatBytes } = await import(${JSON.stringify(url('data-formating'))});
+    const buffer = new DataBuffer([0x12, 0x34]);
+    if (new DataBitstream(buffer).read(16) !== 0x1234) throw new Error('Bitstream failed');
+    buffer.seek(0);
+    if (!hexTable(buffer).includes('1234')) throw new Error('Hex table failed');
+    if (formatBytes(1024) !== '1 KB') throw new Error('Formatting failed');
+    if (new IPS(new IPS().encode().data).hunks.length !== 0) throw new Error('IPS failed');
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 10000 });
+  t.is(result.status, 0, result.stderr);
 });

@@ -1,4 +1,20 @@
 import DataBuffer from "../data-buffer.js";
+/** Options controlling recovery and bounded metadata decompression. */
+export interface WavOptions {
+    /** Read the RIFF / AIFF alignment byte after odd-sized chunks. Defaults to true. */
+    roundOddChunks?: boolean;
+    /** Throw on structural errors instead of recording them and recovering. Defaults to false. */
+    strict?: boolean;
+    /** Maximum decompressed ResU JSON bytes. Defaults to 16 MiB. */
+    maxResUSize?: number;
+}
+/** A recoverable parsing problem, with its byte offset in the input file. */
+export interface WavParseError {
+    /** The offset of the affected header or chunk. */
+    offset: number;
+    /** The diagnostic message. */
+    message: string;
+}
 /** A decoded WAV / AIFF file header. */
 export interface WavHeader {
     /** The container ID: `RIFF`, `RF64`, `BW64`, `FORM`, `AIFF`, or `AIFC`. */
@@ -70,6 +86,19 @@ export interface WavListAdtl {
     label?: string;
     /** The labeled text, for `ltxt` sub-chunks. */
     ltxt?: string;
+    /** The associated cue point identifier for labl, note, and ltxt entries. */
+    cuePointID?: number;
+    /** The note text, for note sub-chunks. */
+    note?: string;
+    /** The number of sample frames described by an ltxt entry. */
+    sampleLength?: number;
+    /** The four-character purpose code of an ltxt entry. */
+    purposeID?: string;
+    /** The country, language, dialect, and code-page identifiers of an ltxt entry. */
+    country?: number;
+    language?: number;
+    dialect?: number;
+    codePage?: number;
 }
 /** A single cue point from a `cue ` chunk. */
 export interface WavCuePoint {
@@ -105,6 +134,8 @@ export interface WavResU {
     size: number;
     /** The parsed JSON payload, when it could be decompressed and parsed. */
     data?: unknown;
+    /** The decompression or JSON error, when the payload could not be decoded. */
+    error?: string;
 }
 /** A parsed chunk entry stored on {@link AudioWAV#chunks}. */
 export interface WavChunk {
@@ -119,9 +150,9 @@ export interface WavChunk {
     /** A human-readable note for special / opaque chunks. */
     description?: string;
 }
-/** A decoded `data` chunk value (the audio payload itself is not retained, only its computed duration). */
+/** A decoded `data` chunk value (the audio payload is retained separately on WavChunk.chunk, not in this value). */
 export interface WavData {
-    /** The audio duration in seconds. */
+    /** The audio duration in seconds, or NaN when no usable timing information is available. */
     duration: number;
 }
 /** A decoded `LIST` chunk. */
@@ -155,6 +186,8 @@ export interface WavTriggerList {
     extra: number;
     /** The additional information value. */
     extraData: number;
+    /** The complete optional trigger data, including variable-length MIDI SysEx patterns. */
+    extraDataBytes?: Uint8Array;
     /** The trigger function (0: Play, 1: Stop, 2: Queue). */
     function: number;
 }
@@ -169,17 +202,26 @@ export interface WavPeak {
     version: number;
     /** The Unix timestamp of creation. */
     timestamp: number;
-    /** The pointer to the per-channel PPEAK structs. */
+    /** Legacy raw bits of the first peak value; this is not a pointer. Prefer peaks. */
     ppeakPointer: number;
-    /** The 64-bit alignment padding. */
+    /** Legacy first peak position; this is not alignment padding. Prefer peaks. */
     bitAlign: number;
+    /** The peak amplitude and sample-frame position for each channel. */
+    peaks: {
+        value: number;
+        position: number;
+    }[];
 }
 /** A decoded `DISP` (Display) chunk. */
 export interface WavDisplay {
     /** The Windows clipboard format identifier. */
     type: number;
-    /** The display data value. */
+    /** The first two display bytes as a legacy numeric value, zero-filled when shorter. */
     data: number;
+    /** The complete clipboard-format-specific payload. */
+    rawData: Uint8Array;
+    /** Decoded CF_TEXT or CF_UNICODETEXT text, when applicable. */
+    text?: string;
 }
 /** A decoded `acid` (ACID Loop) chunk. */
 export interface WavAcid {
@@ -189,7 +231,7 @@ export interface WavAcid {
     rootNote: number;
     /** An unknown 16-bit value. */
     unknown1: number;
-    /** An unknown 32-bit value. */
+    /** An unknown 32-bit floating-point value. */
     unknown2: number;
     /** The number of beats. */
     beats: number;
@@ -324,7 +366,7 @@ export interface WavBext {
     maxMomentaryLoudness: number;
     /** The maximum short-term loudness (LUFS x 100). */
     maxShortTermLoudness: number;
-    /** 180 reserved bytes. */
+    /** Reserved bytes: 254 in version 0, 190 in version 1, and 180 in version 2 or later. */
     reserved: Uint8Array;
     /** The coding history. */
     codingHistory: Uint8Array;
@@ -428,7 +470,7 @@ export interface AiffSoundData {
     offset: number;
     /** The block size used for block-aligning the sound data. */
     blockSize: number;
-    /** The sample frames that make up the sound. */
+    /** Encoded sound bytes after the SSND offset; container parsing trims block padding for known uncompressed formats. */
     soundData: Uint8Array;
 }
 /** A decoded AIFF-C `FVER` (Format Version) chunk. */
@@ -455,6 +497,7 @@ export interface AiffFormatVersion {
  * @augments DataBuffer
  */
 declare class AudioWAV extends DataBuffer {
+    #private;
     /** The container type, `WAVE` or `AIFF`. */
     container: string;
     /** The file type, `WAVE` or `AIFF`. */
@@ -462,18 +505,16 @@ declare class AudioWAV extends DataBuffer {
     /** The parsed chunks. */
     chunks: WavChunk[];
     /** The options for the AudioWAV instance. */
-    options: {
-        roundOddChunks: boolean;
-    };
+    options: Required<WavOptions>;
+    /** Recoverable structural and metadata errors from the most recent parse. */
+    errors: WavParseError[];
     /**
      * Creates a new AudioWAV.
      * @param input The data to process.
      * @param opts Options for this AudioWAV instance.
      * @class
      */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: {
-        roundOddChunks?: boolean;
-    });
+    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, opts?: WavOptions);
     /**
      * Creates a new AudioWAV from file data.
      * @param data The data of the file to process.
@@ -481,9 +522,7 @@ declare class AudioWAV extends DataBuffer {
      * @returns the new AudioWAV instance for the provided file data
      * @static
      */
-    static fromFile(data: Buffer, options?: {
-        roundOddChunks?: boolean;
-    }): AudioWAV;
+    static fromFile(data: Buffer, options?: WavOptions): AudioWAV;
     /**
      * Creates a new AudioWAV from a DataBuffer.
      * @param buffer The DataBuffer of the file to process.
@@ -491,9 +530,7 @@ declare class AudioWAV extends DataBuffer {
      * @returns the new AudioWAV instance for the provided DataBuffer
      * @static
      */
-    static fromBuffer(buffer: DataBuffer, options?: {
-        roundOddChunks?: boolean;
-    }): AudioWAV;
+    static fromBuffer(buffer: DataBuffer, options?: WavOptions): AudioWAV;
     /**
      * Parse the WAV file, decoding the supported chunks.
      */
@@ -530,11 +567,11 @@ declare class AudioWAV extends DataBuffer {
      * Supported Chunk Types: `fmt `, `fact`, `inst`, `DISP`, `smpl`, `tlst`, `data`, `LIST`, `RLND`, `JUNK`, `acid`, `cue `, `bext`, `ResU`, `ds64`, `cart`
      *
      * Chunk Structure:
-     * Length: 4 bytes (integer)
      * Type:   4 bytes (string)
+     * Length: 4 bytes (unsigned integer, excluding the alignment byte)
      * Chunk:  {length} bytes
      * @returns {string} Chunk Type
-     * @throws {Error} Invalid Chunk Length when less than 0
+     * @throws {Error} Invalid chunk boundaries or metadata when strict parsing is enabled
      */
     decodeChunk(): string;
     /**
@@ -559,7 +596,7 @@ declare class AudioWAV extends DataBuffer {
      *
      * Defaults are set to Red Book Compact Disc Digital Audio (CDDA or CD-DA) / Audio CD standards.
      *
-     * RF64 specific fields are currently unsupported.
+     * Extensible format fields can be supplied as a complete binary extraParams block (at least 22 bytes).
      * @param data The values to encode to the `fmt ` chunk.
      * @param data.audioFormatValue Format of the audio data, 1 is PCM and values other than 1 indicate some form of compression. See `decodeFMT` for a listing
      * @param data.channels Mono = 1, Stereo = 2, etc.
@@ -568,7 +605,7 @@ declare class AudioWAV extends DataBuffer {
      * @param data.blockAlign The number of bytes for one sample including all channels. Channels * Bits per Sample / 8
      * @param data.bitsPerSample 8 bits = 8, 16 bits = 16, etc.
      * @param data.extraParamSize The size of the extra paramteres to follow, or 0.
-     * @param data.extraParams Any extra data to encode.
+     * @param data.extraParams Any extra data to encode. Byte arrays are copied verbatim; strings and legacy numeric values are encoded as UTF-8 text.
      * @returns The newley encoded `fmt ` chunk.
      * @static
      */
@@ -580,29 +617,32 @@ declare class AudioWAV extends DataBuffer {
         blockAlign?: number;
         bitsPerSample?: number;
         extraParamSize?: number;
-        extraParams?: number;
+        extraParams?: number | string | Uint8Array | number[];
     }): Buffer;
     /**
      * Decode the LIST (LIST Information) chunk.
      *
      * A LIST chunk defines a list of sub-chunks and has the following format.
      * @param chunk Data Blob
+     * @param options Nested chunk alignment options.
      * @returns The decoded values.
      * @static
      */
-    static decodeLIST(chunk: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): WavList;
+    static decodeLIST(chunk: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: Pick<WavOptions, "roundOddChunks">): WavList;
     /**
      * Decode the LIST INFO chunks.
      * @param buffer List DataBuffer
+     * @param options Nested chunk alignment options.
      * @returns The parsed list.
      */
-    static decodeLISTINFO(buffer: DataBuffer): WavListInfo[];
+    static decodeLISTINFO(buffer: DataBuffer, options?: Pick<WavOptions, "roundOddChunks">): WavListInfo[];
     /**
      * Decode the LIST adtl chunks.
      * @param buffer List DataBuffer
+     * @param options Nested chunk alignment options.
      * @returns The parsed list.
      */
-    static decodeLISTadtl(buffer: DataBuffer): WavListAdtl[];
+    static decodeLISTadtl(buffer: DataBuffer, options?: Pick<WavOptions, "roundOddChunks">): WavListAdtl[];
     /**
      * Decode the data (Audio Data) chunk.
      * @param chunk Data Blob
@@ -640,11 +680,12 @@ declare class AudioWAV extends DataBuffer {
     /**
      * Decode the PEAK chunk.
      * @param chunk Data Blob
+     * @param littleEndian True for WAVE, false for AIFF.
      * @returns The decoded values.
      * @static
      * @see {@link https://code.google.com/archive/p/awesome-wav/wikis/WAVFormat.wiki|awesome-wav - WAVFormat.wiki}
      */
-    static decodePEAK(chunk: string | Buffer | Uint8Array): WavPeak;
+    static decodePEAK(chunk: string | Buffer | Uint8Array, littleEndian?: boolean): WavPeak;
     /**
      * Decode the DISP (Display) chunk.
      *
@@ -728,7 +769,14 @@ declare class AudioWAV extends DataBuffer {
      * @static
      * @see {@link https://www.roland.com/global/support/by_product/sp-404sx/updates_drivers/|SP-404SX Support Page}
      */
-    static encodeRLND(data: WavRoland): Buffer;
+    static encodeRLND(data: {
+        device: string;
+        unknown1?: number;
+        unknown2?: number;
+        unknown3?: number;
+        unknown4?: number;
+        sampleIndex?: number | string;
+    }): Buffer;
     /**
      * Decode the JUNK (Padding) chunk.
      *
@@ -740,9 +788,7 @@ declare class AudioWAV extends DataBuffer {
      * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
      * @static
      */
-    static decodeJUNK(chunk: string | Buffer | Uint8Array, options: {
-        roundOddChunks: boolean;
-    }): void;
+    static decodeJUNK(chunk: string | Buffer | Uint8Array, options?: Pick<WavOptions, "roundOddChunks">): void;
     /**
      * Decode the `PAD ` (Padding) chunk.
      * @param chunk Data Blob
@@ -753,15 +799,13 @@ declare class AudioWAV extends DataBuffer {
      * Decode the bext (Broadcast Wave Format (BWF) Broadcast Extension) chunk.
      * @param {string|Buffer|Uint8Array} chunk Data Blob
      * @param options Decoding options.
-     * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
+     * @param options.roundOddChunks Retained for API compatibility; alignment is handled by the container, not included in the decoded size.
      * @returns The decoded values.
      * @static
      * @see {@link https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue|Cue Chunk}
      * @see {@link https://tech.ebu.ch/docs/tech/tech3285.pdf|Spec}
      */
-    static decodeBEXT(chunk: string | Buffer | Uint8Array, options: {
-        roundOddChunks: boolean;
-    }): WavBext;
+    static decodeBEXT(chunk: string | Buffer | Uint8Array, options?: Pick<WavOptions, "roundOddChunks">): WavBext;
     /**
      * Decode the 'cue ' (Cue Points) chunk.
      *
@@ -776,12 +820,14 @@ declare class AudioWAV extends DataBuffer {
      */
     static decodeCue(chunk: string | Buffer | Uint8Array): WavCue;
     /**
-     * Decode the 'ResU' chunk, a ZIP compressed JSON Data containg Time Signature, Tempo and other data for Logic Pro X.
+     * Decode the 'ResU' chunk, zlib-compressed JSON data containing Time Signature, Tempo and other data for Logic Pro X.
      * @param chunk Data Blob
+     * @param options Decompression limits.
+     * @param options.maxResUSize Maximum uncompressed JSON bytes, default 16 MiB.
      * @returns The decoded values.
      * @static
      */
-    static decodeResU(chunk: string | Buffer | Uint8Array): WavResU;
+    static decodeResU(chunk: string | Buffer | Uint8Array, options?: Pick<WavOptions, "maxResUSize">): WavResU;
     /**
      * DataSize 64 Parsing
      * @param chunk Data Blob

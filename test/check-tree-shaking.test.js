@@ -22,7 +22,7 @@ const plugins = [
 //   format: 'es',
 // });
 
-test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
+test('Tree Shaking: { DataBuffer }', async (t) => {
   const bundle = await rollup({
     input: './test/tree-shaking/3-of-3.js',
     onwarn,
@@ -34,15 +34,10 @@ test('Tree Shaking: { DataBuffer, DataBufferList, DataStream }', async (t) => {
     format: 'es',
   });
 
-  // DataBuffer now includes diff functionality (diff.js and myers.js)
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
     'data-helpers.js',
-    'myers.js',
-    'diff.js',
     'underflow-error.js',
     'data-buffer.js',
-    'data-buffer-list.js',
-    'data-stream.js',
     '3-of-3.js',
   ]);
 });
@@ -61,12 +56,8 @@ test('Tree Shaking: { DataBitstream }', async (t) => {
 
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
     'data-helpers.js',
-    'myers.js',
-    'diff.js',
     'underflow-error.js',
     'data-buffer.js',
-    'data-buffer-list.js',
-    'data-stream.js',
     'data-bitstream.js',
     '4-of-1.js',
   ]);
@@ -90,7 +81,7 @@ test('Tree Shaking: { CRC32 }', async (t) => {
   ]);
 });
 
-test('Tree Shaking: { ImagePNG, DataBuffer, DataBufferList, DataStream }', async (t) => {
+test('Tree Shaking: { ImagePNG }', async (t) => {
   const bundle = await rollup({
     input: './test/tree-shaking/imagepng.js',
     onwarn,
@@ -101,32 +92,8 @@ test('Tree Shaking: { ImagePNG, DataBuffer, DataBufferList, DataStream }', async
     format: 'es',
   });
 
-  // Pako Version sum should be (1 (input) + 3 (data tools) + 16 pako files) number of expected modules
-  // t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
-  //   'adler32.js',
-  //   'crc32.js',
-  //   'inffast.js',
-  //   'inftrees.js',
-  //   'constants.js',
-  //   'inflate.js',
-  //   'common.js',
-  //   'strings.js',
-  //   'messages.js',
-  //   'zstream.js',
-  //   'gzheader.js',
-  //   'inflate.js',
-  //   'data-buffer.js',
-  //   'data-buffer-list.js',
-  //   'data-stream.js',
-  //   'data-image-png.js',
-  //   'imagepng.js',
-  // ]);
-
-  // Zlib sum should be (1 (input) + 3 (data tools) + 1 shake-me) number of expected modules
   t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f)), [
     'data-helpers.js',
-    'myers.js',
-    'diff.js',
     'underflow-error.js',
     'data-buffer.js',
     'data-hash-crc32.js',
@@ -134,5 +101,152 @@ test('Tree Shaking: { ImagePNG, DataBuffer, DataBufferList, DataStream }', async
     'rgba-surface.js',
     'data-image-png.js',
     'imagepng.js',
+  ]);
+});
+
+test('Tree Shaking: { ImageGIF }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/imagegif.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-helpers.js',
+    'underflow-error.js',
+    'data-buffer.js',
+    'bitmap-text.js',
+    'gif_lzw.js',
+    'rgba-surface.js',
+    'data-image-gif.js',
+    'imagegif.js',
+  ]);
+});
+
+test('Tree Shaking: { AudioMIDI }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/audiomidi.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-helpers.js',
+    'underflow-error.js',
+    'data-buffer.js',
+    'audio-midi.js',
+    'audiomidi.js',
+  ]);
+});
+
+test('Tree Shaking: { diff, edits, hunks }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/diff-utils.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'myers.js',
+    'diff.js',
+    'diff-utils.js',
+  ]);
+});
+
+test('Tree Shaking: { diffBuffer }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/diff-buffer.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-helpers.js',
+    'underflow-error.js',
+    'data-buffer.js',
+    'myers.js',
+    'diff.js',
+    'data-buffer-helpers.js',
+    'diff-buffer.js',
+  ]);
+});
+
+test('Tree Shaking: { AudioWAV }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/audiowav.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-helpers.js',
+    'underflow-error.js',
+    'data-buffer.js',
+    'audio-wav.js',
+    'audiowav.js',
+  ]);
+});
+
+test('Tree Shaking: { formatBytes, hexTable, formatTable, formatDiffHex, formatDiffHunks, formatMyersGraph }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/formating.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-formating.js',
+    'formating.js',
+  ]);
+});
+
+test('Tree Shaking: { IPS }', async (t) => {
+  const bundle = await rollup({
+    input: './test/tree-shaking/ips.js',
+    onwarn,
+    plugins,
+    external: ['debug'],
+  });
+
+  const output = await bundle.generate({
+    format: 'es',
+  });
+
+  t.deepEqual(Object.keys(output.output[0].modules).map((f) => path.basename(f).trim()), [
+    'data-helpers.js',
+    'underflow-error.js',
+    'data-buffer.js',
+    'data-patch-ips.js',
+    'ips.js',
   ]);
 });

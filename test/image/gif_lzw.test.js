@@ -264,15 +264,10 @@ test('compress: returns the correct code stream', (t) => {
   t.deepEqual(lzw.compress(8), [0, 169, 60, 17, 82, 228, 137, 20, 39, 79, 168, 8, 36, 104, 112, 97, 193, 131, 9, 3, 2]);
 });
 
-test('compress: returns the correct code stream (codeSize 12)', (t) => {
-  const input = 'TOBEORNOTTOBEORTOBEORNOT';
-  const buffer = Buffer.from(input, 'ascii');
-  const bytes = [...buffer];
-  const lzw = new GIFLZW(bytes);
-  const compressed = lzw.compress(12);
-  t.deepEqual(compressed, [0, 144, 10, 0, 192, 39, 0, 0, 133, 0, 0, 44, 2, 0, 240, 9, 0, 64, 41, 0, 0, 157, 0, 0, 124, 2, 0, 144, 10, 0, 64, 42, 0, 0, 159, 0, 0, 20, 2, 0, 176, 8, 0, 192, 39, 0, 0, 165, 0, 0, 164, 2, 0, 240, 9, 0, 64, 33, 0, 0, 139, 0, 0, 124, 2, 0, 80, 10, 0, 64, 39, 0, 0, 159, 0, 0, 164, 2, 1, 16]);
-  const lzw_o = new GIFLZW(compressed);
-  t.deepEqual(lzw_o.decompress(12), input);
+test('compress/decompress: reject codeSize 12 because GIF minimum code sizes stop at 8', (t) => {
+  const lzw = new GIFLZW([...Buffer.from('TOBEORNOTTOBEORTOBEORNOT', 'ascii')]);
+  t.throws(() => lzw.compress(12), { instanceOf: RangeError });
+  t.throws(() => lzw.decompress(12), { instanceOf: RangeError });
 });
 
 test('decompress: returns the correct string: empty', (t) => {
@@ -353,4 +348,171 @@ test('decompress(compress(data)) round-trips repetitive input (KwKwK case)', (t)
   const compressed = lzw_i.compress(codeSize);
   const lzw_o = new GIFLZW(compressed);
   t.is(lzw_o.decompress(codeSize), input);
+});
+
+// Independent little-endian code framing for decoder regressions; not GIFLZW.pack().
+const packCodes = (codes) => {
+  const bytes = [];
+  let bit = 0;
+  for (const [code, width] of codes) {
+    for (let i = 0; i < width; i++, bit++) {
+      bytes[bit >>> 3] = (bytes[bit >>> 3] ?? 0) | (((code >>> i) & 1) << (bit & 7));
+    }
+  }
+  return Uint8Array.from(bytes);
+};
+
+const seededBytes = (length, codeSize = 8) => {
+  let seed = 0x12345678;
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    bytes[i] = (seed >>> 16) & ((1 << codeSize) - 1);
+  }
+  return bytes;
+};
+
+for (const codeSize of [2, 3, 4, 5, 6, 7, 8]) {
+  test(`regression: byte LZW round trips dictionary boundaries at minimum size ${codeSize}`, (t) => {
+    for (const length of [0, 1, 2, 3, 4, 7, 12, 31, 255, 256, 257, 1024, 4096, 20000]) {
+      const bytes = seededBytes(length, codeSize);
+      const compressed = new GIFLZW(bytes).compressBytes(codeSize);
+      t.true(compressed instanceof Uint8Array);
+      t.deepEqual(new GIFLZW(compressed).decompressBytes(codeSize, true, { expectedLength: length }), bytes);
+    }
+  });
+}
+
+for (const size of [0, 1, 9, 12, -1, 2.5, NaN, Infinity]) {
+  test(`regression: invalid GIF minimum size ${size} is rejected`, (t) => {
+    t.throws(() => new GIFLZW().compressBytes(size), { instanceOf: RangeError });
+    t.throws(() => new GIFLZW([0]).decompressBytes(size), { instanceOf: RangeError });
+  });
+}
+
+test('regression: LZW final EOI uses the widened code length', (t) => {
+  // Clear, three literals, then EOI. The third literal expands the decoder to four bits.
+  const expected = packCodes([[4, 3], [0, 3], [1, 3], [2, 3], [5, 4]]);
+  t.deepEqual(new GIFLZW([0, 1, 2]).compressBytes(2), expected);
+  t.deepEqual(new GIFLZW(expected).decompressBytes(2), Uint8Array.of(0, 1, 2));
+});
+
+test('regression: full dictionary accepts deferred clear and subsequent reset', (t) => {
+  const codes = [[256, 9]];
+  const expected = [];
+  let width = 9;
+  let next = 258;
+  for (let i = 0; i < 6000; i++) {
+    const literal = i & 255;
+    codes.push([literal, width]);
+    expected.push(literal);
+    if (i > 0 && next < 4096) {
+      next++;
+      if (next === 1 << width && width < 12) width++;
+    }
+  }
+  codes.push([256, 12], [42, 9], [257, 9]);
+  expected.push(42);
+  t.deepEqual(new GIFLZW(packCodes(codes)).decompressBytes(8), Uint8Array.from(expected));
+});
+
+test('regression: repeated clears and clear followed immediately by EOI', (t) => {
+  t.deepEqual(new GIFLZW(packCodes([[4, 3], [4, 3], [5, 3]])).decompressBytes(2), new Uint8Array());
+  t.deepEqual(new GIFLZW(packCodes([[4, 3], [0, 3], [4, 3], [1, 3], [5, 3]])).decompressBytes(2), Uint8Array.of(0, 1));
+});
+
+test('regression: illegal forward references are not treated as KwKwK', (t) => {
+  for (const codes of [[[4, 3], [6, 3]], [[4, 3], [0, 3], [7, 3]]]) {
+    t.throws(() => new GIFLZW(packCodes(codes)).decompressBytes(2), { message: /Invalid GIF LZW code/ });
+  }
+});
+
+test('regression: independent KwKwK vector expands the previous phrase', (t) => {
+  t.deepEqual(new GIFLZW(packCodes([[4, 3], [0, 3], [6, 3], [5, 3]])).decompressBytes(2), Uint8Array.of(0, 0, 0));
+});
+
+test('regression: every truncated prefix of a valid LZW stream terminates with an error', (t) => {
+  const compressed = new GIFLZW(seededBytes(1000)).compressBytes(8);
+  for (let i = 0; i < compressed.length; i++) {
+    t.throws(() => new GIFLZW(compressed.subarray(0, i)).decompressBytes(8));
+  }
+});
+
+test('regression: LZW output bounds and exact lengths apply before writes', (t) => {
+  const compressed = new GIFLZW(new Uint8Array(4096)).compressBytes(2);
+  t.throws(() => new GIFLZW(compressed).decompressBytes(2, true, { maxOutputBytes: 4095 }), { instanceOf: RangeError });
+  t.throws(() => new GIFLZW(compressed).decompressBytes(2, true, { expectedLength: 4095 }));
+  t.throws(() => new GIFLZW(compressed).decompressBytes(2, true, { expectedLength: 4097 }));
+  t.throws(() => new GIFLZW([0]).compressBytes(2, { maxOutputBytes: 1 }), { instanceOf: RangeError });
+  t.throws(() => new GIFLZW(compressed).decompressBytes(2, true, { maxInputBytes: 1 }), { instanceOf: RangeError });
+});
+
+test('regression: LZW trailing bytes have an explicit compatibility policy', (t) => {
+  const compressed = new GIFLZW([0]).compressBytes(2);
+  const trailing = Uint8Array.from([...compressed, 0]);
+  t.throws(() => new GIFLZW(trailing).decompressBytes(2), { message: /trailing bytes/ });
+  t.deepEqual(new GIFLZW(trailing).decompressBytes(2, true, { allowTrailingBytes: true }), Uint8Array.of(0));
+  // Unused high bits in the final EOI byte are not interpreted as another code.
+  compressed[compressed.length - 1] |= 0xfe;
+  t.deepEqual(new GIFLZW(compressed).decompressBytes(2), Uint8Array.of(0));
+});
+
+test('regression: complete operations rewind automatically and retain legacy wrappers', (t) => {
+  const bytes = seededBytes(100);
+  const encoder = new GIFLZW(bytes);
+  const packed = encoder.compress(8);
+  t.deepEqual(encoder.compress(8), packed);
+  t.deepEqual(encoder.decompressBytes(8, false), bytes);
+  t.deepEqual(Uint8Array.from(encoder.decompress(8, false), (char) => char.charCodeAt(0)), bytes);
+  const decoder = new GIFLZW(packed);
+  t.deepEqual(decoder.decompressBytes(8), decoder.decompressBytes(8));
+});
+
+test('regression: LZW uses the exact typed-array subview', (t) => {
+  const bytes = seededBytes(32);
+  const backing = new Uint8Array(40).fill(255);
+  backing.set(bytes, 4);
+  const view = backing.subarray(4, 36);
+  t.deepEqual(new GIFLZW(view).compressBytes(8), new GIFLZW(bytes).compressBytes(8));
+});
+
+test('regression: pack can overwrite existing bits and unpack never advances on truncation', (t) => {
+  const lzw = new GIFLZW();
+  lzw.pack(8, 255);
+  lzw.offset = 0;
+  lzw.pack(4, 0);
+  t.deepEqual(lzw.output, [240]);
+  lzw.offset = 0;
+  lzw.bitOffset = 0;
+  t.throws(() => lzw.unpack(9, false));
+  t.is(lzw.offset, 0);
+  t.is(lzw.bitOffset, 0);
+});
+
+for (const value of [-1, 256, 1.5, NaN, undefined]) {
+  test(`regression: plain-array LZW input rejects invalid byte ${value}`, (t) => {
+    t.throws(() => new GIFLZW([value]).compressBytes(8));
+    t.throws(() => new GIFLZW([value]).decompressBytes(8));
+  });
+}
+
+test('regression: LZW validates booleans, symbol alphabets, limits, and bit cursors', (t) => {
+  t.throws(() => new GIFLZW([4]).compressBytes(2));
+  t.throws(() => new GIFLZW().decompressBytes(2, 'true'));
+  t.throws(() => new GIFLZW().decompressBytes(2, true, { allowTrailingBytes: 1 }));
+  for (const maximum of [0, -1, 1.1, NaN, Infinity]) {
+    t.throws(() => new GIFLZW().compressBytes(2, { maxOutputBytes: maximum }));
+    t.throws(() => new GIFLZW().decompressBytes(2, true, { maxInputBytes: maximum }));
+  }
+  for (const length of [0, 13, -1, 1.5]) {
+    t.throws(() => new GIFLZW().pack(length, 0));
+    t.throws(() => new GIFLZW().unpack(length));
+  }
+  const cursor = new GIFLZW([0]);
+  cursor.bitOffset = 8;
+  t.throws(() => cursor.unpack(1));
+  cursor.bitOffset = 0;
+  cursor.offset = -1;
+  t.throws(() => cursor.unpack(1));
+  t.throws(() => new GIFLZW().pack(2, 4));
 });

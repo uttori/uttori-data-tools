@@ -1,6 +1,70 @@
+/** Validate the required bytes, including ordinary arrays that do not coerce values to bytes. */
+const validateBytes = (uint8: Uint8Array | number[], length: number): void => {
+  if (uint8.length < length) {
+    throw new RangeError(
+      `Insufficient bytes: expected at least ${length}, received ${uint8.length}.`,
+    );
+  }
+  if (Array.isArray(uint8)) {
+    for (let i = 0; i < length; i++) {
+      if (!Number.isInteger(uint8[i]) || uint8[i] < 0 || uint8[i] > 255) {
+        throw new RangeError(`Invalid byte at index ${i}: ${uint8[i]}`);
+      }
+    }
+  }
+};
+
+/** Decode either byte order after its exponent and unsigned significand words have been read. */
+const decodeExtended = (sign: number, exponent: number, high: number, low: number): number => {
+  // Preserve the historical zero-significand infinity encoding as well as canonical IEEE infinity.
+  if (exponent === 0x7fff) {
+    return (high & 0x7fffffff) === 0 && low === 0 ? sign * Infinity : Number.NaN;
+  }
+  if (high === 0 && low === 0) {
+    return sign * 0;
+  }
+
+  // Bias is 16383, which is 0x3FFF; subnormals and pseudo-denormals use exponent 1.
+  const adjustedExponent = (exponent === 0 ? 1 : exponent) - 16383;
+  if (high >= 0x80000000 && adjustedExponent >= -1022 && adjustedExponent <= 1023) {
+    // Ordinary normalized values need only one variable power and never allocate a BigInt.
+    return sign * ((high / 0x80000000 + low / 0x8000000000000000) * 2 ** adjustedExponent);
+  }
+  const highestBit = high === 0 ? 31 - Math.clz32(low) : 63 - Math.clz32(high);
+  const power = adjustedExponent + highestBit - 63;
+  if (power > 1023) {
+    return sign * Infinity;
+  }
+  if (power < -1075) {
+    return sign * 0;
+  }
+  if (power >= -1022) {
+    // The addition rounds the 64-bit significand once; subsequent power-of-two scaling is exact.
+    const mantissa = high * 0x100000000 + low;
+    return sign * ((mantissa / 2 ** highestBit) * 2 ** power);
+  }
+
+  // Round directly to binary64 subnormal units to avoid double rounding or early power underflow.
+  const mantissa = (BigInt(high) << 32n) | BigInt(low);
+  const shift = adjustedExponent + 1011;
+  let rounded: bigint;
+  if (shift >= 0) {
+    rounded = mantissa << BigInt(shift);
+  } else {
+    const discarded = BigInt(-shift);
+    rounded = mantissa >> discarded;
+    const remainder = mantissa - (rounded << discarded);
+    const half = 1n << (discarded - 1n);
+    if (remainder > half || (remainder === half && (rounded & 1n) !== 0n)) {
+      rounded++;
+    }
+  }
+  return sign * (Number(rounded) * Number.MIN_VALUE);
+};
+
 /**
  * Converts the provided `Uint8Array` into a Turbo Pascal 48 bit float value.
- * May be faulty with large numbers due to float percision.
+ * Real48 values are exactly representable by a JavaScript Number; no decimal rounding is applied.
  *
  * While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
  * Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
@@ -24,6 +88,7 @@
  * @see {@link http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real|Turbo Pascal Real}
  */
 export const float48 = (uint8: Uint8Array | number[]): number => {
+  validateBytes(uint8, 6);
   let mantissa = 0;
 
   // Bias is 129, which is 0x81
@@ -47,18 +112,20 @@ export const float48 = (uint8: Uint8Array | number[]): number => {
   }
 
   const output = mantissa * 2 ** exponent;
-  return Number.parseFloat(output.toFixed(4));
+  return output;
 };
 
 /**
- * Convert the current buffer into an IEEE 80 bit extended float value.
+ * Convert the current little-endian buffer into an IEEE 80 bit extended float value.
  * @param uint8 The raw data to convert to a float80.
  * @returns The read value as a number.
  * @see {@link https://en.wikipedia.org/wiki/Extended_precision|Extended_Precision}
  */
 export const float80 = (uint8: Uint8Array): number => {
-  const uint32 = new Uint32Array(uint8.buffer, uint8.byteOffset, uint8.byteLength / 4);
-  const [high, low] = [...uint32];
+  validateBytes(uint8, 10);
+  // Read little-endian words explicitly: Uint32Array views require alignment and use host byte order.
+  const high = ((uint8[7] << 24) | (uint8[6] << 16) | (uint8[5] << 8) | uint8[4]) >>> 0;
+  const low = ((uint8[3] << 24) | (uint8[2] << 16) | (uint8[1] << 8) | uint8[0]) >>> 0;
   const a0 = uint8[9];
   const a1 = uint8[8];
 
@@ -66,27 +133,10 @@ export const float80 = (uint8: Uint8Array): number => {
   const sign = 1 - (a0 >>> 7) * 2;
   // 15 bit exponent
   // let exponent = (((a0 << 1) & 0xFF) << 7) | a1;
-  let exponent = ((a0 & 0x7f) << 8) | a1;
+  const exponent = ((a0 & 0x7f) << 8) | a1;
 
-  if (exponent === 0 && low === 0 && high === 0) {
-    return 0;
-  }
-
-  // 0x7FFF is a reserved value
-  if (exponent === 0x7fff) {
-    if (low === 0 && high === 0) {
-      return sign * Number.POSITIVE_INFINITY;
-    }
-
-    return Number.NaN;
-  }
-
-  // Bias is 16383, which is 0x3FFF
-  exponent -= 0x3fff;
-  let out = low * 2 ** (exponent - 31);
-  out += high * 2 ** (exponent - 63);
-
-  return sign * out;
+  // 0x7FFF is a reserved value; infinity and NaN are distinguished by the fraction bits.
+  return decodeExtended(sign, exponent, high, low);
 };
 
 /**
@@ -97,6 +147,7 @@ export const float80 = (uint8: Uint8Array): number => {
  * @see {@link https://en.wikipedia.org/wiki/IEEE_754|IEEE 754}
  */
 export const convertFromIeeeExtended = (uint8: Uint8Array | number[]): number => {
+  validateBytes(uint8, 10);
   const sign = uint8[0] & 0x80 ? -1 : 1;
   const exponent = ((uint8[0] & 0x7f) << 8) | uint8[1];
 
@@ -104,19 +155,7 @@ export const convertFromIeeeExtended = (uint8: Uint8Array | number[]): number =>
 
   const loMant = ((uint8[6] << 24) | (uint8[7] << 16) | (uint8[8] << 8) | uint8[9]) >>> 0;
 
-  if (exponent === 0 && hiMant === 0 && loMant === 0) {
-    return sign * 0;
-  }
-
-  if (exponent === 0x7fff) {
-    // const isInfinity = hiMant === 0x80000000 && loMant === 0;
-    // return sign * (isInfinity ? Infinity : NaN);
-    return sign * Infinity;
-  }
-
-  const adjustedExponent = exponent - 16383;
-
-  return sign * (hiMant * 2 ** (adjustedExponent - 31) + loMant * 2 ** (adjustedExponent - 63));
+  return decodeExtended(sign, exponent, hiMant, loMant);
 };
 
 export default {

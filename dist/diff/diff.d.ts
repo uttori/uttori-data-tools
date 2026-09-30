@@ -10,8 +10,8 @@ export declare const Op: {
 /**
  * Edit describes a single edit of a diff.
  * - For Match, both X and Y contain the matching element.
- * - For Delete, X contains the deleted element and Y is unset (zero value).
- * - For Insert, Y contains the inserted element and X is unset (zero value).
+ * - For Delete, X contains the deleted element and Y mirrors X for backwards compatibility.
+ * - For Insert, Y contains the inserted element and X mirrors Y for backwards compatibility.
  */
 export interface Edit {
     /** The edit operation: Match = 0, Delete = 1, Insert = 2. */
@@ -35,11 +35,12 @@ export interface Hunk {
     edits: Edit[];
 }
 export interface DiffResult {
-    /** The first array of booleans. */
+    /** The first array of booleans, with a trailing false sentinel. */
     rx: boolean[];
-    /** The second array of booleans. */
+    /** The second array of booleans, with a trailing false sentinel. */
     ry: boolean[];
 }
+/** Compares original left and right elements. The result must be stable during a diff. */
 export type EqualityFunction = (a: string | number | Uint8Array, b: string | number | Uint8Array) => boolean;
 /**
  * Compares the contents of x and y using the provided equality comparison and returns the
@@ -47,11 +48,11 @@ export type EqualityFunction = (a: string | number | Uint8Array, b: string | num
  * The output is a sequence of hunks that each describe a number of consecutive edits.
  * Hunks include a number of matching elements before and after the last delete or insert operation.
  * If x and y are identical, the output has length zero.
- * Note that this function has generally worse performance than [Hunks] for diffs with many changes.
+ * Computing a minimal diff can be expensive for inputs with many changes.
  * @param x The first array to compare
  * @param y The second array to compare
  * @param eq Equality function to compare elements
- * @param context Number of matching elements to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching elements to include around changes (default: 3)
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export declare function hunks(x: string[] | number[] | Uint8Array[], y: string[] | number[] | Uint8Array[], eq?: EqualityFunction, context?: number): Hunk[];
@@ -60,7 +61,7 @@ export declare function hunks(x: string[] | number[] | Uint8Array[], y: string[]
  * changes necessary to convert from one to the other.
  * Returns edits for every element in the input.
  * If both x and y are identical, the output will consist of a match edit for every input element.
- * Note that this function has generally worse performance than [Edits] for diffs with many changes.
+ * Computing a minimal diff can be expensive for inputs with many changes.
  * @param x The first array to compare
  * @param y The second array to compare
  * @param eq Equality function to compare elements

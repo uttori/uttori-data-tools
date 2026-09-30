@@ -36,11 +36,11 @@ function splitLines(text: string): string[] {
 
   const lines: string[] = [];
   let start = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === "\n") {
-      lines.push(text.substring(start, i + 1));
-      start = i + 1;
-    }
+  let end = text.indexOf("\n", start);
+  while (end !== -1) {
+    lines.push(text.substring(start, end + 1));
+    start = end + 1;
+    end = text.indexOf("\n", start);
   }
 
   // Add remaining text if any
@@ -58,10 +58,17 @@ function splitLines(text: string): string[] {
  * If x and y are identical, the output has length zero.
  * @param x The first text to compare
  * @param y The second text to compare
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export function textHunks(x: string, y: string, context = DEFAULT_CONTEXT): TextHunk[] {
+  if (!Number.isSafeInteger(context) || context < 0) {
+    throw new RangeError("context must be a non-negative safe integer");
+  }
+  if (x === y) {
+    return [];
+  }
+
   const xlines = splitLines(x);
   const ylines = splitLines(y);
 
@@ -95,16 +102,11 @@ const PREFIX_INSERT = "+";
  *
  * @param x The first text to compare
  * @param y The second text to compare
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns The unified diff in string format.
  */
 export function unified(x: string, y: string, context = DEFAULT_CONTEXT): string {
-  const xlines = splitLines(x);
-  const ylines = splitLines(y);
-
-  const { rx, ry } = diff(xlines, ylines);
-
-  const hunks: TextHunk[] = createTextHunks(xlines, ylines, rx, ry, context);
+  const hunks: TextHunk[] = textHunks(x, y, context);
 
   // Format output.
   let output = "";
@@ -112,8 +114,8 @@ export function unified(x: string, y: string, context = DEFAULT_CONTEXT): string
   for (const h of hunks) {
     const xCount = h.endX - h.posX;
     const yCount = h.endY - h.posY;
-    const xRange = xCount === 1 ? `${h.posX + 1}` : `${h.posX + 1},${xCount}`;
-    const yRange = yCount === 1 ? `${h.posY + 1}` : `${h.posY + 1},${yCount}`;
+    const xRange = xCount === 1 ? `${h.posX + 1}` : `${h.posX + (xCount === 0 ? 0 : 1)},${xCount}`;
+    const yRange = yCount === 1 ? `${h.posY + 1}` : `${h.posY + (yCount === 0 ? 0 : 1)},${yCount}`;
     output += `@@ -${xRange} +${yRange} @@\n`;
 
     for (const edit of h.edits) {
@@ -122,21 +124,21 @@ export function unified(x: string, y: string, context = DEFAULT_CONTEXT): string
           output += PREFIX_DELETE;
           output += edit.line;
           if (!edit.line.endsWith("\n")) {
-            output += "\n";
+            output += "\n\\ No newline at end of file\n";
           }
           break;
         case Op.Insert:
           output += PREFIX_INSERT;
           output += edit.line;
           if (!edit.line.endsWith("\n")) {
-            output += "\n";
+            output += "\n\\ No newline at end of file\n";
           }
           break;
         case Op.Match:
           output += PREFIX_MATCH;
           output += edit.line;
           if (!edit.line.endsWith("\n")) {
-            output += "\n";
+            output += "\n\\ No newline at end of file\n";
           }
           break;
       }
@@ -152,7 +154,7 @@ export function unified(x: string, y: string, context = DEFAULT_CONTEXT): string
  * @param y The second text to compare
  * @param rx The first array of booleans
  * @param ry The second array of booleans
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 function createTextHunks(
@@ -289,16 +291,9 @@ function createTextEditsForRange(
     }
 
     // Safety check to prevent infinite loop
-    /* c8 ignore next 6 */
+    /* c8 ignore next 3 */
     if (s === oldS && t === oldT) {
-      // If no progress was made, force increment to avoid infinite loop
-      if (s < endX) {
-        s++;
-      } else if (t < endY) {
-        t++;
-      } else {
-        break;
-      }
+      throw new Error("Invalid diff result vectors: no progress in the requested range");
     }
   }
 
@@ -313,43 +308,7 @@ function createTextEditsForRange(
  * @returns The edits for the diff.
  */
 function createTextEdits(x: string[], y: string[], rx: boolean[], ry: boolean[]): TextEdit[] {
-  const edits: TextEdit[] = [];
-  const n = rx.length - 1;
-  const m = ry.length - 1;
-
-  let s = 0,
-    t = 0;
-  while (s < n || t < m) {
-    // Process deletions
-    while (s < n && rx[s]) {
-      edits.push({
-        op: Op.Delete,
-        line: x[s],
-      });
-      s++;
-    }
-
-    // Process insertions
-    while (t < m && ry[t]) {
-      edits.push({
-        op: Op.Insert,
-        line: y[t],
-      });
-      t++;
-    }
-
-    // Process matches
-    while (s < n && t < m && !rx[s] && !ry[t]) {
-      edits.push({
-        op: Op.Match,
-        line: x[s],
-      });
-      s++;
-      t++;
-    }
-  }
-
-  return edits;
+  return createTextEditsForRange(x, y, rx, ry, 0, x.length, 0, y.length);
 }
 
 /**
@@ -370,7 +329,7 @@ function escapeHtml(str: string): string {
  * htmlTable compares the lines in x and y and returns an HTML table showing the differences.
  * @param x The first text to compare (old version)
  * @param y The second text to compare (new version)
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns HTML table string
  */
 export function htmlTable(x: string, y: string, context = DEFAULT_CONTEXT): string {
@@ -426,8 +385,9 @@ export function htmlTable(x: string, y: string, context = DEFAULT_CONTEXT): stri
         case Op.Match: {
           if (i === firstMatchIndex) {
             blockAttr = ' data-block-start=""';
-          } else if (i === lastMatchIndex) {
-            blockAttr = ' data-block-end=""';
+          }
+          if (i === lastMatchIndex) {
+            blockAttr += ' data-block-end=""';
           }
           operation = "match";
           opSymbol = PREFIX_MATCH;

@@ -1,16 +1,20 @@
 import AudioMIDI from "./audio/audio-midi.js";
 import AudioWAV from "./audio/audio-wav.js";
 import DataBitstream from "./data-bitstream.js";
-import DataBufferList from "./data-buffer-list.js";
+import { diffBuffer } from "./data-buffer-helpers.js";
 import DataBuffer from "./data-buffer.js";
 import { formatBytes, hexTable, formatTable, formatDiffHex, formatDiffHunks, formatMyersGraph } from "./data-formating.js";
 import { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
-import DataStream from "./data-stream.js";
 import { diff, edits, hunks } from "./diff/diff.js";
 import Myers from "./diff/myers.js";
+import { htmlTable, textEdits, textHunks, unified } from "./diff/textdiff.js";
+import { drawBitmapText } from "./image/bitmap-text.js";
 import ImageGIF from "./image/data-image-gif.js";
 import ImagePNG from "./image/data-image-png.js";
 import GIFLZW from "./image/gif_lzw.js";
+import { colorRGBA, RgbaSurface, validateRGBA } from "./image/rgba-surface.js";
+import IPS from "./patch/data-patch-ips.js";
+import UnderflowError from "./underflow-error.js";
 declare const _default: {
     CRC32: {
         of: typeof import("./data-hash-crc32.js").calculate;
@@ -21,8 +25,6 @@ declare const _default: {
     };
     DataBitstream: typeof DataBitstream;
     DataBuffer: typeof DataBuffer;
-    DataBufferList: typeof DataBufferList;
-    DataStream: typeof DataStream;
     formatBytes: typeof formatBytes;
     hexTable: typeof hexTable;
     formatTable: typeof formatTable;
@@ -33,6 +35,7 @@ declare const _default: {
     formatDiffHunks: typeof formatDiffHunks;
     formatMyersGraph: typeof formatMyersGraph;
     diff: typeof diff;
+    diffBuffer: typeof diffBuffer;
     edits: typeof edits;
     hunks: typeof hunks;
     Op: {
@@ -41,6 +44,10 @@ declare const _default: {
         Insert: number;
     };
     Myers: typeof Myers;
+    textHunks: typeof textHunks;
+    textEdits: typeof textEdits;
+    unified: typeof unified;
+    htmlTable: typeof htmlTable;
     ShiftJIS: {
         characterEncoding: Record<number, import("./encodings/shift-jis.js").UttoriCharacterEncoding>;
         parse: typeof import("./encodings/shift-jis.js").parse;
@@ -48,25 +55,45 @@ declare const _default: {
     ImagePNG: typeof ImagePNG;
     GIFLZW: typeof GIFLZW;
     ImageGIF: typeof ImageGIF;
+    RgbaSurface: typeof RgbaSurface;
+    DEFAULT_MAX_PIXELS: number;
+    colorRGBA: typeof colorRGBA;
+    validateRGBA: typeof validateRGBA;
+    BitmapText: Readonly<{
+        glyphWidth: 5;
+        glyphHeight: 7;
+        advance: 6;
+        lineHeight: 8;
+        measure(text: string, options?: import("./image/types.js").TextOptions): import("./image/types.js").TextMetrics;
+    }>;
+    drawBitmapText: typeof drawBitmapText;
+    GLYPHS: Readonly<Record<string, readonly number[]>>;
     float80: typeof float80;
     float48: typeof float48;
     convertFromIeeeExtended: typeof convertFromIeeeExtended;
     AudioWAV: typeof AudioWAV;
     AudioMIDI: typeof AudioMIDI;
+    IPS: typeof IPS;
+    UnderflowError: typeof UnderflowError;
 };
 export default _default;
 export { default as CRC32 } from "./data-hash-crc32.js";
 export { default as DataBitstream } from "./data-bitstream.js";
 export { default as DataBuffer } from "./data-buffer.js";
-export { default as DataBufferList } from "./data-buffer-list.js";
-export { default as DataStream } from "./data-stream.js";
+export { diffBuffer } from "./data-buffer-helpers.js";
 export { formatBytes, hexTable, formatTable, formatTableThemeMySQL, formatTableThemeUnicode, formatTableThemeMarkdown, formatDiffHex, formatDiffHunks, formatMyersGraph, } from "./data-formating.js";
 export { diff, edits, hunks, Op } from "./diff/diff.js";
 export { default as Myers } from "./diff/myers.js";
+export { htmlTable, textEdits, textHunks, unified } from "./diff/textdiff.js";
 export { default as ShiftJIS } from "./encodings/shift-jis.js";
+export { BitmapText, drawBitmapText, GLYPHS } from "./image/bitmap-text.js";
 export { default as ImagePNG } from "./image/data-image-png.js";
 export { default as GIFLZW } from "./image/gif_lzw.js";
 export { default as ImageGIF } from "./image/data-image-gif.js";
+export { default as RgbaSurface, colorRGBA, DEFAULT_MAX_PIXELS, validateRGBA, } from "./image/rgba-surface.js";
+export type { BlitOptions, IndexedInput, IndexedPixels, Rect, RGBA, RgbaImage, SurfaceOptions, TextMetrics, TextOptions, } from "./image/types.js";
+export { default as IPS } from "./patch/data-patch-ips.js";
+export { default as UnderflowError } from "./underflow-error.js";
 export { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
 export { default as AudioWAV } from "./audio/audio-wav.js";
 export { default as AudioMIDI } from "./audio/audio-midi.js";

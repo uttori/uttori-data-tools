@@ -291,7 +291,10 @@ test('createIPSFromDataBuffers: separates RLE when near previous hunk', (t) => {
   const ips = IPS.createIPSFromDataBuffers(original, modified);
 
   // Should create separate hunks: one for 0xAA and one RLE for the 0xFF bytes
-  t.true(ips.hunks.length >= 1);
+  t.deepEqual(ips.hunks, [
+    { offset: 7, length: 1, data: [0xAA] },
+    { offset: 9, length: 8, rle: 0xFF },
+  ]);
 });
 
 test('createIPSFromDataBuffers: adds padding hunk for file expansion beyond last change', (t) => {
@@ -306,7 +309,7 @@ test('createIPSFromDataBuffers: adds padding hunk for file expansion beyond last
   // The last hunk should handle the file expansion
   const lastHunk = ips.hunks[ips.hunks.length - 1];
   // Should reach near the end
-  t.true(lastHunk.offset + lastHunk.length >= 11);
+  t.is(lastHunk.offset + lastHunk.length, modified.length);
 });
 
 test('E2E: parse and encode produces same result', (t) => {
@@ -350,3 +353,283 @@ test('E2E: create, encode, parse, and apply produces same result', (t) => {
   t.deepEqual(Array.from(patched.data), Array.from(modified.data));
 });
 
+
+/** Apply through the complete file format round trip, rather than checking hunk counts alone. */
+const roundTripIPS = (original, modified) => {
+  const patch = IPS.createIPSFromDataBuffers(original, modified);
+  const encoded = patch.encode();
+  const parsed = new IPS(encoded.data);
+  return { patch, parsed, encoded, output: parsed.apply(original) };
+};
+
+test('createIPSFromDataBuffers: preserves changes at every offset near the beginning', (t) => {
+  for (let offset = 0; offset < 8; offset++) {
+    const original = new DataBuffer(new Uint8Array(10));
+    const modified = original.copy();
+    modified.data[offset] = 0xFF;
+    const { patch, output } = roundTripIPS(original, modified);
+    t.is(patch.hunks.length, 1);
+    t.is(patch.hunks[0].offset, offset);
+    t.deepEqual(output.data, modified.data);
+  }
+});
+
+test('createIPSFromDataBuffers: a long RLE run at offset zero terminates and round trips', (t) => {
+  const original = new DataBuffer(new Uint8Array(512));
+  const modified = new DataBuffer(new Uint8Array(512).fill(0xCC));
+  const { patch, output } = roundTripIPS(original, modified);
+  t.deepEqual(patch.hunks, [{ offset: 0, length: 512, rle: 0xCC }]);
+  t.deepEqual(output.data, modified.data);
+});
+
+test('createIPSFromDataBuffers: uses whole committed buffers and leaves both cursors unchanged', (t) => {
+  const original = new DataBuffer([1, 2, 3, 4]);
+  const modified = new DataBuffer([9, 2, 3, 8]);
+  original.seek(3);
+  modified.seek(2);
+  const { output } = roundTripIPS(original, modified);
+  t.deepEqual(output.data, modified.data);
+  t.is(original.offset, 3);
+  t.is(modified.offset, 2);
+  t.deepEqual(Array.from(original.data), [1, 2, 3, 4]);
+});
+
+test('createIPSFromDataBuffers: empty, identical, zero-filled expansion, and zero truncation', (t) => {
+  for (const [a, b] of [[[], []], [[1], [1]], [[], [0]], [[], [0, 0, 0]], [[1], [1, 0, 0]], [[1, 2, 3], []]]) {
+    const { patch, parsed, encoded, output } = roundTripIPS(new DataBuffer(a), new DataBuffer(b));
+    t.deepEqual(Array.from(output.data), b);
+    if (b.length < a.length) {
+      t.true(patch.hasTruncate);
+      t.true(parsed.hasTruncate);
+      t.is(parsed.truncate, 0);
+      t.deepEqual(Array.from(encoded.data.slice(-6)), [0x45, 0x4F, 0x46, 0, 0, 0]);
+    }
+  }
+});
+
+test('apply: zero-valued RLE, out-of-order overlapping records, and holes', (t) => {
+  const original = new DataBuffer([1, 2, 3]);
+  original.seek(2);
+  const patch = new IPS(0, false);
+  patch.hunks = [
+    { offset: 6, length: 2, rle: 0xFF },
+    { offset: 1, length: 2, data: [0xAA, 0xBB] },
+    { offset: 2, length: 5, rle: 0 },
+  ];
+  const output = patch.apply(original);
+  t.deepEqual(Array.from(output.data), [1, 0xAA, 0, 0, 0, 0, 0, 0xFF]);
+  t.is(output.offset, 0);
+  t.is(output.readUInt8(), 1);
+  t.is(original.offset, 2);
+  t.deepEqual(Array.from(original.data), [1, 2, 3]);
+  output.data[0] = 0;
+  t.is(original.data[0], 1);
+});
+
+test('apply: truncation is a final size operation after all records', (t) => {
+  const patch = new IPS(0, false);
+  patch.hunks = [{ offset: 1, length: 4, data: [9, 8, 7, 6] }, { offset: 7, length: 2, rle: 0xFF }];
+  patch.truncate = 3;
+  t.deepEqual(Array.from(patch.apply(new DataBuffer([1, 2, 3, 4, 5])).data), [1, 9, 8]);
+  patch.hasTruncate = true;
+  patch.truncate = 0;
+  t.is(patch.apply(new DataBuffer([1, 2, 3])).length, 0);
+  patch.hunks = [];
+  patch.truncate = 5;
+  t.deepEqual(Array.from(patch.apply(new DataBuffer([1, 2])).data), [1, 2, 0, 0, 0]);
+});
+
+test('parse: explicit zero truncation survives parsing and re-encoding', (t) => {
+  const bytes = Uint8Array.from([0x50, 0x41, 0x54, 0x43, 0x48, 0x45, 0x4F, 0x46, 0, 0, 0]);
+  const patch = new IPS(bytes);
+  t.true(patch.hasTruncate);
+  t.is(patch.truncate, 0);
+  t.deepEqual(patch.encode().data, bytes);
+  t.is(patch.apply(new DataBuffer([1])).length, 0);
+});
+
+test('parse: repeated parses reset hunks and truncation rather than appending', (t) => {
+  const patch = new IPS(0, false);
+  patch.hunks = [{ offset: 0, length: 1, data: [0xFF] }];
+  const parsed = new IPS(patch.encode().data);
+  const first = structuredClone(parsed.hunks);
+  parsed.parse();
+  t.deepEqual(parsed.hunks, first);
+  parsed.truncate = 10;
+  parsed.hasTruncate = true;
+  parsed.parse();
+  t.is(parsed.truncate, 0);
+  t.false(parsed.hasTruncate);
+});
+
+test('parse: a failed reparse preserves the previously parsed state and cursor', (t) => {
+  const patch = new IPS(0, false);
+  patch.hunks = [{ offset: 0, length: 1, data: [0xAA] }];
+  const parsed = new IPS(patch.encode().data);
+  const hunks = parsed.hunks;
+  const offset = parsed.offset;
+  parsed.data[parsed.length - 1] = 0;
+  t.throws(() => parsed.parse());
+  t.is(parsed.hunks, hunks);
+  t.is(parsed.offset, offset);
+  t.is(parsed.truncate, 0);
+  t.false(parsed.hasTruncate);
+});
+
+test('parse: rejects incomplete headers, records, EOF, and invalid trailers', (t) => {
+  const header = [0x50, 0x41, 0x54, 0x43, 0x48];
+  const eof = [0x45, 0x4F, 0x46];
+  for (let length = 0; length < 5; length++) {
+    t.throws(() => new IPS(Uint8Array.from(header.slice(0, length))));
+  }
+  for (const tail of [[], [0x45], [0x45, 0x4F], [0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 2, 0xAA], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0xFF, ...eof],
+    [...eof, 0], [...eof, 0, 0], [...eof, 0, 0, 0, 0], [...eof, 0, 1, 0, 1, 0xAA],
+  ]) {
+    t.throws(() => new IPS(Uint8Array.from([...header, ...tail])), undefined, tail.join(','));
+  }
+});
+
+for (const [name, hunk] of [
+  ['negative offset', { offset: -1, length: 1, data: [0] }],
+  ['fractional offset', { offset: 0.5, length: 1, data: [0] }],
+  ['NaN offset', { offset: Number.NaN, length: 1, data: [0] }],
+  ['reserved EOF offset', { offset: 0x454F46, length: 1, data: [0] }],
+  ['offset past maximum', { offset: 0x1000000, length: 1, data: [0] }],
+  ['end past maximum', { offset: 0xFFFFFF, length: 2, data: [0, 0] }],
+  ['zero-length run', { offset: 0, length: 0, rle: 0 }],
+  ['oversized run', { offset: 0, length: 0x10000, rle: 0 }],
+  ['fractional length', { offset: 0, length: 1.5, rle: 0 }],
+  ['mismatched data length', { offset: 0, length: 2, data: [0] }],
+  ['missing payload', { offset: 0, length: 1 }],
+  ['two payload types', { offset: 0, length: 1, rle: 0, data: [0] }],
+  ['invalid literal byte', { offset: 0, length: 1, data: [256] }],
+  ['sparse literal bytes', { offset: 0, length: 1, data: Array(1) }],
+  ['invalid RLE byte', { offset: 0, length: 1, rle: -1 }],
+]) {
+  test(`encode/apply: reject ${name} before mutating input`, (t) => {
+    const patch = new IPS(0, false);
+    patch.hunks = [hunk];
+    const input = new DataBuffer([1, 2, 3]);
+    input.seek(2);
+    t.throws(() => patch.encode(), { instanceOf: RangeError });
+    t.throws(() => patch.apply(input), { instanceOf: RangeError });
+    t.deepEqual(Array.from(input.data), [1, 2, 3]);
+    t.is(input.offset, 2);
+  });
+}
+
+test('encode/apply: validate the three-byte truncate size', (t) => {
+  const patch = new IPS(0, false);
+  for (const truncate of [-1, 0.5, Number.NaN, Infinity, 0x1000000]) {
+    patch.truncate = truncate;
+    t.throws(() => patch.encode(), { instanceOf: RangeError });
+    t.throws(() => patch.apply(new DataBuffer([1])), { instanceOf: RangeError });
+  }
+});
+
+test('encode/apply: Uint8Array payload subviews are supported', (t) => {
+  const patch = new IPS(0, false);
+  patch.hunks = [{ offset: 0, length: 2, data: new Uint8Array([0xFF, 0xAA, 0xBB, 0xFF]).subarray(1, 3) }];
+  t.deepEqual(Array.from(new IPS(patch.encode().data).apply(new DataBuffer(0)).data), [0xAA, 0xBB]);
+});
+
+test('createIPSFromDataBuffers: literal and RLE records split at the 65535-byte limit', (t) => {
+  for (const length of [0xFFFF, 0x10000, 0x20001]) {
+    for (const repeated of [false, true]) {
+      const bytes = Uint8Array.from({ length }, (_, i) => repeated ? 0xFF : 1 + i % 255);
+      const { patch, output } = roundTripIPS(new DataBuffer(0), new DataBuffer(bytes));
+      t.true(patch.hunks.every((hunk) => hunk.length > 0 && hunk.length <= 0xFFFF));
+      t.is(patch.hunks[0].length, Math.min(length, 0xFFFF));
+      t.deepEqual(output.data, bytes);
+    }
+  }
+});
+
+test('createIPSFromDataBuffers: reserved EOF record offsets are escaped', (t) => {
+  const marker = 0x454F46;
+  const original = new DataBuffer(new Uint8Array(marker + 2));
+  original.data[marker - 1] = 0x34;
+  const modified = original.copy();
+  modified.data[marker] = 0xAB;
+  const { patch, output } = roundTripIPS(original, modified);
+  t.true(patch.hunks.every((hunk) => hunk.offset !== marker));
+  t.is(patch.hunks[0].offset, marker - 1);
+  t.deepEqual(output.data, modified.data);
+});
+
+test('createIPSFromDataBuffers: a record split and zero-filled expansion at the EOF address round trip', (t) => {
+  const marker = 0x454F46;
+  const original = new DataBuffer(new Uint8Array(marker + 2));
+  const modified = original.copy();
+  modified.data.fill(0xFF, marker - 0xFFFF, marker + 2);
+  const result = roundTripIPS(original, modified);
+  t.true(result.patch.hunks.every((hunk) => hunk.offset !== marker));
+  t.deepEqual(result.output.data, modified.data);
+  const zeros = new DataBuffer(new Uint8Array(marker + 1));
+  const expanded = roundTripIPS(new DataBuffer(0), zeros);
+  t.true(expanded.patch.hunks.every((hunk) => hunk.offset !== marker));
+  t.deepEqual(expanded.output.data, zeros.data);
+});
+
+test('createIPSFromDataBuffers: the supported 16 MiB boundary can be reached exactly', (t) => {
+  const modified = new DataBuffer(new Uint8Array(0x1000000));
+  const { patch, output } = roundTripIPS(new DataBuffer(0), modified);
+  t.deepEqual(patch.hunks, [{ offset: 0xFFFFFF, length: 1, data: [0] }]);
+  t.is(output.length, 0x1000000);
+  t.deepEqual(output.data, modified.data);
+});
+
+/** A deliberately simple IPS reader/applicator independent of DataBuffer and the IPS class. */
+const referenceApplyIPS = (patch, input) => {
+  const output = Array.from(input);
+  let position = 5;
+  const read = (length) => {
+    let value = 0;
+    while (length-- > 0) value = value * 256 + patch[position++];
+    return value;
+  };
+  while (position < patch.length) {
+    const offset = read(3);
+    if (offset === 0x454F46) {
+      if (position < patch.length) output.length = read(3);
+      return Uint8Array.from(output);
+    }
+    const length = read(2);
+    if (length === 0) {
+      const count = read(2);
+      const value = read(1);
+      for (let i = 0; i < count; i++) output[offset + i] = value;
+    } else {
+      for (let i = 0; i < length; i++) output[offset + i] = read(1);
+    }
+  }
+  throw new Error('Missing reference IPS EOF.');
+};
+
+test('E2E: deterministic randomized binary transformations round trip with stable input cursors', (t) => {
+  let seed = 0x495053;
+  const next = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
+  for (let iteration = 0; iteration < 1000; iteration++) {
+    const a = Uint8Array.from({ length: next() % 300 }, () => next() >>> 24);
+    const b = new Uint8Array(next() % 300);
+    b.set(a.subarray(0, b.length));
+    for (let i = 0; i < b.length; i++) {
+      if (next() % 5 === 0) b[i] = next() >>> 24;
+    }
+    if (iteration % 4 === 0) b.fill(0, next() % (b.length + 1));
+    const original = new DataBuffer(a);
+    const modified = new DataBuffer(b);
+    original.seek(next() % (a.length + 1));
+    modified.seek(next() % (b.length + 1));
+    const beforeA = original.offset;
+    const beforeB = modified.offset;
+    const { output, patch, encoded } = roundTripIPS(original, modified);
+    t.deepEqual(output.data, b, `iteration ${iteration}`);
+    t.deepEqual(referenceApplyIPS(encoded.data, a), b, `independent application ${iteration}`);
+    t.is(original.offset, beforeA);
+    t.is(modified.offset, beforeB);
+    t.true(patch.hunks.every((hunk) => hunk.offset !== 0x454F46 && hunk.length > 0 && hunk.length <= 0xFFFF));
+  }
+});

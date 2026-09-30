@@ -1,4 +1,10 @@
 import DataBuffer from "./../data-buffer.js";
+/** FIFO matching is deterministic when the same channel plays overlapping notes of the same pitch. */
+export interface ActiveNote {
+    startTime: number;
+    noteOnEvent: MidiTrackEvent;
+    next?: ActiveNote;
+}
 /** Constructor options stored on an {@link AudioMIDI} instance. */
 export interface AudioMidiConstructorOptions {
     /** The MIDI format: 0, 1, or 2. */
@@ -7,7 +13,7 @@ export interface AudioMidiConstructorOptions {
     timeDivision?: number;
 }
 export interface WritableNote {
-    /** The delay in ticks until the next track. */
+    /** The delay in ticks from this note's start until the next note's start, including skipped notes. */
     ticks: number;
     /** The MIDI note value. */
     midiNote: number;
@@ -17,7 +23,7 @@ export interface WritableNote {
     length: number;
 }
 export interface WritableTrack {
-    /** The BPM of the track, when blank no tempo event will be added. */
+    /** The BPM of the track; falls back to the shared BPM when provided. Independent tempos require format 2. */
     bpm?: number;
     /** A key value collection of meta events to add where they key is the event type and the value is the data to add. */
     metaStringEvents?: Record<number, string>;
@@ -44,8 +50,8 @@ export interface ControllerData {
 }
 /** Pitch Bend data. `pitchValue` is the combined 14-bit value; `firstByte`/`secondByte` are the raw LSB/MSB bytes used when writing. */
 export interface PitchBendData {
-    /** The combined 14-bit pitch value (0-16383). */
-    pitchValue: number;
+    /** The combined 14-bit pitch value (0-16383), populated when parsing and optional when writing raw bytes. */
+    pitchValue?: number;
     /** The least significant 7 bits (LSB). */
     firstByte: number;
     /** The most significant 7 bits (MSB). */
@@ -58,7 +64,7 @@ export interface SongPositionData {
     /** The least significant byte. */
     lsb: number;
 }
-/** Song Select data (write side). */
+/** Song Select data. */
 export interface SongSelectData {
     /** The song number to select. */
     songNumber: number;
@@ -69,8 +75,12 @@ export interface SysExData {
     manufacturerId: number;
     /** The manufacturer's label based on the ID. */
     manufacturerLabel?: string;
-    /** The SysEx data bytes. */
+    /** The SysEx data bytes, excluding the manufacturer ID and optional final EOX byte. */
     data: number[];
+    /** A three-byte manufacturer ID beginning with 0x00; omitted for one-byte IDs. */
+    manufacturerIdBytes?: number[];
+    /** Whether this SMF packet ends with EOX (0xF7), default is true when writing. */
+    terminated?: boolean;
 }
 /** Meta Sequence Number data. */
 export interface SequenceNumberData {
@@ -113,7 +123,7 @@ export interface SmpteOffsetData {
 export interface TimeSignatureData {
     /** The numerator of the time signature, the 3 in 3/4. */
     numerator: number;
-    /** The denominator of the time signature, the 4 in 3/4. */
+    /** The encoded base-2 denominator exponent: 2 means a denominator of 4, as in 3/4. */
     denominator: number;
     /** The number of MIDI clocks in a metronome click. */
     metronome: number;
@@ -135,8 +145,8 @@ export interface KeySignatureData {
 export interface MLiveTagData {
     /** The tag byte. */
     tag: number;
-    /** The human-readable tag label. */
-    tagLabel: string;
+    /** The human-readable tag label, populated when parsing. */
+    tagLabel?: string;
     /** The raw tag value bytes. */
     tagValue: Uint8Array;
 }
@@ -149,7 +159,7 @@ export type EventData = string | number | Uint8Array | number[] | NoteData | Con
 export interface MidiTrackEvent {
     /** The delta time of the MIDI event. */
     deltaTime: number;
-    /** The status byte / type of the event; may be `undefined` for an unrecognized running-status byte. */
+    /** The status byte / type of the event; required when writing. Invalid running status is rejected when parsing. */
     type?: number;
     /** A human-readable label describing the event. */
     label?: string;
@@ -157,10 +167,12 @@ export interface MidiTrackEvent {
     data?: EventData;
     /** The subtype of the meta event. */
     metaType?: number;
-    /** The length of the meta event data. */
+    /** The declared length of parsed meta data. When writing, the length is derived from the payload. */
     metaEventLength?: number;
     /** The MIDI channel the event is for. */
     channel?: number;
+    /** Original non-UTF-8 text bytes. Reused when saving if the decoded text is unchanged. */
+    textBytes?: Uint8Array;
     /** The tag for the M-Live Tag event. */
     tag?: number;
 }
@@ -187,6 +199,8 @@ export interface Track {
     chunkLength: number;
     /** The collection of events in the track. */
     events: MidiTrackEvent[];
+    /** Bytes following End of Track, preserved without interpreting them as events. */
+    trailingData?: Uint8Array;
 }
 export interface UsedNote {
     /** The numeric value of the note. */
@@ -228,7 +242,7 @@ declare class AudioMIDI extends DataBuffer {
      * @param {number} [options.timeDivision] The indication of how MIDI ticks should be translated into time, default is 480.
      * @class
      */
-    constructor(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: AudioMidiConstructorOptions);
+    constructor(input?: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array, options?: AudioMidiConstructorOptions);
     /**
      * Several different values in events are expressed as variable length quantities (e.g. delta time values).
      * A variable length value uses a minimum number of bytes to hold the value, and in most circumstances this leads to some degree of data compresssion.
@@ -238,9 +252,10 @@ declare class AudioMIDI extends DataBuffer {
      * All but the last byte of a variable length value have the high order bit set.
      * The last byte has the high order bit cleared.
      * The bytes always appear most significant byte first.
-     * @returns The length of the next chunk.
+     * @param end The exclusive read boundary, default is the end of the buffer.
+     * @returns The decoded variable-length quantity.
      */
-    readVariableLengthValues: () => number;
+    readVariableLengthValues: (end?: number) => number;
     /**
      * Parse a MIDI file from a Uint8Array.
      * @see {@link https://midi.org/expanded-midi-1-0-messages-list | Expanded MIDI 1.0 Messages List (Status Bytes)}
@@ -265,6 +280,8 @@ declare class AudioMIDI extends DataBuffer {
      * @returns The binary data buffer.
      */
     saveToDataBuffer(): DataBuffer;
+    /** Encode either PPQN or the signed SMPTE frame-rate code used in the header. */
+    private encodeTimeDivision;
     /**
      * Write a track chunk to the data buffer.
      * @param dataBuffer The data buffer to write to.
@@ -278,6 +295,13 @@ declare class AudioMIDI extends DataBuffer {
      */
     writeEvent(dataBuffer: DataBuffer, event: MidiTrackEvent): void;
     /**
+     * Prepare and validate event payloads without writing partial events on validation failure.
+     * Raw meta/SysEx bytes are accepted to preserve unrecognized and malformed-but-bounded input.
+     * @param event The event to encode.
+     * @returns The validated payload, without delta time, status, subtype or length bytes.
+     */
+    private static encodeEventData;
+    /**
      * Returns a sorted list of all unique note numbers used in "Note On" events,
      * along with their note names (e.g. "C3", "D#4").
      * @returns Array of note data
@@ -285,7 +309,7 @@ declare class AudioMIDI extends DataBuffer {
     getUsedNotes(): UsedNote[];
     /**
      * Validate a MIDI instance for common issues.
-     * Matching Note Ons / Offs: A `velocity > 0` "Note On" increments `activeNotes[note]`. A "Note Off" or "Note On" with `velocity == 0` decrements. If the count is already 0, that is invalid. At the end of the track, if any notes still have a positive count, that is also invalid.
+     * Matching Note Ons / Offs: A `velocity > 0` "Note On" increments the active count for its port, channel and note. A "Note Off" or "Note On" with `velocity == 0` decrements. If the count is already 0, that is invalid. At the end of the track, if any notes still have a positive count, that is also invalid.
      * Meta Events: We do a small switch on `event.metaType` to check if the declared metaEventLength is correct for well-known meta events (End of Track, Set Tempo, Time Signature, etc.).
      * Chunk Length: Since the parser already stored each chunk's `chunkLength`, we do minimal checks: if `chunkLength > 0` but there are zero events, or vice versa, that is unusual.
      * @returns {string[]} Array of warning / error messages discovered, an empty array if no issues are found.
@@ -370,6 +394,7 @@ declare class AudioMIDI extends DataBuffer {
      * @param [options.ppq] The pulses per quarter note, default is 480.
      * @param [options.bpm] The BPM of the track, when blank no tempo event will be added.
      * @param [options.tracks] The MIDI tracks to write.
+     * @param [options.format] The MIDI format, default is 0 for one track or 1 for multiple tracks. Use 2 for independent track tempos.
      * @param [options.skipNotes] The MIDI notes to skip, if any.
      * @returns The newly constructed MIDI
      * @static
@@ -381,7 +406,8 @@ declare class AudioMIDI extends DataBuffer {
      *     {
      *       notes: myCustomNotes.map((note) => {
      *         return {
-     *           note: note.midiNote,
+     *           midiNote: note.midiNote,
+     *           ticks: note.ticks,
      *           velocity: note.velocity,
      *           length: note.length,
      *         }
@@ -395,10 +421,11 @@ declare class AudioMIDI extends DataBuffer {
      * });
      * return midi;
      */
-    static convertToMidi({ ppq, bpm, tracks, skipNotes, }: {
+    static convertToMidi({ ppq, bpm, tracks, format, skipNotes, }?: {
         ppq?: number;
         bpm?: number;
         tracks?: WritableTrack[];
+        format?: number;
         skipNotes?: number[];
     }): AudioMIDI;
     /**

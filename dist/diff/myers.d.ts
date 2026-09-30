@@ -69,7 +69,7 @@ declare class Myers {
      */
     compare(smin: number, smax: number, tmin: number, tmax: number): void;
     /**
-     * Find the endpoints of sequence of diagonals in the middle of an optimal path from (smin, tmin) to (smax, tmax).
+     * Find the endpoints of a sequence of diagonals on an optimal path from (smin, tmin) to (smax, tmax).
      * @param smin The start index of the first array
      * @param smax The end index of the first array
      * @param tmin The start index of the second array
@@ -77,6 +77,21 @@ declare class Myers {
      * @returns The endpoints of the sequence of diagonals
      */
     split(smin: number, smax: number, tmin: number, tmax: number): SplitResult;
+    /**
+     * Creates a dense result vector with a false sentinel after the highest mapped element.
+     * @param indices Mapping of input indices to result vector positions
+     * @param length The number of input elements
+     * @returns The initialized result vector.
+     */
+    private createResultVector;
+    /**
+     * Validates half-open comparison bounds before entering the search loops.
+     * @param smin The start index of the first array
+     * @param smax The end index of the first array
+     * @param tmin The start index of the second array
+     * @param tmax The end index of the second array
+     */
+    private validateBounds;
 }
 export default Myers;
 //# sourceMappingURL=myers.d.ts.map

@@ -1,5 +1,4 @@
 import { convertFromIeeeExtended, float48, float80 } from "./data-helpers.js";
-import { type Edit, edits } from "./diff/diff.js";
 import UnderflowError from "./underflow-error.js";
 
 /** Brand so checksums can recognize a DataBuffer without importing this module. */
@@ -278,52 +277,6 @@ class DataBuffer {
     }
     debug("compare: data is the same");
     return true;
-  }
-
-  /**
-   * Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
-   * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The DataBuffer to compare against.
-   * @param {number} [offset] The offset to start the comparison from, default is 0.
-   * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
-   */
-  diff(
-    input:
-      | number[]
-      | ArrayBuffer
-      | Buffer
-      | DataBuffer
-      | Int8Array
-      | Int16Array
-      | Int32Array
-      | number
-      | string
-      | Uint8Array
-      | Uint16Array
-      | Uint32Array
-      | undefined,
-    offset = 0,
-  ): Edit[] {
-    // debug('diff:', { inputLength: input?.length, offset });
-    if (!this.availableAt(0, offset, false)) {
-      throw new UnderflowError(`Insufficient Bytes: ${offset} + 0`);
-    }
-    let data: Uint8Array;
-    if (input instanceof DataBuffer) {
-      data = input.data;
-    } else if (input instanceof Uint8Array) {
-      data = input;
-    } else {
-      data = new DataBuffer(input).data;
-    }
-
-    // Convert buffers to arrays of bytes
-    const x = Array.from(this.data.subarray(offset));
-    const y = Array.from(data);
-
-    debug("diff: comparing", x.length, "bytes against", y.length, "bytes");
-
-    // Use byte-wise comparison
-    return edits(x, y, (a, b) => a === b);
   }
 
   /**

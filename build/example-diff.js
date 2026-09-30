@@ -1,11 +1,11 @@
-import { DataBuffer, formatDiffHex, formatDiffHunks, hunks, formatMyersGraph, Myers } from '../src/index.js';
+import { DataBuffer, diffBuffer, formatDiffHex, formatDiffHunks, hunks, formatMyersGraph, Myers } from '../src/index.js';
 
 // Example 1: Basic diff between two buffers
-console.log('=== Example 1: DataBuffer.diff() ===');
+console.log('=== Example 1: diffBuffer() ===');
 const buffer1 = new DataBuffer([0x48, 0x65, 0x6C, 0x6C, 0x6F]); // "Hello"
 const buffer2 = new DataBuffer([0x48, 0x65, 0x79, 0x79, 0x6F]); // "Heyyo"
 
-const edits = buffer1.diff(buffer2);
+const edits = diffBuffer(buffer1, buffer2);
 console.log('Number of edits:', edits.length);
 console.log('Edits:', edits);
 
@@ -29,7 +29,7 @@ console.log('\n=== Example 4: Binary file comparison ===');
 const file1 = new DataBuffer(Array.from({ length: 64 }, (_, i) => i));
 const file2 = new DataBuffer(Array.from({ length: 64 }, (_, i) => i === 32 ? 0xFF : i));
 
-const binaryEdits = file1.diff(file2);
+const binaryEdits = diffBuffer(file1, file2);
 const binaryDiff = formatDiffHex(binaryEdits, { bytesPerRow: 16 });
 console.log(binaryDiff);
 

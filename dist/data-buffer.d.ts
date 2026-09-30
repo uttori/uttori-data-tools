@@ -1,4 +1,3 @@
-import { type Edit } from "./diff/diff.js";
 /**
  * Helper class for manipulating binary data.
  * @property {Buffer|Uint8Array} data The data to process.
@@ -62,13 +61,6 @@ declare class DataBuffer {
      * @returns {boolean} Returns true when all input bytes match the region at offset, false if there is any difference, the input is empty, or the region is out of bounds.
      */
     compare(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): boolean;
-    /**
-     * Diffs another DataBuffer against the current data buffer at a specified offset and returns the edits.
-     * @param {number[]|ArrayBuffer|Buffer|DataBuffer|Int8Array|Int16Array|Int32Array|number|string|Uint8Array|Uint16Array|Uint32Array|undefined} input The DataBuffer to compare against.
-     * @param {number} [offset] The offset to start the comparison from, default is 0.
-     * @returns {import('./diff/diff.js').Edit[]} Returns an array of edits describing the differences.
-     */
-    diff(input: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array | undefined, offset?: number): Edit[];
     /**
      * Compares input data against the upcoming data, byte by byte.
      * @param {number[] | Buffer | Uint8Array} input The data to check for in upcoming bytes.

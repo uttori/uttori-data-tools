@@ -50,8 +50,8 @@ class Myers {
         this.xidx = xidx;
         this.yidx = yidx;
         this.equal = equal;
-        this.resultVectorX = Array.from({ length: x0.length + 1 }, () => false);
-        this.resultVectorY = Array.from({ length: y0.length + 1 }, () => false);
+        this.resultVectorX = this.createResultVector(xidx, x0.length);
+        this.resultVectorY = this.createResultVector(yidx, y0.length);
         // Initialize bounds
         let smin = 0;
         let tmin = 0;
@@ -75,16 +75,14 @@ class Myers {
         const M = tmax - tmin;
         const diagonals = N + M;
         // +1 for the middle point and +2 for the borders
-        const vlen = 2 * diagonals + 3;
-        // allocate space for vf and vb with a single allocation
-        /** @type {number[]} */
-        const buf = Array.from({ length: 2 * vlen }, () => 0);
+        const vlen = N === 0 || M === 0 ? 0 : diagonals + 3;
+        // Allocate space for vf and vb without copying a temporary combined buffer.
         this.x = x0;
         this.y = y0;
-        this.vf = buf.slice(0, vlen);
-        this.vb = buf.slice(vlen);
+        this.vf = new Array(vlen).fill(0);
+        this.vb = new Array(vlen).fill(0);
         // +1 for the middle point
-        this.v0 = diagonals + 1;
+        this.v0 = M + 1;
     }
     /**
      * Find an optimal d-path from (smin, tmin) to (smax, tmax).
@@ -94,34 +92,63 @@ class Myers {
      * @param tmax The end index of the second array
      */
     compare(smin, smax, tmin, tmax) {
-        if (smin === smax) {
-            // Data S is empty, therefore everything in tmin to tmax is an insertion.
-            for (let t = tmin; t < tmax; t++) {
-                this.resultVectorY[this.yidx[t]] = true;
+        this.validateBounds(smin, smax, tmin, tmax);
+        const pending = [];
+        const equal = this.equal;
+        const x = this.x;
+        const y = this.y;
+        for (;;) {
+            // Strip common prefix/suffix for callers that pass untrimmed subranges.
+            while (smin < smax && tmin < tmax && equal(x[smin], y[tmin])) {
+                smin++;
+                tmin++;
             }
-        }
-        else if (tmin === tmax) {
-            // Data T is empty, therefore everything in smin to smax is a deletion.
-            for (let s = smin; s < smax; s++) {
-                this.resultVectorX[this.xidx[s]] = true;
+            while (smax > smin && tmax > tmin && equal(x[smax - 1], y[tmax - 1])) {
+                smax--;
+                tmax--;
             }
-        }
-        else {
-            // Use split to divide the input into three pieces:
-            //
-            //   (1) A, possibly empty, rect (smin, tmin) to (s0, t0)
-            //   (2) A, possibly empty, sequence of diagonals (matches) (s0, t0) to (s1, t1)
-            //   (3) A, possibly empty, rect (s1, t1) to (smax, tmax)
-            //
-            // (1) and (3) will not have a common suffix or a common prefix, so we can use them directly as inputs to compare.
-            const { s0, s1, t0, t1 } = this.split(smin, smax, tmin, tmax);
-            // Recurse into (1) and (3).
-            this.compare(smin, s0, tmin, t0);
-            this.compare(s1, smax, t1, tmax);
+            if (smin === smax) {
+                // Data S is empty, therefore everything in tmin to tmax is an insertion.
+                for (let t = tmin; t < tmax; t++) {
+                    this.resultVectorY[this.yidx[t]] = true;
+                }
+            }
+            else if (tmin === tmax) {
+                // Data T is empty, therefore everything in smin to smax is a deletion.
+                for (let s = smin; s < smax; s++) {
+                    this.resultVectorX[this.xidx[s]] = true;
+                }
+            }
+            else {
+                // Use split to divide the input into three pieces:
+                //
+                //   (1) A, possibly empty, rect (smin, tmin) to (s0, t0)
+                //   (2) A, possibly empty, sequence of diagonals (matches) (s0, t0) to (s1, t1)
+                //   (3) A, possibly empty, rect (s1, t1) to (smax, tmax)
+                //
+                // (1) and (3) can retain a common suffix or prefix when the middle snake is empty.
+                // Strip those common edges in compare before splitting the subranges again.
+                const { s0, s1, t0, t1 } = this.split(smin, smax, tmin, tmax);
+                // Recurse into (1) and (3) using an explicit stack instead of the JavaScript call stack.
+                // Process (1) first, preserving the original left-before-right traversal.
+                if (s1 < smax || t1 < tmax) {
+                    pending.push(s1, smax, t1, tmax);
+                }
+                smax = s0;
+                tmax = t0;
+                continue;
+            }
+            if (pending.length === 0) {
+                return;
+            }
+            tmax = pending.pop();
+            tmin = pending.pop();
+            smax = pending.pop();
+            smin = pending.pop();
         }
     }
     /**
-     * Find the endpoints of sequence of diagonals in the middle of an optimal path from (smin, tmin) to (smax, tmax).
+     * Find the endpoints of a sequence of diagonals on an optimal path from (smin, tmin) to (smax, tmax).
      * @param smin The start index of the first array
      * @param smax The end index of the first array
      * @param tmin The start index of the second array
@@ -129,15 +156,49 @@ class Myers {
      * @returns The endpoints of the sequence of diagonals
      */
     split(smin, smax, tmin, tmax) {
+        this.validateBounds(smin, smax, tmin, tmax);
+        const equal = this.equal;
+        const x = this.x;
+        const y = this.y;
+        // Public callers may supply empty ranges or ranges with common edges.
+        if (smin === smax || tmin === tmax) {
+            const s = smin + Math.floor((smax - smin) / 2);
+            const t = tmin + Math.floor((tmax - tmin) / 2);
+            return { s0: s, s1: s, t0: t, t1: t };
+        }
+        let s = smin;
+        let t = tmin;
+        while (s < smax && t < tmax && equal(x[s], y[t])) {
+            s++;
+            t++;
+        }
+        if (s > smin) {
+            return { s0: smin, s1: s, t0: tmin, t1: t };
+        }
+        s = smax;
+        t = tmax;
+        while (s > smin && t > tmin && equal(x[s - 1], y[t - 1])) {
+            s--;
+            t--;
+        }
+        if (s < smax) {
+            return { s0: s, s1: smax, t0: t, t1: tmax };
+        }
         // Old length
         const N = smax - smin;
         // New length
         const M = tmax - tmin;
-        const x = this.x;
-        const y = this.y;
+        // Recenter the workspace for this subrange, including shifted absolute diagonals.
+        // A public compare/split call may cover more input than the constructor's trimmed bounds.
+        const vlen = N + M + 3;
+        if (this.vf.length < vlen) {
+            this.vf = new Array(vlen).fill(0);
+            this.vb = new Array(vlen).fill(0);
+        }
         const vf = this.vf;
         const vb = this.vb;
-        const v0 = this.v0;
+        const v0 = M + 1 - (smin - tmin);
+        this.v0 = v0;
         // Bounds for k. Since t = s - k, we can determine the min and max for k using: k = s - t.
         const kmin = smin - tmax;
         const kmax = smax - tmin;
@@ -222,7 +283,7 @@ class Myers {
                 // Then follow the diagonals as long as possible.
                 const s0 = s;
                 const t0 = t;
-                while (s < smax && t < tmax && this.equal(x[s], y[t])) {
+                while (s < smax && t < tmax && equal(x[s], y[t])) {
                     s++;
                     t++;
                 }
@@ -266,7 +327,7 @@ class Myers {
                 }
                 let t = s - k;
                 const s0 = s, t0 = t;
-                while (s > smin && t > tmin && this.equal(x[s - 1], y[t - 1])) {
+                while (s > smin && t > tmin && equal(x[s - 1], y[t - 1])) {
                     s--;
                     t--;
                 }
@@ -280,6 +341,49 @@ class Myers {
                     };
                 }
             }
+        }
+    }
+    /**
+     * Creates a dense result vector with a false sentinel after the highest mapped element.
+     * @param indices Mapping of input indices to result vector positions
+     * @param length The number of input elements
+     * @returns The initialized result vector.
+     */
+    createResultVector(indices, length) {
+        if (indices.length !== length) {
+            throw new RangeError("Index mapping length must match the input length");
+        }
+        let maximum = length - 1;
+        for (const index of indices) {
+            // Reserve one array element for the sentinel; JavaScript array lengths are 32-bit unsigned.
+            if (!Number.isInteger(index) || index < 0 || index > 0xfffffffd) {
+                throw new RangeError("Index mappings must contain valid non-negative array indices");
+            }
+            if (index > maximum) {
+                maximum = index;
+            }
+        }
+        return new Array(maximum + 2).fill(false);
+    }
+    /**
+     * Validates half-open comparison bounds before entering the search loops.
+     * @param smin The start index of the first array
+     * @param smax The end index of the first array
+     * @param tmin The start index of the second array
+     * @param tmax The end index of the second array
+     */
+    validateBounds(smin, smax, tmin, tmax) {
+        if (!Number.isInteger(smin) ||
+            !Number.isInteger(smax) ||
+            !Number.isInteger(tmin) ||
+            !Number.isInteger(tmax) ||
+            smin < 0 ||
+            smin > smax ||
+            smax > this.x.length ||
+            tmin < 0 ||
+            tmin > tmax ||
+            tmax > this.y.length) {
+            throw new RangeError("Comparison bounds must be valid integer input ranges");
         }
     }
 }

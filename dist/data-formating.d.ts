@@ -3,9 +3,8 @@
  * @callback DebugLogger
  * @param {...*} args The arguments to log.
  */
-import DataBuffer from "./data-buffer.ts";
-import DataStream from "./data-stream.ts";
-import { Edit, Hunk } from "./diff/diff.ts";
+import type DataBuffer from "./data-buffer.js";
+import type { Edit, Hunk } from "./diff/diff.js";
 /**
  * Format a numeric value for display.
  * @param value The number to format.
@@ -21,7 +20,7 @@ export type FormatASCIIOutput = [string, Record<string, boolean | number | strin
  * @param data The data being processed.
  * @returns Character to represent this value and any flags for the function.
  */
-export type FormatNumberToASCII = (value: number, asciiFlags: Record<string, boolean | number | string>, data: DataBuffer | DataStream) => FormatASCIIOutput;
+export type FormatNumberToASCII = (value: number, asciiFlags: Record<string, boolean | number | string>, data: DataBuffer) => FormatASCIIOutput | string;
 /**
  * Format an amount of bytes to a human friendly string.
  * @param input The number of bytes.
@@ -39,7 +38,7 @@ export declare const formatBytes: (input: number, decimals?: number, bytes?: num
  * @param _data The data being processed.
  * @returns Returns an array with the Character to represent this value and any flags for the function.
  */
-export declare const formatASCII: (value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer | DataStream) => FormatASCIIOutput;
+export declare const formatASCII: (value: number, asciiFlags: Record<string, boolean | number | string>, _data: DataBuffer) => FormatASCIIOutput;
 /** Formatting functions for all value types. */
 export interface HexTableFormater {
     /** Offset formatting fuction. */
@@ -77,13 +76,13 @@ export declare const hexTableDimensions: HexTableDimensions;
 /**
  * Generate a nicely formatted hex editor style table.
  * @param input Input data to print out as a hex table.
- * @param offset Offset in the DataStream to start from.
+ * @param offset Display offset for the first byte; reading starts at the input DataBuffer cursor.
  * @param dimensions Table size parameters for columns, rows and byte grouping.
  * @param header The values for building the table header with offset, bytes and ASCII values.
  * @param format The formatting functions for displaying offset, bytes and ASCII values.
  * @returns The hex table ASCII.
  */
-export declare const hexTable: (input: DataBuffer | DataStream, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater) => string;
+export declare const hexTable: (input: DataBuffer, offset?: number, dimensions?: HexTableDimensions, header?: HexTableHeader, format?: HexTableFormater) => string;
 /**
  * Format a table line seperator for a given theme.
  * @param columnLengths An array with each columns length
@@ -151,7 +150,7 @@ export interface FormatTableOptions {
 }
 /**
  * Create an ASCII table from provided data and configuration.
- * @param {string[][]} data The data to add to the table.
+ * @param {unknown[][]} data The data to add to the table; cells are converted to strings once.
  * @param {object} [options] Configuration.
  * @param {string[]} options.align The alignment of each column, left or right.
  * @param {number} options.padding Amount of padding to add to each cell.
@@ -159,7 +158,7 @@ export interface FormatTableOptions {
  * @param {string} options.title The title to display at the top of the table.
  * @returns {string} The ASCII table of data.
  */
-export declare const formatTable: (data: string[][], options?: Partial<FormatTableOptions>) => string;
+export declare const formatTable: (data: readonly (readonly unknown[])[], options?: Partial<FormatTableOptions>) => string;
 export interface FormatDiffHexOptions {
     /** Number of bytes per row, default is 16. */
     bytesPerRow: number;
@@ -172,7 +171,7 @@ export interface FormatDiffHexOptions {
 }
 /**
  * Format diff edits as a hex-friendly table showing changes.
- * Shows three rows: original data, delta values, and resulting data.
+ * Shows three rows: original data, delta values, and resulting data. Missing bytes use --; offsets track each side independently.
  * @param edits The diff edits to format.
  * @param options Configuration options.
  * @returns The formatted diff output.
@@ -188,7 +187,7 @@ export interface FormatDiffHunksOptions {
  * @param options Configuration options.
  * @returns The formatted diff output.
  */
-export declare const formatDiffHunks: (hunks: Hunk[], options?: FormatDiffHunksOptions) => string;
+export declare const formatDiffHunks: (hunks: Hunk[], options?: Partial<FormatDiffHunksOptions>) => string;
 /**
  * A single node along the traced path through the Myers edit graph.
  */
@@ -209,6 +208,8 @@ export interface FormatMyersGraphOptions {
     showFull: boolean;
     /** Show axis labels, default is true. */
     showLabels: boolean;
+    /** Maximum character cells to allocate, default is 1,000,000. */
+    maxCells?: number;
 }
 /**
  * Format Myers diff result vectors as an ASCII grid visualization.
@@ -220,7 +221,7 @@ export interface FormatMyersGraphOptions {
  * @param options Configuration options.
  * @returns The formatted Myers graph.
  */
-export declare const formatMyersGraph: (rx: boolean[], ry: boolean[], x: unknown[], y: unknown[], options?: FormatMyersGraphOptions) => string;
+export declare const formatMyersGraph: (rx: boolean[], ry: boolean[], x: unknown[], y: unknown[], options?: Partial<FormatMyersGraphOptions>) => string;
 declare const _default: {
     formatBytes: typeof formatBytes;
     formatASCII: typeof formatASCII;

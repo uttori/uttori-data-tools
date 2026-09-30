@@ -4,14 +4,13 @@
  * @param {...*} args The arguments to log.
  */
 
-import DataBuffer from "./data-buffer.ts";
-import DataStream from "./data-stream.ts";
-import { Edit, Hunk } from "./diff/diff.ts";
+import type DataBuffer from "./data-buffer.js";
+import type { Edit, Hunk } from "./diff/diff.js";
 
 /** @type {DebugLogger} */
 let debug = (..._args: unknown[]) => {};
 /* c8 ignore next */
-if (process.env.UTTORI_DATA_DEBUG) {
+if (typeof process !== "undefined" && process.env.UTTORI_DATA_DEBUG) {
   try {
     const { default: d } = await import("debug");
     debug = d("DataFormatting");
@@ -38,8 +37,8 @@ export type FormatASCIIOutput = [string, Record<string, boolean | number | strin
 export type FormatNumberToASCII = (
   value: number,
   asciiFlags: Record<string, boolean | number | string>,
-  data: DataBuffer | DataStream,
-) => FormatASCIIOutput;
+  data: DataBuffer,
+) => FormatASCIIOutput | string;
 
 /**
  * Format an amount of bytes to a human friendly string.
@@ -56,11 +55,34 @@ export const formatBytes = (
   bytes: number = 1024,
   sizes: string[] = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
 ) => {
+  if (!Number.isFinite(input)) {
+    throw new RangeError(`Invalid byte size: ${input}`);
+  }
+  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 100) {
+    throw new RangeError(`Invalid decimal count: ${decimals}`);
+  }
+  if (!Number.isFinite(bytes) || bytes <= 1) {
+    throw new RangeError(`Invalid byte division value: ${bytes}`);
+  }
+  if (sizes.length === 0) {
+    throw new RangeError("At least one size suffix is required.");
+  }
   if (input === 0) {
     return `0 ${sizes[0]}`;
   }
-  const i = Math.floor(Math.log(input) / Math.log(bytes));
-  return `${Number.parseFloat((input / bytes ** i).toFixed(decimals))} ${sizes[i]}`;
+  const magnitude = Math.abs(input);
+  let i = Math.max(
+    0,
+    Math.min(sizes.length - 1, Math.floor(Math.log(magnitude) / Math.log(bytes))),
+  );
+  // Logarithms can round up immediately below a unit boundary; compare the actual powers as well.
+  while (i > 0 && magnitude < bytes ** i) {
+    i--;
+  }
+  while (i < sizes.length - 1 && magnitude >= bytes ** (i + 1)) {
+    i++;
+  }
+  return `${Number((input / bytes ** i).toFixed(decimals))} ${sizes[i]}`;
 };
 
 /**
@@ -73,7 +95,7 @@ export const formatBytes = (
 export const formatASCII = (
   value: number,
   asciiFlags: Record<string, boolean | number | string>,
-  _data: DataBuffer | DataStream,
+  _data: DataBuffer,
 ): FormatASCIIOutput => {
   // Unprintable ASCII < 128 == ' ', > 128 == '.'
   if (value < 0x20) {
@@ -85,6 +107,17 @@ export const formatASCII = (
   // Alternatively: value.replace(/[^\x20-\x7E]+/g, '_')
   return [String.fromCharCode(value), asciiFlags];
 };
+
+/** Cached representations of the 256 possible byte values. */
+const byteHex = /* @__PURE__ */ Array.from({ length: 256 }, (_, value) =>
+  value.toString(16).padStart(2, "0").toUpperCase(),
+);
+const byteBits = /* @__PURE__ */ Array.from({ length: 256 }, (_, value) =>
+  value.toString(2).padStart(8, "0"),
+);
+const byteBitChanges = /* @__PURE__ */ byteBits.map((value) =>
+  value.replace(/0/g, " ").replace(/1/g, "^"),
+);
 
 /** Formatting functions for all value types. */
 export interface HexTableFormater {
@@ -99,7 +132,7 @@ export interface HexTableFormater {
 /** Formatting functions for all value types. */
 export const hexTableFormaters: HexTableFormater = {
   offset: (value: number) => value.toString(16).padStart(8, "0"),
-  value: (value: number) => value.toString(16).padStart(2, "0").toUpperCase(),
+  value: (value: number) => byteHex[value] ?? value.toString(16).padStart(2, "0").toUpperCase(),
   ascii: formatASCII,
 };
 
@@ -158,33 +191,58 @@ export const hexTableDimensions: HexTableDimensions = {
 /**
  * Generate a nicely formatted hex editor style table.
  * @param input Input data to print out as a hex table.
- * @param offset Offset in the DataStream to start from.
+ * @param offset Display offset for the first byte; reading starts at the input DataBuffer cursor.
  * @param dimensions Table size parameters for columns, rows and byte grouping.
  * @param header The values for building the table header with offset, bytes and ASCII values.
  * @param format The formatting functions for displaying offset, bytes and ASCII values.
  * @returns The hex table ASCII.
  */
 export const hexTable = (
-  input: DataBuffer | DataStream,
+  input: DataBuffer,
   offset: number = 0,
   dimensions: HexTableDimensions = hexTableDimensions,
   header: HexTableHeader = hexTableHeader,
   format: HexTableFormater = hexTableFormaters,
 ): string => {
+  if (!Number.isSafeInteger(offset) || offset < 0) {
+    throw new RangeError(`Invalid display offset: ${offset}`);
+  }
+  if (
+    !Number.isSafeInteger(dimensions.columns) ||
+    dimensions.columns < 1 ||
+    !Number.isSafeInteger(dimensions.grouping) ||
+    dimensions.grouping < 1 ||
+    (dimensions.maxRows !== Infinity &&
+      (!Number.isSafeInteger(dimensions.maxRows) || dimensions.maxRows < 0))
+  ) {
+    throw new RangeError("Invalid hex table dimensions.");
+  }
   // Do not manipulate the input data.
-  const data = input.copy();
+  // The default ASCII formatter needs no lookahead, so copy only the bytes that can be displayed.
+  // Custom callbacks retain a complete independent copy for lookahead and local cursor changes.
+  const defaultASCII = format.ascii === formatASCII;
+  const data = defaultASCII
+    ? input.slice(
+        input.offset,
+        Math.min(input.remainingBytes(), dimensions.columns * dimensions.maxRows),
+      )
+    : input.copy();
+  if (!defaultASCII) {
+    data.seek(input.offset);
+  }
   // Build the header, offset, then bytes with grouping & the dashed line seperator
-  // Start with determining the customizable byte area for the header and seperatpr
+  // Start with determining the customizable byte area for the header and separator
   let headerByteValues = "";
-  header.value.forEach((byte, column) => {
-    headerByteValues += byte;
+  for (let column = 0; column < dimensions.columns; column++) {
+    headerByteValues += header.value[column] ?? format.value(column);
     // Grouping by provided value value, add spacing every gap space, but not the last column.
     if (column + 1 !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
       headerByteValues += " ";
     }
-  });
-  let output = `| ${header.offset} | ${headerByteValues} | ${header.ascii} |\n`;
-  output += `|-${"-".repeat(header.offset.length)}-|-${"-".repeat(headerByteValues.length)}-|-${"-".repeat(header.ascii.length)}-|\n`;
+  }
+  const headerASCII = header.ascii.slice(0, dimensions.columns).padEnd(dimensions.columns, " ");
+  let output = `| ${header.offset} | ${headerByteValues} | ${headerASCII} |\n`;
+  output += `|-${"-".repeat(header.offset.length)}-|-${"-".repeat(headerByteValues.length)}-|-${"-".repeat(headerASCII.length)}-|\n`;
 
   // Build the actual data portion of the table, starting from the provided offset.
   let ascii = "";
@@ -192,7 +250,8 @@ export const hexTable = (
   let asciiFlags: Record<string, boolean | number | string> = {};
   let row = 0;
   let column = 0;
-  while (data.remainingBytes() && row !== dimensions.maxRows) {
+  let valueWidth = 2;
+  while (data.remainingBytes() > 0 && row < dimensions.maxRows) {
     // Update the offset when we get to a new column
     if (column === 0) {
       output += `| ${format.offset(offset)} | `;
@@ -200,9 +259,17 @@ export const hexTable = (
 
     // Read the actual value from the data and format it for the output
     const value = data.readUInt8();
-    output += format.value(value);
+    const formattedValue = format.value(value);
+    if (column === 0) {
+      valueWidth = formattedValue.length;
+    }
+    output += formattedValue;
     const asciiFormatted = format.ascii(value, asciiFlags, data);
-    [asciiValue, asciiFlags] = asciiFormatted;
+    if (typeof asciiFormatted === "string") {
+      asciiValue = asciiFormatted;
+    } else {
+      [asciiValue, asciiFlags] = asciiFormatted;
+    }
     ascii += asciiValue;
 
     // Add spacing every gap space, but not the last column.
@@ -225,24 +292,20 @@ export const hexTable = (
 
   // Fill in empty space to maintain the shape
   if (column > 0) {
-    while (column <= dimensions.columns) {
-      if (column === dimensions.columns) {
-        output += ` | ${ascii} |`;
-        ascii = "";
-        row++;
-      }
+    const emptyValue = " ".repeat(valueWidth);
+    while (column < dimensions.columns) {
       ascii += " ";
-      output += "  ";
+      output += emptyValue;
       // Add spacing every gap space, but not the last column.
       if (column + 1 !== dimensions.columns && (column + 1) % dimensions.grouping === 0) {
         output += " ";
       }
       column++;
-      offset++;
     }
+    output += ` | ${ascii} |\n`;
   }
 
-  return output.trim();
+  return output.trimEnd();
 };
 
 /**
@@ -257,6 +320,16 @@ export const formatTableLine = (
   type: string,
   options: FormatTableOptions,
 ): string => {
+  if (
+    !Number.isSafeInteger(options.padding) ||
+    options.padding < 0 ||
+    columnLengths.some((length) => !Number.isSafeInteger(length) || length < 0)
+  ) {
+    throw new RangeError("Invalid table padding or column length.");
+  }
+  if (columnLengths.length === 0) {
+    return "";
+  }
   // Separator for top bottom mid
   let separator = "";
   const { theme } = options;
@@ -275,10 +348,8 @@ export const formatTableLine = (
   }
 
   for (let i = 0; i < columnLengths.length; i++) {
-    for (let l = 0; l < columnLengths[i]; l++) {
-      separator += theme.line; // horizontal line
-    }
-    separator += Array(options.padding * 2 + 1).join(theme.line);
+    separator += theme.line.repeat(columnLengths[i]); // horizontal line
+    separator += theme.line.repeat(options.padding * 2);
 
     if (i === columnLengths.length - 1) {
       switch (type) {
@@ -429,7 +500,7 @@ export interface FormatTableOptions {
 // TODO: See https://github.com/orling/grapheme-splitter for an indepth explination
 /**
  * Create an ASCII table from provided data and configuration.
- * @param {string[][]} data The data to add to the table.
+ * @param {unknown[][]} data The data to add to the table; cells are converted to strings once.
  * @param {object} [options] Configuration.
  * @param {string[]} options.align The alignment of each column, left or right.
  * @param {number} options.padding Amount of padding to add to each cell.
@@ -438,7 +509,7 @@ export interface FormatTableOptions {
  * @returns {string} The ASCII table of data.
  */
 export const formatTable = (
-  data: string[][],
+  data: readonly (readonly unknown[])[],
   options: Partial<FormatTableOptions> = {},
 ): string => {
   const align = options.align ?? ["left"];
@@ -447,8 +518,19 @@ export const formatTable = (
   const title = options.title ?? "";
   const resolved: FormatTableOptions = { align, padding, theme, title };
 
-  // Use JSON parse & stringify to get a deep copy of the parameter array
-  data = structuredClone(data);
+  if (!Number.isSafeInteger(padding) || padding < 0) {
+    throw new RangeError(`Invalid table padding: ${padding}`);
+  }
+  // Do not mutate the parameter array; normalize cells once without a deep copy.
+  const rows = data.map((row) =>
+    Array.from(row, (column) => {
+      const value = String(column);
+      return value.includes("\n") || value.includes("\r") ? value.split(/\r\n|\r|\n/) : [value];
+    }),
+  );
+  if (rows.length === 0) {
+    return "";
+  }
 
   // Ensure all the rows have the same number of columns.
   const allSameLength = data.every(({ length }) => length === data[0].length);
@@ -458,10 +540,24 @@ export const formatTable = (
 
   // Make an array with the length of each column
   const columnLengths: number[] = [];
-  for (const row of data) {
+  for (const row of rows) {
     for (const [i, column] of row.entries()) {
-      columnLengths[i] = Math.max(columnLengths[i] || 1, String(column).length);
+      for (const line of column) {
+        columnLengths[i] = Math.max(columnLengths[i] || 1, line.length);
+      }
     }
+  }
+  if (columnLengths.length === 0) {
+    return "";
+  }
+  const titleLines = resolved.title.split(/\r\n|\r|\n/);
+  if (resolved.title) {
+    const innerWidth =
+      columnLengths.reduce((sum, length) => sum + length + padding * 2, 0) +
+      (columnLengths.length - 1) * resolved.theme.wall.length;
+    const titleWidth = titleLines.reduce((maximum, line) => Math.max(maximum, line.length), 0);
+    // Expand the final column instead of creating a negative padding length for a long title.
+    columnLengths[columnLengths.length - 1] += Math.max(0, titleWidth - innerWidth);
   }
 
   // Add the title or the top line if the theme needs it
@@ -470,51 +566,47 @@ export const formatTable = (
     outputString += `${formatTableLine(columnLengths, "title_top", resolved)}\n`;
 
     const total_length = formatTableLine(columnLengths, "", resolved).length;
-    const rem = total_length - 2 - resolved.title.length;
-    const half = Math.floor(rem / 2);
+    for (const line of titleLines) {
+      const rem = Math.max(0, total_length - resolved.theme.wall.length * 2 - line.length);
+      const half = Math.floor(rem / 2);
 
-    let row = resolved.theme.wall;
-    row += Array(half + 1).join(" ");
-    row += resolved.title;
-    row += Array(half + 1 + (rem % 2)).join(" ");
-    row += resolved.theme.wall;
-    outputString += `${row}\n`;
+      let row = resolved.theme.wall;
+      row += " ".repeat(half);
+      row += line;
+      row += " ".repeat(half + (rem % 2));
+      row += resolved.theme.wall;
+      outputString += `${row}\n`;
+    }
     outputString += `${formatTableLine(columnLengths, "title_bottom", resolved)}\n`;
   } else if (resolved.theme.topRow) {
     outputString += `${formatTableLine(columnLengths, "top", resolved)}\n`; // Add top line
   }
 
   // Fill rows
-  for (let i = 0; i < data.length; i++) {
-    let row = resolved.theme.wall;
-
-    for (let j = 0; j < data[i].length; j++) {
-      let col = Array(resolved.padding + 1).join(" "); // Left padding
-
-      if (resolved.align[j] === "right") {
-        for (let l = 0; l < columnLengths[j] - String(data[i][j]).length; l++) {
-          col += " ";
+  const cellPadding = " ".repeat(resolved.padding);
+  for (let i = 0; i < rows.length; i++) {
+    const height = rows[i].reduce((maximum, column) => Math.max(maximum, column.length), 1);
+    for (let line = 0; line < height; line++) {
+      let row = resolved.theme.wall;
+      for (let j = 0; j < columnLengths.length; j++) {
+        let col = cellPadding; // Left padding
+        const value = rows[i][j]?.[line] ?? "";
+        if (resolved.align[j] === "right") {
+          col += value.padStart(columnLengths[j], " ");
+        } else {
+          col += value.padEnd(columnLengths[j], " ");
         }
-        col += data[i][j];
-      } else {
-        col += data[i][j];
-        if (String(data[i][j]).length < columnLengths[j]) {
-          for (let l = 0; l < columnLengths[j] - String(data[i][j]).length; l++) {
-            col += " ";
-          }
+        col += cellPadding;
+
+        // if its not the last col
+        if (j !== columnLengths.length - 1) {
+          col += resolved.theme.wall;
         }
+        row += col;
       }
-
-      col += Array(resolved.padding + 1).join(" ");
-
-      // if its not the last col
-      if (j !== data[i].length - 1) {
-        col += resolved.theme.wall;
-      }
-      row += col;
+      row += resolved.theme.wall;
+      outputString += `${row}\n`;
     }
-    row += resolved.theme.wall;
-    outputString += `${row}\n`;
 
     // Header
     if (i === 0) {
@@ -540,9 +632,24 @@ export interface FormatDiffHexOptions {
   showBits: boolean;
 }
 
+/** A display column may be absent from either side of an insertion or deletion. */
+interface DiffHexCell {
+  x: number | undefined;
+  y: number | undefined;
+  op: number;
+}
+
+/** Reject non-byte values rather than rendering misleading NaN, string, or overflowing cells. */
+const diffByte = (value: unknown): number => {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 255) {
+    throw new RangeError(`Expected a byte value: ${String(value)}`);
+  }
+  return value;
+};
+
 /**
  * Format diff edits as a hex-friendly table showing changes.
- * Shows three rows: original data, delta values, and resulting data.
+ * Shows three rows: original data, delta values, and resulting data. Missing bytes use --; offsets track each side independently.
  * @param edits The diff edits to format.
  * @param options Configuration options.
  * @returns The formatted diff output.
@@ -552,12 +659,16 @@ export const formatDiffHex = (
   options: Partial<FormatDiffHexOptions> = {},
 ): string => {
   const bytesPerRow = options.bytesPerRow ?? 16;
+  if (!Number.isSafeInteger(bytesPerRow) || bytesPerRow < 1) {
+    throw new RangeError(`Invalid bytes per row: ${bytesPerRow}`);
+  }
   const showOffset = options.showOffset ?? true;
   const showAscii = options.showAscii ?? true;
   const showBits = options.showBits ?? true;
   let output = "";
   let xOffset = 0;
-  let rowBuffer: Edit[] = [];
+  let yOffset = 0;
+  let rowBuffer: DiffHexCell[] = [];
 
   const flushRow = () => {
     if (rowBuffer.length === 0) {
@@ -565,9 +676,19 @@ export const formatDiffHex = (
     }
 
     // Check if this row has any changes
-    const hasChanges = rowBuffer.some(({ op }) => op !== 0);
+    const hasChanges = xOffset !== yOffset || rowBuffer.some(({ op }) => op !== 0);
 
-    const offsetPrefix = showOffset ? `${xOffset.toString(16).padStart(8, "0")} | ` : "";
+    let offsetPrefix: string;
+    if (showOffset) {
+      offsetPrefix = `${xOffset.toString(16).padStart(8, "0")} | `;
+    } else if (hasChanges) {
+      offsetPrefix = " ";
+    } else {
+      offsetPrefix = "";
+    }
+    const resultOffsetPrefix = showOffset ? `${yOffset.toString(16).padStart(8, "0")} | ` : " ";
+    xOffset += rowBuffer.reduce((count, cell) => count + (cell.x === undefined ? 0 : 1), 0);
+    yOffset += rowBuffer.reduce((count, cell) => count + (cell.y === undefined ? 0 : 1), 0);
 
     // If no changes, just show a single row
     if (!hasChanges) {
@@ -578,17 +699,23 @@ export const formatDiffHex = (
       for (let i = 0; i < bytesPerRow; i++) {
         if (i < rowBuffer.length) {
           const { x } = rowBuffer[i];
-          const hex = x.toString(16).padStart(2, "0").toUpperCase();
+          const hex = x === undefined ? "--" : byteHex[x];
           row += hex;
 
           if (showBits) {
-            const bits = x.toString(2).padStart(8, "0");
+            const bits = x === undefined ? "--------" : byteBits[x];
             rowBits += bits;
           }
 
           if (showAscii) {
-            const char =
-              Number(x) >= 0x20 && Number(x) <= 0x7e ? String.fromCharCode(Number(x)) : ".";
+            let char: string;
+            if (x === undefined) {
+              char = " ";
+            } else if (x >= 0x20 && x <= 0x7e) {
+              char = String.fromCharCode(x);
+            } else {
+              char = ".";
+            }
             rowAscii += char;
           }
         } else {
@@ -624,7 +751,7 @@ export const formatDiffHex = (
     }
 
     // Has changes, show three-row format
-    const offsetPadding = showOffset ? " ".repeat(11) : "";
+    const offsetPadding = showOffset ? " ".repeat(11) : " ";
 
     // Row 1: Original data
     let row1 = offsetPrefix;
@@ -636,7 +763,7 @@ export const formatDiffHex = (
     let row2Bits = "";
 
     // Row 3: Resulting data
-    let row3 = offsetPrefix;
+    let row3 = resultOffsetPrefix;
     let row3Bits = "";
     let row3Ascii = "";
 
@@ -645,17 +772,23 @@ export const formatDiffHex = (
         const { x, y, op } = rowBuffer[i];
 
         // Original value
-        const hex1 = x.toString(16).padStart(2, "0").toUpperCase();
+        const hex1 = x === undefined ? "--" : byteHex[x];
         row1 += hex1;
 
         if (showBits) {
-          const bits1 = x.toString(2).padStart(8, "0");
+          const bits1 = x === undefined ? "--------" : byteBits[x];
           row1Bits += bits1;
         }
 
         if (showAscii) {
-          const char =
-            Number(x) >= 0x20 && Number(x) <= 0x7e ? String.fromCharCode(Number(x)) : ".";
+          let char: string;
+          if (x === undefined) {
+            char = " ";
+          } else if (x >= 0x20 && x <= 0x7e) {
+            char = String.fromCharCode(x);
+          } else {
+            char = ".";
+          }
           row1Ascii += char;
         }
 
@@ -668,38 +801,47 @@ export const formatDiffHex = (
           }
         } else {
           // Calculate signed difference
-          const diff = Number(y) - Number(x);
-          const sign = diff >= 0 ? "+" : "-";
+          const diff = (y ?? 0) - (x ?? 0);
+          let sign: string;
+          if (y === undefined) {
+            sign = "-";
+          } else if (x === undefined || diff >= 0) {
+            sign = "+";
+          } else {
+            sign = "-";
+          }
           const absDiff = Math.abs(diff);
-          const deltaHex = absDiff.toString(16).padStart(2, "0").toUpperCase();
+          const deltaHex = byteHex[absDiff];
           // Back up one character to place sign in the space before the hex
           row2 = row2.slice(0, -1) + sign + deltaHex;
 
           if (showBits) {
             // Show XOR of bits to highlight which bits changed
-            const xor = Number(x) ^ Number(y);
-            const xorBits = xor.toString(2).padStart(8, "0");
+            const xor = (x ?? 0) ^ (y ?? 0);
             // Replace 0s with spaces, keep 1s to show which bits flipped
-            const diffBits = xorBits
-              .split("")
-              .map((b) => (b === "1" ? "^" : " "))
-              .join("");
+            const diffBits = x === undefined || y === undefined ? "^^^^^^^^" : byteBitChanges[xor];
             row2Bits += diffBits;
           }
         }
 
         // Resulting value
-        const hex3 = y.toString(16).padStart(2, "0").toUpperCase();
+        const hex3 = y === undefined ? "--" : byteHex[y];
         row3 += hex3;
 
         if (showBits) {
-          const bits3 = y.toString(2).padStart(8, "0");
+          const bits3 = y === undefined ? "--------" : byteBits[y];
           row3Bits += bits3;
         }
 
         if (showAscii) {
-          const char =
-            Number(y) >= 0x20 && Number(y) <= 0x7e ? String.fromCharCode(Number(y)) : ".";
+          let char: string;
+          if (y === undefined) {
+            char = " ";
+          } else if (y >= 0x20 && y <= 0x7e) {
+            char = String.fromCharCode(y);
+          } else {
+            char = ".";
+          }
           row3Ascii += char;
         }
       } else {
@@ -759,42 +901,51 @@ export const formatDiffHex = (
     rowBuffer = [];
   };
 
-  // Process edits, combining delete+insert into replacements
-  for (let i = 0; i < edits.length; i++) {
-    const edit = edits[i];
-    const { op, x, y } = edit;
-
-    if (op === 0) {
-      // Match
-      rowBuffer.push({ x, y, op });
-    } else if (op === 1) {
-      // Delete
-      // Check if next edit is an insert - if so, treat as replacement
-      if (i + 1 < edits.length && edits[i + 1].op === 2) {
-        const nextEdit = edits[i + 1];
-        // Show as change
-        rowBuffer.push({ x, y: nextEdit.y, op: 1 });
-        // Skip the next insert since we combined them
-        i++;
-      } else {
-        // Standalone delete - show as x ➜ x (no visual change in this context)
-        rowBuffer.push({ x, y: x, op: 0 });
-      }
-    } else if (op === 2) {
-      // Insert (standalone, not part of replacement)
-      // Standalone insert - show as 0 ➜ y
-      rowBuffer.push({ x: 0, y, op: 2 });
-    }
-
+  const append = (cell: DiffHexCell) => {
+    rowBuffer.push(cell);
     if (rowBuffer.length >= bytesPerRow) {
       flushRow();
-      xOffset += bytesPerRow;
+    }
+  };
+
+  // Process edits, combining delete+insert runs into replacements while preserving both sequences.
+  for (let i = 0; i < edits.length;) {
+    const { op, x, y } = edits[i];
+    if (op === 0) {
+      // Match
+      const original = diffByte(x);
+      const modified = diffByte(y);
+      if (original !== modified) {
+        throw new RangeError("A match edit must contain equal byte values.");
+      }
+      append({ x: original, y: modified, op });
+      i++;
+      continue;
+    }
+
+    const deleted: number[] = [];
+    const inserted: number[] = [];
+    while (i < edits.length && edits[i].op !== 0) {
+      const edit = edits[i++];
+      if (edit.op === 1) {
+        // Delete
+        deleted.push(diffByte(edit.x));
+      } else if (edit.op === 2) {
+        // Insert (standalone, not part of replacement until paired below)
+        inserted.push(diffByte(edit.y));
+      } else {
+        throw new RangeError(`Invalid edit operation: ${edit.op}`);
+      }
+    }
+    for (let j = 0; j < Math.max(deleted.length, inserted.length); j++) {
+      // Show as change; standalone deletes and inserts retain an absent side rather than a fictitious byte.
+      append({ x: deleted[j], y: inserted[j], op: j < deleted.length ? 1 : 2 });
     }
   }
 
   flushRow();
 
-  return output.trim();
+  return output.trimEnd();
 };
 
 export interface FormatDiffHunksOptions {
@@ -810,8 +961,12 @@ export interface FormatDiffHunksOptions {
  */
 export const formatDiffHunks = (
   hunks: Hunk[],
-  options: FormatDiffHunksOptions = { context: 3 },
+  options: Partial<FormatDiffHunksOptions> = {},
 ): string => {
+  const context = options.context ?? 3;
+  if (!Number.isSafeInteger(context) || context < 0) {
+    throw new RangeError(`Invalid diff context: ${context}`);
+  }
   let output = "";
 
   for (const hunk of hunks) {
@@ -819,7 +974,10 @@ export const formatDiffHunks = (
 
     // Find the range of changes (non-match operations)
     const firstChangeIdx = edits.findIndex((e) => e.op !== 0);
-    const lastChangeIdx = edits.length - 1 - [...edits].reverse().findIndex((e) => e.op !== 0);
+    let lastChangeIdx = edits.length - 1;
+    while (lastChangeIdx >= 0 && edits[lastChangeIdx].op === 0) {
+      lastChangeIdx--;
+    }
 
     // No changes in this hunk, skip it
     if (firstChangeIdx === -1) {
@@ -827,8 +985,8 @@ export const formatDiffHunks = (
     }
 
     // Calculate context range
-    const startIdx = Math.max(0, firstChangeIdx - options.context);
-    const endIdx = Math.min(edits.length, lastChangeIdx + options.context + 1);
+    const startIdx = Math.max(0, firstChangeIdx - context);
+    const endIdx = Math.min(edits.length, lastChangeIdx + context + 1);
 
     // Calculate actual positions for header
     let xCount = 0;
@@ -844,8 +1002,19 @@ export const formatDiffHunks = (
       }
     }
 
-    const actualPosX = posX + startIdx;
-    const actualPosY = posY + startIdx;
+    if (!Number.isSafeInteger(posX) || posX < 0 || !Number.isSafeInteger(posY) || posY < 0) {
+      throw new RangeError("Invalid diff hunk position.");
+    }
+    let actualPosX = posX;
+    let actualPosY = posY;
+    for (let i = 0; i < startIdx; i++) {
+      if (edits[i].op !== 2) {
+        actualPosX++;
+      }
+      if (edits[i].op !== 1) {
+        actualPosY++;
+      }
+    }
 
     // Header line
     output += `@@ -${actualPosX},${xCount} +${actualPosY},${yCount} @@\n`;
@@ -855,13 +1024,21 @@ export const formatDiffHunks = (
       const edit = edits[i];
       const { op, x, y } = edit;
 
-      if (typeof x === "number" || typeof y === "number") {
+      if (op !== 0 && op !== 1 && op !== 2) {
+        throw new RangeError(`Invalid edit operation: ${op}`);
+      }
+      {
         const value = op === 2 ? y : x;
         const hex =
-          typeof value === "number" ? value.toString(16).padStart(2, "0").toUpperCase() : "??";
+          typeof value === "number" && Number.isInteger(value) ? (byteHex[value] ?? "??") : "??";
 
         let char = ".";
-        if (typeof value === "number" && value >= 0x20 && value <= 0x7e) {
+        if (
+          typeof value === "number" &&
+          Number.isInteger(value) &&
+          value >= 0x20 &&
+          value <= 0x7e
+        ) {
           char = String.fromCharCode(value);
         }
 
@@ -905,6 +1082,8 @@ export interface FormatMyersGraphOptions {
   showFull: boolean;
   /** Show axis labels, default is true. */
   showLabels: boolean;
+  /** Maximum character cells to allocate, default is 1,000,000. */
+  maxCells?: number;
 }
 
 /**
@@ -922,10 +1101,27 @@ export const formatMyersGraph = (
   ry: boolean[],
   x: unknown[],
   y: unknown[],
-  options: FormatMyersGraphOptions = { showFull: false, showLabels: true },
+  options: Partial<FormatMyersGraphOptions> = {},
 ): string => {
+  const showFull = options.showFull ?? false;
+  const showLabels = options.showLabels ?? true;
   const width = x.length;
   const height = y.length;
+
+  // Build the grid
+  // Each cell is at least 4 chars wide: "o---" or "o   ", growing for wider axis labels.
+  // Each row is 2 lines tall: node line and edge line
+  const gridWidth = width + 1;
+  const gridHeight = height + 1;
+  const cellWidth = Math.max(4, width.toString().length + 1);
+  const charWidth = gridWidth * cellWidth;
+  const charHeight = gridHeight * 2;
+
+  const maxCells = options.maxCells ?? 1_000_000;
+  if (!Number.isSafeInteger(maxCells) || maxCells < 1 || charWidth * charHeight > maxCells) {
+    throw new RangeError("Myers graph exceeds the maximum character cell count.");
+  }
+  const rowLabelWidth = Math.max(2, height.toString().length, cellWidth - 2);
 
   // Trace the path through the grid
   const path: MyersPathNode[] = [];
@@ -953,34 +1149,26 @@ export const formatMyersGraph = (
     }
   }
 
-  // Build the grid
-  // Each cell is 4 chars wide: "o---" or "o   "
-  // Each row is 2 lines tall: node line and edge line
-  const gridWidth = width + 1;
-  const gridHeight = height + 1;
-  const charWidth = gridWidth * 4;
-  const charHeight = gridHeight * 2;
-
   // Initialize grid with spaces
   const grid: string[][] = Array.from({ length: charHeight }, () =>
-    Array.from({ length: charWidth }, () => " "),
+    Array<string>(charWidth).fill(" "),
   );
 
-  if (options.showFull) {
+  if (showFull) {
     // Draw full grid
     for (let row = 0; row <= height; row++) {
       for (let col = 0; col <= width; col++) {
         const gridY = row * 2;
-        const gridX = col * 4;
+        const gridX = col * cellWidth;
 
         // Place node
         grid[gridY][gridX] = "o";
 
         // Horizontal edges
         if (col < width) {
-          grid[gridY][gridX + 1] = "-";
-          grid[gridY][gridX + 2] = "-";
-          grid[gridY][gridX + 3] = "-";
+          for (let edge = 1; edge < cellWidth; edge++) {
+            grid[gridY][gridX + edge] = "-";
+          }
         }
 
         // Vertical edges
@@ -992,7 +1180,7 @@ export const formatMyersGraph = (
         if (col < width && row < height) {
           // Check if x[col] actually equals y[row]
           if (x[col] === y[row]) {
-            grid[gridY + 1][gridX + 2] = "\\";
+            grid[gridY + 1][gridX + Math.floor(cellWidth / 2)] = "\\";
           }
         }
       }
@@ -1002,7 +1190,7 @@ export const formatMyersGraph = (
     for (let i = 0; i < path.length; i++) {
       const { x: col, y: row } = path[i];
       const gridY = row * 2;
-      const gridX = col * 4;
+      const gridX = col * cellWidth;
 
       // Place node
       grid[gridY][gridX] = "o";
@@ -1013,12 +1201,12 @@ export const formatMyersGraph = (
 
         if (next.diagonal) {
           // Diagonal edge
-          grid[gridY + 1][gridX + 2] = "\\";
+          grid[gridY + 1][gridX + Math.floor(cellWidth / 2)] = "\\";
         } else if (next.horizontal) {
           // Horizontal edge
-          grid[gridY][gridX + 1] = "-";
-          grid[gridY][gridX + 2] = "-";
-          grid[gridY][gridX + 3] = "-";
+          for (let edge = 1; edge < cellWidth; edge++) {
+            grid[gridY][gridX + edge] = "-";
+          }
         } else if (next.vertical) {
           // Vertical edge
           grid[gridY + 1][gridX] = "|";
@@ -1030,22 +1218,23 @@ export const formatMyersGraph = (
   // Convert grid to string with labels
   let output = "";
 
-  if (options.showLabels) {
+  if (showLabels) {
     // Top row: column numbers
+    output += " ".repeat(rowLabelWidth - cellWidth + 2);
     for (let col = 0; col <= width; col++) {
-      output += col.toString().padStart(4, " ");
+      output += col.toString().padStart(cellWidth, " ");
     }
     output += "\n";
   }
 
   // Grid rows
   for (let row = 0; row < charHeight; row++) {
-    if (options.showLabels && row % 2 === 0) {
+    if (showLabels && row % 2 === 0) {
       // Add row number for node lines
-      output += (row / 2).toString().padStart(2, " ") + " ";
-    } else if (options.showLabels) {
+      output += (row / 2).toString().padStart(rowLabelWidth, " ") + " ";
+    } else if (showLabels) {
       // Spacer for edge lines
-      output += "   ";
+      output += " ".repeat(rowLabelWidth + 1);
     }
 
     output += grid[row].join("") + "\n";

@@ -1,9 +1,4 @@
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- * @callback DebugLogger
- * @param {...*} args The arguments to log.
- */
-import DataBuffer from "@uttori/data-tools/data-buffer";
+import DataBuffer from "../data-buffer.js";
 /**  A chunk of IPS data. */
 export interface IPSChunk {
     /** 3 bytes. The starting offset of the change. */
@@ -13,9 +8,9 @@ export interface IPSChunk {
     /** The type of change, value is not undefined when Run Length Encoding is being used. */
     rle?: number;
     /** The data to be used for the change when not RLE. */
-    data?: number[];
+    data?: number[] | Uint8Array;
 }
-/** The maximum size of a file in the IPS format, 16 megabytes. */
+/** The maximum output file size supported by this implementation, 16 mebibytes. */
 export declare const IPS_MAX_SIZE = 16777216;
 /**
  * IPS as a format is a simple format for binary file patches, popular in the ROM hacking community
@@ -43,6 +38,8 @@ declare class IPS extends DataBuffer {
     hunks: IPSChunk[];
     /** The 3 byte length the file should be truncated to. */
     truncate: number;
+    /** Whether a truncate command is present, including an explicit truncate to zero bytes. */
+    hasTruncate: boolean;
     /**
      * Creates an instance of IPS.
      * @param input The data to process.
@@ -82,11 +79,15 @@ declare class IPS extends DataBuffer {
     /**
      * Calculate the difference between two DataBuffers and save it as an IPS patch.
      * @static
-     * @param original The original file to compare against.
-     * @param modified The modified file.
+     * @param original The original file to compare against, using all committed bytes regardless of its cursor.
+     * @param modified The modified file, using all committed bytes regardless of its cursor.
      * @returns The IPS patch file data as a Buffer.
      */
     static createIPSFromDataBuffers(original: DataBuffer, modified: DataBuffer): IPS;
+    /** Validate manually supplied or parsed records before encoding or applying any of them. */
+    private static validateHunk;
+    /** Validate the optional three-byte final size, including an explicit zero-length result. */
+    private validateTruncate;
 }
 export default IPS;
 //# sourceMappingURL=data-patch-ips.d.ts.map

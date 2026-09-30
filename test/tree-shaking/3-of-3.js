@@ -1,11 +1,8 @@
-import { DataBuffer, DataBufferList, DataStream } from '../../dist/index.js';
+import { DataBuffer } from '../../dist/index.js';
 
 const main = () => {
-  const data_buffer = new DataBuffer();
-  const data_buffer_list = new DataBufferList();
-  const data_stream = new DataStream();
-
-  return [data_buffer, data_buffer_list, data_stream];
+  const dataBuffer = new DataBuffer();
+  return [dataBuffer];
 };
 
 export default main;

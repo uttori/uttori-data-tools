@@ -14,8 +14,8 @@ export const Op = {
 /**
  * Edit describes a single edit of a diff.
  * - For Match, both X and Y contain the matching element.
- * - For Delete, X contains the deleted element and Y is unset (zero value).
- * - For Insert, Y contains the inserted element and X is unset (zero value).
+ * - For Delete, X contains the deleted element and Y mirrors X for backwards compatibility.
+ * - For Insert, Y contains the inserted element and X mirrors Y for backwards compatibility.
  */
 export interface Edit {
   /** The edit operation: Match = 0, Delete = 1, Insert = 2. */
@@ -41,12 +41,13 @@ export interface Hunk {
 }
 
 export interface DiffResult {
-  /** The first array of booleans. */
+  /** The first array of booleans, with a trailing false sentinel. */
   rx: boolean[];
-  /** The second array of booleans. */
+  /** The second array of booleans, with a trailing false sentinel. */
   ry: boolean[];
 }
 
+/** Compares original left and right elements. The result must be stable during a diff. */
 export type EqualityFunction = (
   a: string | number | Uint8Array,
   b: string | number | Uint8Array,
@@ -58,11 +59,11 @@ export type EqualityFunction = (
  * The output is a sequence of hunks that each describe a number of consecutive edits.
  * Hunks include a number of matching elements before and after the last delete or insert operation.
  * If x and y are identical, the output has length zero.
- * Note that this function has generally worse performance than [Hunks] for diffs with many changes.
+ * Computing a minimal diff can be expensive for inputs with many changes.
  * @param x The first array to compare
  * @param y The second array to compare
  * @param eq Equality function to compare elements
- * @param context Number of matching elements to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching elements to include around changes (default: 3)
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export function hunks(
@@ -71,6 +72,10 @@ export function hunks(
   eq: EqualityFunction = (a, b) => a === b,
   context = DEFAULT_CONTEXT,
 ): Hunk[] {
+  if (!Number.isSafeInteger(context) || context < 0) {
+    throw new RangeError("context must be a non-negative safe integer");
+  }
+
   const { rx, ry } = diff(x, y, eq);
   return createHunks(x, y, rx, ry, context);
 }
@@ -80,7 +85,7 @@ export function hunks(
  * @param y The second array to compare
  * @param rx The first array of booleans
  * @param ry The second array of booleans
- * @param _context The context
+ * @param context The context
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 function createHunks(
@@ -88,7 +93,7 @@ function createHunks(
   y: string[] | number[] | Uint8Array[],
   rx: boolean[],
   ry: boolean[],
-  _context: number,
+  context: number,
 ): Hunk[] {
   const hunks: Hunk[] = [];
 
@@ -97,108 +102,53 @@ function createHunks(
     return hunks; // Both empty
   }
 
-  if (x.length === 0) {
-    // x is empty, all of y is insertion
-    const edits: Edit[] = [];
-    for (const yi of y) {
-      edits.push({
-        op: Op.Insert,
-        x: yi, // This should be zero value
-        y: yi,
-      });
-    }
-    if (edits.length > 0) {
-      hunks.push({
-        posX: 0,
-        endX: 0,
-        posY: 0,
-        endY: y.length,
-        edits,
-      });
-    }
-    return hunks;
-  }
+  // Track positions in both inputs so insertion-only and deletion-only ranges stay aligned.
+  let s = 0;
+  let t = 0;
+  let s0 = -1;
+  let t0 = -1;
+  let run = 0;
 
-  if (y.length === 0) {
-    // y is empty, all of x is deletion
-    const edits: Edit[] = [];
-    for (const xi of x) {
-      edits.push({
-        op: Op.Delete,
-        x: xi,
-        y: xi, // This should be zero value
-      });
-    }
-    if (edits.length > 0) {
-      hunks.push({
-        posX: 0,
-        endX: x.length,
-        posY: 0,
-        endY: 0,
-        edits,
-      });
-    }
-    return hunks;
-  }
+  while (s < x.length || t < y.length) {
+    if ((s < x.length && rx[s]) || (t < y.length && ry[t])) {
+      run = 0;
+      if (s0 < 0) {
+        s0 = Math.max(0, s - context);
+        t0 = Math.max(0, t - context);
+      }
 
-  // Count the number of changes
-  let changeCount = 0;
-  for (let i = 0; i < x.length; i++) {
-    if (rx[i]) {
-      changeCount++;
-    }
-  }
-  for (let i = 0; i < y.length; i++) {
-    if (ry[i]) {
-      changeCount++;
-    }
-  }
-
-  // If there are changes, create a hunk
-  if (changeCount > 0) {
-    const edits = createEdits(x, y, rx, ry);
-
-    // If there are many changes, cover the entire array
-    // If there are few changes, cover only the changed portion
-    if (changeCount > Math.min(x.length, y.length) / 2) {
-      // Many changes - cover entire array
-      hunks.push({
-        posX: 0,
-        endX: x.length,
-        posY: 0,
-        endY: y.length,
-        edits,
-      });
+      // Process deletions
+      while (s < x.length && rx[s]) {
+        s++;
+      }
+      // Process insertions
+      while (t < y.length && ry[t]) {
+        t++;
+      }
     } else {
-      // Few changes - cover only changed portion
-      let minX = x.length,
-        maxX = 0;
-      let minY = y.length,
-        maxY = 0;
-
-      // Find the range of changes in x
-      for (let i = 0; i < x.length; i++) {
-        if (rx[i]) {
-          minX = Math.min(minX, i);
-          maxX = Math.max(maxX, i + 1);
-        }
+      // Process matches
+      while (s < x.length && t < y.length && !rx[s] && !ry[t]) {
+        s++;
+        t++;
+        run++;
       }
+    }
 
-      // Find the range of changes in y
-      for (let i = 0; i < y.length; i++) {
-        if (ry[i]) {
-          minY = Math.min(minY, i);
-          maxY = Math.max(maxY, i + 1);
-        }
-      }
-
+    // Merge touching context windows and close the hunk once they no longer overlap.
+    if (s0 >= 0 && (run > 2 * context || (s === x.length && t === y.length))) {
+      const delta = Math.min(0, context - run);
+      const s1 = s + delta;
+      const t1 = t + delta;
       hunks.push({
-        posX: minX,
-        endX: maxX,
-        posY: minY,
-        endY: maxY,
-        edits,
+        posX: s0,
+        endX: s1,
+        posY: t0,
+        endY: t1,
+        edits: createEdits(x, y, rx, ry, s0, s1, t0, t1),
       });
+      s0 = -1;
+      t0 = -1;
+      run = 0;
     }
   }
 
@@ -210,7 +160,7 @@ function createHunks(
  * changes necessary to convert from one to the other.
  * Returns edits for every element in the input.
  * If both x and y are identical, the output will consist of a match edit for every input element.
- * Note that this function has generally worse performance than [Edits] for diffs with many changes.
+ * Computing a minimal diff can be expensive for inputs with many changes.
  * @param x The first array to compare
  * @param y The second array to compare
  * @param eq Equality function to compare elements
@@ -230,6 +180,10 @@ export function edits(
  * @param y The second array to compare
  * @param rx The first array of booleans
  * @param ry The second array of booleans
+ * @param startX The start position in x
+ * @param endX The end position in x (exclusive)
+ * @param startY The start position in y
+ * @param endY The end position in y (exclusive)
  * @returns The edits for the diff.
  */
 function createEdits(
@@ -237,20 +191,24 @@ function createEdits(
   y: string[] | number[] | Uint8Array[],
   rx: boolean[],
   ry: boolean[],
+  startX = 0,
+  endX = x.length,
+  startY = 0,
+  endY = y.length,
 ): Edit[] {
   const edits: Edit[] = [];
-  const n = rx.length - 1;
-  const m = ry.length - 1;
+  const n = endX;
+  const m = endY;
 
-  let s = 0,
-    t = 0;
+  let s = startX,
+    t = startY;
   while (s < n || t < m) {
     // Process deletions
     while (s < n && rx[s]) {
       edits.push({
         op: Op.Delete,
         x: x[s],
-        y: x[s], // This should be zero value
+        y: x[s], // Mirror the active value for backwards compatibility
       });
       s++;
     }
@@ -259,7 +217,7 @@ function createEdits(
     while (t < m && ry[t]) {
       edits.push({
         op: Op.Insert,
-        x: y[t], // This should be zero value
+        x: y[t], // Mirror the active value for backwards compatibility
         y: y[t],
       });
       t++;
@@ -292,46 +250,22 @@ export function diff(
   y: string[] | number[] | Uint8Array[],
   eq: EqualityFunction = (a, b) => a === b,
 ): DiffResult {
-  const x0: number[] = [];
-  const y0: number[] = [];
-  const xidx: number[] = [];
-  const yidx: number[] = [];
-  const counts: number[] = [];
-
-  const elements: (string | number | Uint8Array)[] = [];
-
-  const findId = (e: string | number | Uint8Array): number => {
-    for (let i = 0; i < elements.length; i++) {
-      if (eq(elements[i], e)) {
-        return i;
-      }
-    }
-    // Not found, add new element
-    const id = elements.length;
-    elements.push(e);
-    counts.push(0);
-    return id;
-  };
+  const xidx: number[] = new Array<number>(x.length);
+  const yidx: number[] = new Array<number>(y.length);
 
   // Process x
   for (let i = 0; i < x.length; i++) {
-    const e = x[i];
-    const id = findId(e);
-    counts[id] = (counts[id] || 0) + 1;
-    x0.push(id);
-    xidx.push(i);
+    xidx[i] = i;
   }
 
   // Process y
   for (let i = 0; i < y.length; i++) {
-    const e = y[i];
-    const id = findId(e);
-    counts[id] = (counts[id] || 0) + 1;
-    y0.push(id);
-    yidx.push(i);
+    yidx[i] = i;
   }
 
-  const m: Myers = new Myers(xidx, yidx, x0, y0, eq);
+  // Compare the original elements, not interned numeric IDs. This also avoids
+  // quadratic interning work and preserves directional and non-transitive comparators.
+  const m: Myers = new Myers(xidx, yidx, x, y, eq);
   m.compare(m.smin, m.smax, m.tmin, m.tmax);
 
   return { rx: m.resultVectorX, ry: m.resultVectorY };

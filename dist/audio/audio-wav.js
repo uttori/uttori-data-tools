@@ -1,9 +1,7 @@
-import { inflate } from "pako";
-import DataBufferList from "../data-buffer-list.js";
+var _a;
+import { Inflate } from "pako";
 import DataBuffer from "../data-buffer.js";
-/**
- * No-op logger, replaced by the `debug` package when enabled.
- */
+/** No-op logger, replaced by the `debug` package when enabled. */
 let debug = (..._args) => { };
 /* c8 ignore next */
 if (typeof process !== "undefined" && process.env.UTTORI_AUDIOWAV_DEBUG) {
@@ -316,22 +314,166 @@ class AudioWAV extends DataBuffer {
     chunks;
     /** The options for the AudioWAV instance. */
     options;
+    /** Recoverable structural and metadata errors from the most recent parse. */
+    errors = [];
+    /** The first decoded format and file-wide sample-count metadata. */
+    #format;
+    #fact;
+    #common;
+    #soundChunks = [];
+    #ds64;
+    #headerID = "";
+    #dataSeen = 0;
+    #sizeTable;
+    #dataChunks = [];
+    /** Report recoverable damage, or fail immediately when strict parsing is requested. */
+    #issue(message, offset = this.offset) {
+        if (this.options.strict) {
+            throw new RangeError(`${message} (offset ${offset})`);
+        }
+        this.errors.push({ offset, message });
+        debug("Error Parsing:", message, "at offset", offset);
+    }
+    /** Combine unsigned 64-bit words only when JavaScript can represent the result exactly. */
+    static #uint64(low, high) {
+        const value = high * 0x100000000 + low;
+        if (!Number.isSafeInteger(value)) {
+            throw new RangeError("64-bit chunk size or sample count exceeds Number.MAX_SAFE_INTEGER");
+        }
+        return value;
+    }
+    /** Restrict a standalone decoder to its declared payload, excluding padding and later chunks. */
+    static #chunkBuffer(chunk, minimumSize, littleEndian = true) {
+        const buffer = new DataBuffer(typeof Buffer !== "undefined" && Buffer.isBuffer(chunk)
+            ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
+            : chunk);
+        if (buffer.length < 8) {
+            throw new RangeError("Truncated chunk header: expected 8 bytes");
+        }
+        const size = buffer.peekUInt32(4, littleEndian);
+        if (size < minimumSize || size > buffer.length - 8) {
+            throw new RangeError(`Invalid chunk payload size: ${size}; minimum ${minimumSize}, available ${buffer.length - 8}`);
+        }
+        if (buffer.length !== size + 8) {
+            buffer.data = buffer.data.subarray(0, size + 8);
+            buffer.lengthInBytes = buffer.data.length;
+        }
+        return buffer;
+    }
+    /** Validate integer writer fields without allocating a temporary validation table. */
+    static #unsigned(value, maximum, name) {
+        if (!Number.isInteger(value) || value < 0 || value > maximum) {
+            throw new RangeError(`Invalid ${name}: ${value}`);
+        }
+    }
+    /** Check count-derived ranges before allocating objects or entering a loop. */
+    static #countFits(count, width, available, name) {
+        if (count > Math.floor(available / width)) {
+            throw new RangeError(`Invalid ${name}: ${count} entries exceed ${available} bytes`);
+        }
+    }
+    /** Remove AIFF block-fill bytes once COMM is known, even when COMM follows SSND. */
+    #updateAiffSoundData() {
+        const common = this.#common;
+        if (!common) {
+            if (this.#soundChunks.length) {
+                this.#issue("AIFF sound data has no decoded COMM chunk", 12);
+            }
+            return;
+        }
+        // Compressed byte counts cannot be inferred from decoded frame counts and sample widths.
+        if (!["", "NONE", "twos", "sowt", "fl32", "FL32", "fl64", "FL64"].includes(common.compressionType)) {
+            return;
+        }
+        const size = common.sampleFrames * common.channels * Math.ceil(common.sampleSize / 8);
+        if (!Number.isSafeInteger(size) || common.channels === 0 || common.sampleSize === 0) {
+            this.#issue("Invalid AIFF sample-frame byte count", 12);
+            return;
+        }
+        // A COMM count describes one SSND chunk; do not apply it independently to multiple chunks.
+        if (this.#soundChunks.length !== 1) {
+            return;
+        }
+        const { value, offset } = this.#soundChunks[0];
+        if (size > value.soundData.length) {
+            this.#issue(`AIFF sound data has ${value.soundData.length} bytes; COMM requires ${size}`, offset);
+        }
+        else {
+            value.soundData = value.soundData.subarray(0, size);
+        }
+    }
+    /** Complete timing after all chunks, including metadata that follows the audio payload. */
+    #updateDurations() {
+        const format = this.#format;
+        if (!format) {
+            if (this.#dataChunks.length) {
+                this.#issue("Audio data has no decoded fmt chunk", 12);
+            }
+            return;
+        }
+        const isPCM = format.audioFormatValue === 1 ||
+            format.audioFormatValue === 3 ||
+            (format.audioFormatValue === 0xfffe &&
+                (format.subFormat_1 === 1 || format.subFormat_1 === 3) &&
+                format.subFormat_2 === 0 &&
+                format.subFormat_3 === 0x10 &&
+                format.subFormat_4 === 0xaa000080 &&
+                format.subFormat_5 === 0x719b3800);
+        const byteRate = format.byteRate || (isPCM ? format.sampleRate * format.blockAlign : 0);
+        for (const entry of this.#dataChunks) {
+            let duration = 0;
+            if (entry.size === 0) {
+                duration = 0;
+            }
+            else if (byteRate > 0) {
+                duration = entry.size / byteRate;
+            }
+            else {
+                duration = Number.NaN;
+            }
+            entry.value.duration = duration;
+        }
+        // A fact / ds64 count describes the file, not each of several independent data chunks.
+        const entry = this.#dataChunks.length === 1 ? this.#dataChunks[0] : undefined;
+        if (entry?.complete && entry.size > 0 && format.sampleRate > 0) {
+            let samples;
+            if (this.#ds64 && (this.#ds64.sampleCountLow || this.#ds64.sampleCountHigh)) {
+                try {
+                    samples = _a.#uint64(this.#ds64.sampleCountLow, this.#ds64.sampleCountHigh);
+                }
+                catch (error) {
+                    this.#issue(error instanceof Error ? error.message : String(error));
+                }
+            }
+            else if (!isPCM && this.#fact && this.#fact.numberOfSamples !== 0xffffffff) {
+                samples = this.#fact.numberOfSamples;
+            }
+            if (samples !== undefined) {
+                entry.value.duration = samples / format.sampleRate;
+            }
+        }
+    }
     /**
      * Creates a new AudioWAV.
      * @param input The data to process.
      * @param opts Options for this AudioWAV instance.
      * @class
      */
-    constructor(input, opts = { roundOddChunks: true }) {
+    constructor(input, opts = {}) {
         super(input);
         this.container = "";
         this.type = "";
         this.chunks = [];
         this.options = {
             // This keeps in spec, some files fail with this.
-            roundOddChunks: true,
             ...opts,
+            roundOddChunks: opts.roundOddChunks ?? true,
+            strict: opts.strict ?? false,
+            maxResUSize: opts.maxResUSize ?? 16 * 1024 * 1024,
         };
+        if (!Number.isSafeInteger(this.options.maxResUSize) || this.options.maxResUSize < 0) {
+            throw new RangeError("maxResUSize must be a nonnegative safe integer");
+        }
         this.parse();
     }
     /**
@@ -341,12 +483,9 @@ class AudioWAV extends DataBuffer {
      * @returns the new AudioWAV instance for the provided file data
      * @static
      */
-    static fromFile(data, options = { roundOddChunks: true }) {
+    static fromFile(data, options = {}) {
         debug("fromFile:", data.length, data.byteLength);
-        const buffer = new DataBuffer(data);
-        const list = new DataBufferList();
-        list.append(buffer);
-        return new AudioWAV(data, options);
+        return new _a(data, options);
     }
     /**
      * Creates a new AudioWAV from a DataBuffer.
@@ -355,30 +494,68 @@ class AudioWAV extends DataBuffer {
      * @returns the new AudioWAV instance for the provided DataBuffer
      * @static
      */
-    static fromBuffer(buffer, options = { roundOddChunks: true }) {
+    static fromBuffer(buffer, options = {}) {
         debug("fromBuffer:", buffer.length);
-        const list = new DataBufferList();
-        list.append(buffer);
-        return new AudioWAV(buffer, options);
+        return new _a(buffer, options);
     }
     /**
      * Parse the WAV file, decoding the supported chunks.
      */
     parse() {
         debug("parse");
+        this.seek(0);
+        this.chunks.length = 0;
+        this.errors.length = 0;
+        this.container = "";
+        this.type = "";
+        this.#headerID = "";
+        this.#common = undefined;
+        this.#soundChunks.length = 0;
+        this.#format = undefined;
+        this.#fact = undefined;
+        this.#ds64 = undefined;
+        this.#dataSeen = 0;
+        this.#sizeTable?.clear();
+        this.#dataChunks.length = 0;
+        if (this.remainingBytes() < 12) {
+            throw new RangeError("Truncated file header: expected 12 bytes");
+        }
         const chunk = this.read(12, false);
-        const value = AudioWAV.decodeHeader(chunk);
+        const value = _a.decodeHeader(chunk);
         this.chunks.push({ type: "header", value });
         this.type = value.type;
+        this.container = value.type;
+        this.#headerID = value.chunkID;
+        const extended = value.chunkID === "RF64" || value.chunkID === "BW64";
+        if (!extended && value.size + 8 !== this.length) {
+            this.#issue(`Container declares ${value.size + 8} bytes; input has ${this.length}`, 4);
+        }
+        if (extended && value.size !== 0xffffffff) {
+            this.#issue("RF64 / BW64 header size must be 0xFFFFFFFF", 4);
+        }
         while (this.remainingBytes()) {
+            const offset = this.offset;
             try {
                 this.decodeChunk();
             }
             catch (error) {
-                debug("Error Parsing:", error);
-                // eslint-disable-next-line no-console
-                console.error(error);
+                if (this.options.strict) {
+                    throw error;
+                }
+                this.#issue(error instanceof Error ? error.message : String(error), offset);
             }
+            // A failed read must never retry the same bytes indefinitely.
+            if (this.offset <= offset) {
+                this.#issue("Parser made no progress", offset);
+                this.advance(this.remainingBytes());
+            }
+        }
+        if (extended && !this.#ds64) {
+            this.#issue("RF64 / BW64 file is missing ds64", 12);
+        }
+        this.#updateDurations();
+        if (this.type === "AIFF") {
+            this.#updateAiffSoundData();
         }
     }
     /**
@@ -396,6 +573,9 @@ class AudioWAV extends DataBuffer {
     static decodeHeader(chunk) {
         debug("decodeHeader");
         const header = new DataBuffer(chunk);
+        if (header.length < 12) {
+            throw new RangeError("Truncated file header: expected 12 bytes");
+        }
         const chunkID = header.readString(4);
         let type = "";
         // WAVE: Contains the letters `RIFF`, `RF64`, or `BW64` in ASCII form.
@@ -447,10 +627,22 @@ class AudioWAV extends DataBuffer {
      */
     static encodeHeader({ riff = "RIFF", size, format = "WAVE", }) {
         debug("encodeHeader:", { riff, size, format });
+        if (!/^[\x20-\x7e]{4}$/.test(riff) || !/^[\x20-\x7e]{4}$/.test(format)) {
+            throw new TypeError("Header IDs must contain exactly four printable ASCII characters");
+        }
+        const encodedSize = size === -1 && (riff === "RF64" || riff === "BW64") ? 0xffffffff : size;
+        if (!Number.isInteger(encodedSize) || encodedSize < 0 || encodedSize > 0xffffffff) {
+            throw new RangeError("Header size must be an unsigned 32-bit integer");
+        }
         const header = Buffer.alloc(12);
-        header.write(riff, 0);
-        header.writeUInt32LE(size, 4);
-        header.write(format, 8);
+        header.write(riff, 0, 4, "ascii");
+        if (["FORM", "AIFF", "AIFC"].includes(riff)) {
+            header.writeUInt32BE(encodedSize, 4);
+        }
+        else {
+            header.writeUInt32LE(encodedSize, 4);
+        }
+        header.write(format, 8, 4, "ascii");
         return header;
     }
     /**
@@ -458,171 +650,215 @@ class AudioWAV extends DataBuffer {
      * Supported Chunk Types: `fmt `, `fact`, `inst`, `DISP`, `smpl`, `tlst`, `data`, `LIST`, `RLND`, `JUNK`, `acid`, `cue `, `bext`, `ResU`, `ds64`, `cart`
      *
      * Chunk Structure:
-     * Length: 4 bytes (integer)
      * Type:   4 bytes (string)
+     * Length: 4 bytes (unsigned integer, excluding the alignment byte)
      * Chunk:  {length} bytes
      * @returns {string} Chunk Type
-     * @throws {Error} Invalid Chunk Length when less than 0
+     * @throws {Error} Invalid chunk boundaries or metadata when strict parsing is enabled
      */
     decodeChunk() {
         debug("decodeChunk at offset", this.offset, "with", this.remainingBytes(), "remaining bytes");
+        const offset = this.offset;
+        if (this.remainingBytes() < 8) {
+            this.#issue("Truncated chunk header: expected 8 bytes", offset);
+            this.chunks.push({
+                type: "(broken)",
+                chunk: this.read(this.remainingBytes(), false),
+                unknown: true,
+            });
+            return "(broken)";
+        }
         let type = this.readString(4);
         debug("decodeChunk type", type);
-        let size = this.readUInt32(this.type !== "AIFF");
+        const declaredSize = this.readUInt32(this.type !== "AIFF");
+        let size = declaredSize;
+        let resolved = true;
         debug("decodeChunk size", size);
-        // `readUInt32` always returns an unsigned value, so this guard is defensive only and cannot be reached.
-        /* c8 ignore next 3 */
-        if (size < 0) {
-            throw new Error(`Invalid SubChunk Size: ${0xffffffff & size}`);
+        // `readUInt32` always returns an unsigned value; 0xFFFFFFFF is a size sentinel only in RF64 / BW64.
+        const extended = this.#headerID === "RF64" || this.#headerID === "BW64";
+        if (extended && offset === 12 && type !== "ds64") {
+            this.#issue("ds64 must be the first RF64 / BW64 chunk", offset);
         }
-        // Size should be even.
-        if (this.options.roundOddChunks && size % 2 !== 0) {
-            size += 1;
+        if (extended && size === 0xffffffff) {
+            try {
+                if (type === "data" && this.#dataSeen === 0 && this.#ds64) {
+                    size = _a.#uint64(this.#ds64.dataSizeLow, this.#ds64.dataSizeHigh);
+                }
+                else {
+                    const table = this.#sizeTable?.get(type);
+                    if (!table || table.next >= table.sizes.length) {
+                        throw new RangeError(`Missing ds64 size for '${type}'`);
+                    }
+                    size = table.sizes[table.next++];
+                }
+            }
+            catch (error) {
+                this.#issue(error instanceof Error ? error.message : String(error), offset);
+                resolved = false;
+                size = this.remainingBytes();
+            }
         }
+        if (type === "data") {
+            this.#dataSeen++;
+        }
+        const complete = resolved && size <= this.remainingBytes();
         if (size > this.remainingBytes()) {
-            debug("decodeChunk size", size, "too large, using remaining bytes", this.remainingBytes());
+            this.#issue(`Chunk '${type}' declares ${size} payload bytes; only ${this.remainingBytes()} remain`, offset);
             size = this.remainingBytes();
         }
-        // Check for really broken cases to avoid infinte loops.
-        if (!type || size === 0) {
-            debug("decodeChunk something is wrong, ending");
+        // Size should be even for physical alignment; the declared payload size must not include padding.
+        let padding = this.options.roundOddChunks && size % 2 !== 0 ? 1 : 0;
+        if (padding && size + padding > this.remainingBytes()) {
+            this.#issue(`Missing alignment byte after '${type}'`, offset);
+            padding = 0;
+        }
+        // Check for really broken cases to avoid infinite loops. Zero-sized chunks are valid and still advance eight bytes.
+        if (!/^[\x20-\x7e]{4}$/.test(type)) {
+            this.#issue("Invalid chunk ID", offset);
             type = "(broken)";
             size = this.remainingBytes();
+            padding = 0;
+        }
+        // Consume the entire bounded chunk before decoding: failures cannot steal the following chunk's bytes.
+        this.rewind(8);
+        const chunk = this.read(8 + size + padding, false);
+        let decodeBytes = chunk;
+        if (extended && declaredSize === 0xffffffff && size < 0xffffffff) {
+            decodeBytes = Uint8Array.from(chunk);
+            new DataView(decodeBytes.buffer, decodeBytes.byteOffset, decodeBytes.byteLength).setUint32(4, size, true);
         }
         switch (type) {
             case "fmt ": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeFMT(chunk);
+                const value = _a.decodeFMT(decodeBytes);
+                this.#format ??= value;
                 this.chunks.push({ type: "format", value, chunk });
                 break;
             }
             case "fact": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeFACT(chunk);
+                const value = _a.decodeFACT(decodeBytes);
+                this.#fact ??= value;
                 this.chunks.push({ type: "fact", value, chunk });
                 break;
             }
             case "inst": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeINST(chunk);
+                const value = _a.decodeINST(decodeBytes);
                 this.chunks.push({ type: "instrument", value, chunk });
                 break;
             }
             case "DISP": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeDISP(chunk);
+                const value = _a.decodeDISP(decodeBytes);
                 this.chunks.push({ type: "display", value, chunk });
                 break;
             }
             case "smpl": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeSMPL(chunk);
+                const value = _a.decodeSMPL(decodeBytes);
                 this.chunks.push({ type: "sample", value, chunk });
                 break;
             }
             case "tlst": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeTLST(chunk);
+                const value = _a.decodeTLST(decodeBytes);
                 this.chunks.push({ type: "trigger_list", value, chunk });
                 break;
             }
             case "data": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                AudioWAV.decodeDATA(chunk);
+                _a.decodeDATA(decodeBytes);
                 // Calculate the duration: ((chunk_size) / (sample_rate * channels * (bits_per_sample / 8)))
-                const format = this.chunks.find((c) => c.type === "format");
-                const formatValue = format?.value;
-                const duration = size / formatValue.byteRate;
-                this.chunks.push({ type: "data", chunk, value: { duration } });
+                // Padding is excluded, and later fmt / fact / ds64 metadata is applied after parsing.
+                let duration = 0;
+                if (size === 0) {
+                    duration = 0;
+                }
+                else if (this.#format?.byteRate) {
+                    duration = size / this.#format.byteRate;
+                }
+                else {
+                    duration = Number.NaN;
+                }
+                const value = { duration };
+                this.#dataChunks.push({ value, size, complete });
+                this.chunks.push({ type: "data", chunk, value });
                 break;
             }
             case "LIST": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeLIST(chunk);
+                const value = _a.decodeLIST(decodeBytes, this.options);
                 this.chunks.push({ type: "list", value, chunk });
                 break;
             }
             case "RLND": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeRLND(chunk);
+                const value = _a.decodeRLND(decodeBytes);
                 this.chunks.push({ type: "roland", value, chunk });
                 break;
             }
             case "JUNK": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                AudioWAV.decodeJUNK(chunk, this.options);
+                _a.decodeJUNK(decodeBytes, this.options);
                 this.chunks.push({ type: "junk", chunk });
                 break;
             }
             case "PAD ": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                AudioWAV.decodePAD(chunk);
+                _a.decodePAD(decodeBytes);
                 this.chunks.push({ type: "padding", chunk });
                 break;
             }
             case "PEAK": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodePEAK(chunk);
+                const value = _a.decodePEAK(decodeBytes, this.type !== "AIFF");
                 this.chunks.push({ type: "peak", value, chunk });
                 break;
             }
             case "acid": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeACID(chunk);
+                const value = _a.decodeACID(decodeBytes);
                 this.chunks.push({ type: "acid", value, chunk });
                 break;
             }
             case "strc": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeSTRC(chunk);
+                const value = _a.decodeSTRC(decodeBytes);
                 this.chunks.push({ type: "strc", value, chunk });
                 break;
             }
             case "cue ": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeCue(chunk);
+                const value = _a.decodeCue(decodeBytes);
                 this.chunks.push({ type: "cue_points", value, chunk });
                 break;
             }
             case "bext": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeBEXT(chunk, this.options);
+                const value = _a.decodeBEXT(decodeBytes, this.options);
                 this.chunks.push({ type: "broadcast_extension", value, chunk });
                 break;
             }
             case "ResU": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeResU(chunk);
+                const value = _a.decodeResU(decodeBytes, this.options);
+                if (value.error) {
+                    this.#issue(value.error, offset);
+                }
                 this.chunks.push({ type: "logic_resu", value, chunk });
                 break;
             }
             case "ds64": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeDS64(chunk);
+                const value = _a.decodeDS64(decodeBytes);
                 this.chunks.push({ type: "data_size_64", value, chunk });
+                if (extended) {
+                    if (this.#ds64) {
+                        this.#issue("Duplicate ds64 chunk", offset);
+                        break;
+                    }
+                    this.#ds64 = value;
+                    const riffSize = _a.#uint64(value.riffSizeLow, value.riffSizeHigh);
+                    if (!Number.isSafeInteger(riffSize + 8) || riffSize + 8 !== this.length) {
+                        this.#issue(`ds64 declares ${riffSize} RIFF payload bytes; input has ${this.length - 8}`, offset);
+                    }
+                    this.#sizeTable ??= new Map();
+                    for (const entry of value.table) {
+                        const size = _a.#uint64(entry.chunkSizeLow, entry.chunkSizeHigh);
+                        let table = this.#sizeTable.get(entry.chunkID);
+                        if (!table) {
+                            table = { sizes: [], next: 0 };
+                            this.#sizeTable.set(entry.chunkID, table);
+                        }
+                        table.sizes.push(size);
+                    }
+                }
                 break;
             }
             case "cart": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
                 this.chunks.push({ type: "cart", chunk, unknown: true });
                 break;
             }
@@ -630,8 +866,6 @@ class AudioWAV extends DataBuffer {
             case "AFmd": {
                 // Seems to be the result of a NSKeyedArchiver.
                 debug(`macOS Special Binary Chunk: '${type}' with ${size} bytes`);
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
                 this.chunks.push({ type, chunk, description: "macOS Special Binary Chunk" });
                 break;
             }
@@ -641,53 +875,43 @@ class AudioWAV extends DataBuffer {
             case "ovwf":
             case "umid": {
                 debug(`ProTools Special Chunk: '${type}' with ${size} bytes`);
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
                 this.chunks.push({ type, chunk, description: "ProTools Special Chunk" });
                 break;
             }
             case "COMM": {
                 // AIFF Common Chunk
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeCOMM(chunk);
+                const value = _a.decodeCOMM(decodeBytes);
+                this.#common ??= value;
                 this.chunks.push({ type: "common", value, chunk });
                 break;
             }
             case "SSND": {
                 // AIFF Sound Data Chunk
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeSSND(chunk);
-                this.chunks.push({ type: "common", value, chunk });
+                const value = _a.decodeSSND(decodeBytes);
+                this.#soundChunks.push({ value, offset });
+                this.chunks.push({ type: "sound_data", value, chunk });
                 break;
             }
             case "FVER": {
                 // AIFF Format Version
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const value = AudioWAV.decodeFVER(chunk);
-                this.chunks.push({ type: "common", value, chunk });
+                const value = _a.decodeFVER(decodeBytes);
+                this.chunks.push({ type: "format_version", value, chunk });
                 break;
             }
             case "ANNO":
             case "AUTH":
             case "NAME": {
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
-                const stream = new DataBuffer(chunk);
+                const stream = _a.#chunkBuffer(decodeBytes, 0, this.type !== "AIFF");
                 const chunkID = stream.readString(4);
-                const nameSize = stream.readUInt32();
-                const name = stream.readString(nameSize);
+                const nameSize = stream.readUInt32(this.type !== "AIFF");
+                const name = nameSize ? stream.readString(nameSize) : "";
                 const value = { chunkID, size: nameSize, name };
-                debug("decodeGenericText =", JSON.stringify(value, null, 2));
+                debug("decodeGenericText =", value);
                 this.chunks.push({ type: chunkID.toLowerCase(), value, chunk });
                 break;
             }
             default: {
                 debug(`Unsupported Chunk: '${type}' with ${size} bytes`);
-                this.rewind(8);
-                const chunk = this.read(8 + size, false);
                 this.chunks.push({ type, chunk, unknown: true });
                 break;
             }
@@ -712,12 +936,12 @@ class AudioWAV extends DataBuffer {
      */
     static decodeFMT(chunk) {
         debug("decodeFMT");
-        const format = new DataBuffer(chunk);
+        const format = _a.#chunkBuffer(chunk, 16);
         const chunkID = format.readString(4);
         const size = format.readUInt32(true);
-        // Values other than 1 indicate some form of compression.
+        // Values other than 1 identify another format, including uncompressed IEEE float and extensible formats.
         const audioFormatValue = format.readUInt16(true);
-        // Unknown tags keep the original `Unknown: ` label (with an empty suffix) for backwards compatibility.
+        // Unknown tags include their hexadecimal value after the `Unknown: ` prefix.
         const audioFormat = WAVE_FORMAT_TAGS[audioFormatValue] ?? `Unknown: ${audioFormatValue.toString(16)}`;
         // Mono = 1, Stereo = 2, etc.
         const channels = format.readUInt16(true);
@@ -742,10 +966,19 @@ class AudioWAV extends DataBuffer {
             bitsPerSample,
         };
         // Not all formats contain these extra values.
-        if (format.remainingBytes()) {
+        if (size > 16) {
+            if (format.remainingBytes() < 2) {
+                throw new RangeError("Truncated fmt extension size");
+            }
             value.extraParamSize = format.readUInt16(true);
-            // RF64 specific fields
+            if (value.extraParamSize > format.remainingBytes()) {
+                throw new RangeError("Truncated fmt extension data");
+            }
+            // WAVE_FORMAT_EXTENSIBLE fields, supported in ordinary RIFF as well as RF64.
             if (audioFormatValue === 0xfffe) {
+                if (value.extraParamSize < 22) {
+                    throw new RangeError("Extensible fmt requires at least 22 extension bytes");
+                }
                 // Valid bits per sample i.e. 8, 16, 20, 24
                 value.validBitsPerSample = format.readUInt16(true);
                 // Channel mask for channel allocation
@@ -753,7 +986,14 @@ class AudioWAV extends DataBuffer {
                 value.channelMaskLabel = WAVE_CHANNEL_MASK_LABELS[value.channelMask];
                 if (value.channelMaskLabel === undefined) {
                     debug("Unknown Channel Mask:", value.channelMask);
-                    value.channelMaskLabel = `unknown_${value.channelMask}`;
+                    const labels = Object.entries(WAVE_CHANNEL_MASK_LABELS)
+                        .filter(([mask]) => (value.channelMask & Number(mask)) !== 0)
+                        .map(([, label]) => label);
+                    const unknown = (value.channelMask & ~0x8003ffff) >>> 0;
+                    if (unknown) {
+                        labels.push(`unknown_${unknown}`);
+                    }
+                    value.channelMaskLabel = labels.length ? labels.join(" | ") : "unspecified";
                 }
                 // GUID / Subformat
                 value.subFormat_1 = format.readUInt32(true);
@@ -761,6 +1001,9 @@ class AudioWAV extends DataBuffer {
                 value.subFormat_3 = format.readUInt16(true);
                 value.subFormat_4 = format.readUInt32(true);
                 value.subFormat_5 = format.readUInt32(true);
+                if (value.extraParamSize > 22) {
+                    value.extraParams = format.read(value.extraParamSize - 22, false);
+                }
             }
             else if (value.extraParamSize > 0) {
                 value.extraParams = format.read(value.extraParamSize, false);
@@ -769,7 +1012,10 @@ class AudioWAV extends DataBuffer {
                 value.extraParams = new Uint8Array();
             }
         }
-        debug("decodeFMT =", JSON.stringify(value, null, 2));
+        if (audioFormatValue === 0xfffe && value.extraParamSize === undefined) {
+            throw new RangeError("Extensible fmt is missing its extension");
+        }
+        debug("decodeFMT =", value);
         return value;
     }
     /**
@@ -777,7 +1023,7 @@ class AudioWAV extends DataBuffer {
      *
      * Defaults are set to Red Book Compact Disc Digital Audio (CDDA or CD-DA) / Audio CD standards.
      *
-     * RF64 specific fields are currently unsupported.
+     * Extensible format fields can be supplied as a complete binary extraParams block (at least 22 bytes).
      * @param data The values to encode to the `fmt ` chunk.
      * @param data.audioFormatValue Format of the audio data, 1 is PCM and values other than 1 indicate some form of compression. See `decodeFMT` for a listing
      * @param data.channels Mono = 1, Stereo = 2, etc.
@@ -786,15 +1032,46 @@ class AudioWAV extends DataBuffer {
      * @param data.blockAlign The number of bytes for one sample including all channels. Channels * Bits per Sample / 8
      * @param data.bitsPerSample 8 bits = 8, 16 bits = 16, etc.
      * @param data.extraParamSize The size of the extra paramteres to follow, or 0.
-     * @param data.extraParams Any extra data to encode.
+     * @param data.extraParams Any extra data to encode. Byte arrays are copied verbatim; strings and legacy numeric values are encoded as UTF-8 text.
      * @returns The newley encoded `fmt ` chunk.
      * @static
      */
     static encodeFMT(data = {}) {
         debug("encodeFMT:", data);
-        const { audioFormatValue = 1, channels = 2, sampleRate = 44100, byteRate = 176400, blockAlign = 4, bitsPerSample = 16, extraParamSize = 0, extraParams = 0, } = data;
+        const { audioFormatValue = 1, channels = 2, sampleRate = 44100, bitsPerSample = 16, blockAlign = channels * Math.ceil(bitsPerSample / 8), byteRate = sampleRate * blockAlign, extraParams = 0, } = data;
+        let params;
+        if (extraParams instanceof Uint8Array) {
+            params = extraParams;
+        }
+        else if (Array.isArray(extraParams)) {
+            params = Uint8Array.from(extraParams);
+        }
+        else if (extraParams === 0) {
+            params = undefined;
+        }
+        else {
+            params = new TextEncoder().encode(String(extraParams));
+        }
+        if (Array.isArray(extraParams) &&
+            Array.from(extraParams).some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) {
+            throw new RangeError("extraParams must contain unsigned bytes");
+        }
+        const extraParamSize = data.extraParamSize ?? params?.length ?? 0;
+        _a.#unsigned(audioFormatValue, 0xffff, "audioFormatValue");
+        _a.#unsigned(channels, 0xffff, "channels");
+        _a.#unsigned(sampleRate, 0xffffffff, "sampleRate");
+        _a.#unsigned(byteRate, 0xffffffff, "byteRate");
+        _a.#unsigned(blockAlign, 0xffff, "blockAlign");
+        _a.#unsigned(bitsPerSample, 0xffff, "bitsPerSample");
+        _a.#unsigned(extraParamSize, 0xffff, "extraParamSize");
+        if (params && params.length > extraParamSize) {
+            throw new RangeError("extraParams exceeds extraParamSize");
+        }
+        if (audioFormatValue === 0xfffe && extraParamSize < 22) {
+            throw new RangeError("Extensible fmt requires at least 22 extension bytes");
+        }
         // Padding
-        const buffer = Buffer.alloc(26 + extraParamSize, 0);
+        const buffer = Buffer.alloc(26 + extraParamSize + (extraParamSize % 2), 0);
         // Chunk ID
         buffer.write("fmt ", 0);
         // Chunk Size
@@ -814,12 +1091,11 @@ class AudioWAV extends DataBuffer {
         // Extra Param Size: Usually not set
         buffer.writeUInt16LE(extraParamSize, 24);
         // Extra Params
-        if (extraParamSize > 0 && extraParams) {
-            // Fill the space incase the extraParamSize is larger than the extraParams.
-            buffer.fill(0, 26, 26 + extraParamSize);
-            buffer.write(String(extraParams), 26);
+        if (params && params.length > 0) {
+            // Fill the space in case the extraParamSize is larger than the extraParams; Buffer.alloc already zero-filled it.
+            buffer.set(params, 26);
         }
-        debug("Buffer:", buffer.toString("hex"));
+        debug("Buffer:", buffer);
         return buffer;
     }
     /**
@@ -827,12 +1103,13 @@ class AudioWAV extends DataBuffer {
      *
      * A LIST chunk defines a list of sub-chunks and has the following format.
      * @param chunk Data Blob
+     * @param options Nested chunk alignment options.
      * @returns The decoded values.
      * @static
      */
-    static decodeLIST(chunk) {
+    static decodeLIST(chunk, options = {}) {
         debug("decodeLIST");
-        const list = new DataBuffer(chunk);
+        const list = _a.#chunkBuffer(chunk, 4);
         const chunkID = list.readString(4);
         const size = list.readUInt32(true);
         const type = list.readString(4);
@@ -843,39 +1120,49 @@ class AudioWAV extends DataBuffer {
         };
         switch (type) {
             case "INFO": {
-                value.data = AudioWAV.decodeLISTINFO(list);
+                value.data = _a.decodeLISTINFO(list, options);
                 break;
             }
             case "adtl": {
-                value.data = AudioWAV.decodeLISTadtl(list);
+                value.data = _a.decodeLISTadtl(list, options);
                 break;
             }
             default: {
                 debug(`Unknown LIST Type: ${type}`);
             }
         }
-        debug("decodeLIST =", JSON.stringify(value, null, 2));
+        debug("decodeLIST =", value);
         return value;
     }
     /**
      * Decode the LIST INFO chunks.
      * @param buffer List DataBuffer
+     * @param options Nested chunk alignment options.
      * @returns The parsed list.
      */
-    static decodeLISTINFO(buffer) {
+    static decodeLISTINFO(buffer, options = {}) {
         debug("decodeLISTINFO");
         const value = [];
         while (buffer.remainingBytes()) {
+            if (buffer.remainingBytes() < 8) {
+                throw new RangeError("Truncated LIST INFO sub-chunk header");
+            }
             const info = { id: "", size: 0, text: "" };
             // TODO: Switch for listID to have nice human labels for IDs
             info.id = buffer.readString(4);
             debug("decodeLISTINFO chunk id:", info.id);
             info.size = buffer.readUInt32(true);
             debug("decodeLISTINFO chunk size:", info.size);
-            info.text = buffer.readString(info.size);
+            if (info.size > buffer.remainingBytes()) {
+                throw new RangeError("Truncated LIST INFO text");
+            }
+            info.text = info.size ? buffer.readString(info.size) : "";
             debug("decodeLISTINFO chunk text:", info.text);
             // All blocks must begin on an EVEN boundary and the block size MUST NOT include the padding byte, if required.
-            if (info.size % 2 !== 0) {
+            if ((options.roundOddChunks ?? true) && info.size % 2 !== 0) {
+                if (!buffer.remainingBytes()) {
+                    throw new RangeError("Missing LIST INFO alignment byte");
+                }
                 buffer.advance(1);
             }
             value.push(info);
@@ -885,28 +1172,64 @@ class AudioWAV extends DataBuffer {
     /**
      * Decode the LIST adtl chunks.
      * @param buffer List DataBuffer
+     * @param options Nested chunk alignment options.
      * @returns The parsed list.
      */
-    static decodeLISTadtl(buffer) {
+    static decodeLISTadtl(buffer, options = {}) {
         debug("decodeLISTadtl");
         const value = [];
         while (buffer.remainingBytes()) {
+            if (buffer.remainingBytes() < 8) {
+                throw new RangeError("Truncated LIST adtl sub-chunk header");
+            }
             const adtl = { id: "", size: 0, label: undefined, ltxt: undefined };
             adtl.id = buffer.readString(4);
             adtl.size = buffer.readUInt32(true);
+            if (adtl.size > buffer.remainingBytes()) {
+                throw new RangeError("Truncated LIST adtl payload");
+            }
+            const end = buffer.offset + adtl.size;
             switch (adtl.id) {
-                case "labl": {
-                    adtl.label = buffer.readString(adtl.size).trim();
+                case "labl":
+                case "note": {
+                    if (adtl.size < 4) {
+                        throw new RangeError("LIST label / note requires a cue point ID");
+                    }
+                    adtl.cuePointID = buffer.readUInt32(true);
+                    const text = adtl.size > 4 ? buffer.readString(adtl.size - 4).replace(/\0.*$/s, "") : "";
+                    if (adtl.id === "labl") {
+                        adtl.label = text;
+                    }
+                    else {
+                        adtl.note = text;
+                    }
                     break;
                 }
                 case "ltxt": {
-                    adtl.ltxt = buffer.readString(adtl.size).trim();
+                    if (adtl.size < 20) {
+                        throw new RangeError("LIST ltxt requires a 20-byte header");
+                    }
+                    adtl.cuePointID = buffer.readUInt32(true);
+                    adtl.sampleLength = buffer.readUInt32(true);
+                    adtl.purposeID = buffer.readString(4);
+                    adtl.country = buffer.readUInt16(true);
+                    adtl.language = buffer.readUInt16(true);
+                    adtl.dialect = buffer.readUInt16(true);
+                    adtl.codePage = buffer.readUInt16(true);
+                    adtl.ltxt = adtl.size > 20 ? buffer.readString(adtl.size - 20).replace(/\0.*$/s, "") : "";
                     break;
                 }
                 default: {
                     debug(`Unknown ID: ${adtl.id}`);
                     buffer.advance(adtl.size);
                 }
+            }
+            buffer.seek(end);
+            if ((options.roundOddChunks ?? true) && adtl.size % 2 !== 0) {
+                if (!buffer.remainingBytes()) {
+                    throw new RangeError("Missing LIST adtl alignment byte");
+                }
+                buffer.advance(1);
             }
             value.push(adtl);
         }
@@ -934,7 +1257,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeTLST(chunk) {
         debug("decodeTLST");
-        const tlst = new DataBuffer(chunk);
+        const tlst = _a.#chunkBuffer(chunk, 24);
         const _chunkID = tlst.readString(4);
         const size = tlst.readUInt32(true);
         debug("decodeTLST size", size);
@@ -967,7 +1290,18 @@ class AudioWAV extends DataBuffer {
         // Specifies the size of additional information.
         // For the case of a MIDI SySx Trigger, this is the size of the matching MIDI SySxTrigger immediately following the structure.
         const extra = tlst.readUInt32(true);
-        const extraData = tlst.readUInt32(true);
+        if (extra > tlst.remainingBytes()) {
+            throw new RangeError("Truncated tlst extra data");
+        }
+        const extraDataBytes = extra ? tlst.read(extra, false) : new Uint8Array();
+        // Preserve the legacy scalar field, including the optional four-byte trailer found in existing files.
+        let extraData = 0;
+        if (extra >= 4) {
+            extraData = new DataView(extraDataBytes.buffer, extraDataBytes.byteOffset, extraDataBytes.byteLength).getUint32(0, true);
+        }
+        else if (extra === 0 && tlst.remainingBytes() >= 4) {
+            extraData = tlst.readUInt32(true);
+        }
         const value = {
             list: list.toString(),
             name,
@@ -980,7 +1314,10 @@ class AudioWAV extends DataBuffer {
             extraData,
             function: func,
         };
-        debug("decodeTLST =", JSON.stringify(value, null, 2));
+        if (extra) {
+            value.extraDataBytes = extraDataBytes;
+        }
+        debug("decodeTLST =", value);
         return value;
     }
     /**
@@ -999,7 +1336,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeFACT(chunk) {
         debug("decodeFACT");
-        const fact = new DataBuffer(chunk);
+        const fact = _a.#chunkBuffer(chunk, 4);
         const _chunkID = fact.readString(4);
         const size = fact.readUInt32(true);
         debug("decodeFACT size", size);
@@ -1007,38 +1344,55 @@ class AudioWAV extends DataBuffer {
         // For Non-PCM, Number of samples (per channel)
         const numberOfSamples = fact.readUInt32(true);
         const value = { numberOfSamples };
-        debug("decodeFACT =", JSON.stringify(value, null, 2));
+        debug("decodeFACT =", value);
         return value;
     }
-    // TODO: Should have more entries by number of channels, https://github.com/libsndfile/libsndfile/blob/08d802a3d18fa19c74f38ed910d9e33f80248187/src/aiff.c#L110
+    // Per-channel entries are decoded below; reference: https://github.com/libsndfile/libsndfile/blob/08d802a3d18fa19c74f38ed910d9e33f80248187/src/aiff.c#L110
     /**
      * Decode the PEAK chunk.
      * @param chunk Data Blob
+     * @param littleEndian True for WAVE, false for AIFF.
      * @returns The decoded values.
      * @static
      * @see {@link https://code.google.com/archive/p/awesome-wav/wikis/WAVFormat.wiki|awesome-wav - WAVFormat.wiki}
      */
-    static decodePEAK(chunk) {
+    static decodePEAK(chunk, littleEndian = true) {
         debug("decodePEAK");
-        const peak = new DataBuffer(chunk);
+        const peak = _a.#chunkBuffer(chunk, 8, littleEndian);
         const _chunkID = peak.readString(4);
-        const size = peak.readUInt32(true);
+        const size = peak.readUInt32(littleEndian);
         debug("decodePEAK size", size);
         // Peak Chunk Version
-        const version = peak.readUInt32(true);
+        const version = peak.readUInt32(littleEndian);
         // Unix timestamp of creation
-        const timestamp = peak.readUInt32(true);
-        // Pointer to the PPEAK structs (one for each channel), Sample frame for peak
-        const ppeakPointer = peak.readUInt32(true);
-        // Space for the 64-bit alignment variable
-        const bitAlign = peak.readUInt32(true);
+        const timestamp = peak.readUInt32(littleEndian);
+        // PPEAK structs (one for each channel): a floating-point peak followed by its sample-frame position.
+        if ((size - 8) % 8 !== 0) {
+            throw new RangeError("Incomplete PEAK channel entry");
+        }
+        const peaks = [];
+        let ppeakPointer = 0;
+        let bitAlign = 0;
+        while (peak.remainingBytes()) {
+            const rawValue = peak.readUInt32(littleEndian);
+            peak.rewind(4);
+            const amplitude = peak.readFloat32(littleEndian);
+            const position = peak.readUInt32(littleEndian);
+            // Legacy aliases are retained; neither field represents a pointer or 64-bit alignment padding.
+            if (!peaks.length) {
+                ppeakPointer = rawValue;
+                bitAlign = position;
+            }
+            peaks.push({ value: amplitude, position });
+        }
         const value = {
             version,
             timestamp,
             ppeakPointer,
             bitAlign,
+            peaks,
         };
-        debug("decodePEAK =", JSON.stringify(value, null, 2));
+        debug("decodePEAK =", value);
         return value;
     }
     /**
@@ -1061,16 +1415,23 @@ class AudioWAV extends DataBuffer {
      */
     static decodeDISP(chunk) {
         debug("decodeDISP");
-        const disp = new DataBuffer(chunk);
+        const disp = _a.#chunkBuffer(chunk, 4);
         const _chunkID = disp.readString(4);
         const size = disp.readUInt32(true);
         debug("decodeDISP size", size);
         // Identifies the data as one of the standard Windows clipboard formats:
         // CF_METAFILE, CF_DIB, CF_TEXT, etc. as defined in windows.h.
         const type = disp.readUInt32(true);
-        const data = disp.readUInt16(true);
-        const value = { type, data };
-        debug("decodeDISP =", JSON.stringify(value, null, 2));
+        const rawData = size > 4 ? disp.read(size - 4, false) : new Uint8Array();
+        const data = (rawData[0] ?? 0) | ((rawData[1] ?? 0) << 8);
+        const value = { type, data, rawData };
+        if (type === 1) {
+            value.text = new TextDecoder("windows-1252").decode(rawData).replace(/\0.*$/s, "");
+        }
+        else if (type === 13) {
+            value.text = new TextDecoder("utf-16le").decode(rawData).replace(/\0.*$/s, "");
+        }
+        debug("decodeDISP =", value);
         return value;
     }
     /**
@@ -1088,7 +1449,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeACID(chunk) {
         debug("decodeACID");
-        const acid = new DataBuffer(chunk);
+        const acid = _a.#chunkBuffer(chunk, 24);
         const _chunkID = acid.readString(4);
         const size = acid.readUInt32(true);
         debug("decodeACID size", size);
@@ -1104,7 +1465,7 @@ class AudioWAV extends DataBuffer {
         // When type `0x10` is ON  : [C,C#,(...),B] -> [0x3C to 0x47]
         const rootNote = acid.readUInt16(true);
         const unknown1 = acid.readUInt16(true);
-        const unknown2 = acid.readUInt32(true);
+        const unknown2 = acid.readFloat32(true);
         // Number of beats
         const beats = acid.readUInt32(true);
         // Meter Denominator, like the 4 in 5/4
@@ -1112,7 +1473,7 @@ class AudioWAV extends DataBuffer {
         // Meter Numerator, like the 3 in 3/4
         const meterNumerator = acid.readUInt16(true);
         // Tempo
-        const tempo = acid.readUInt32(true);
+        const tempo = acid.readFloat32(true);
         const value = {
             type,
             rootNote,
@@ -1123,7 +1484,7 @@ class AudioWAV extends DataBuffer {
             meterNumerator,
             tempo,
         };
-        debug("decodeACID =", JSON.stringify(value, null, 2));
+        debug("decodeACID =", value);
         return value;
     }
     /**
@@ -1137,7 +1498,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeINST(chunk) {
         debug("decodeINST");
-        const inst = new DataBuffer(chunk);
+        const inst = _a.#chunkBuffer(chunk, 7);
         const _chunkID = inst.readString(4);
         const size = inst.readUInt32(true);
         debug("decodeINST size", size);
@@ -1145,9 +1506,9 @@ class AudioWAV extends DataBuffer {
         // This value is between 0 to 127.
         const unshiftedNote = inst.readUInt8();
         // Fine tuning of the pitch in cents. Values are between -50 to 50.
-        const fineTuning = inst.readUInt8();
+        const fineTuning = inst.readInt8();
         // The volume setting (suggested) for the sample in decibels.
-        const gain = inst.readUInt8();
+        const gain = inst.readInt8();
         // The lowest usable MIDI note for the sample (suggested). This value is between 0 and 127.
         const lowNote = inst.readUInt8();
         // The highest usable MIDI note for the sample (suggested). This value is between 0 and 127.
@@ -1165,7 +1526,7 @@ class AudioWAV extends DataBuffer {
             lowVelocity,
             highVelocity,
         };
-        debug("decodeINST =", JSON.stringify(value, null, 2));
+        debug("decodeINST =", value);
         return value;
     }
     /**
@@ -1178,13 +1539,13 @@ class AudioWAV extends DataBuffer {
      */
     static decodeSMPL(chunk) {
         debug("decodeSMPL");
-        const smpl = new DataBuffer(chunk);
+        const smpl = _a.#chunkBuffer(chunk, 36);
         const _chunkID = smpl.readString(4);
         const size = smpl.readUInt32(true);
         debug("decodeSMPL size", size);
         // The MIDI Manufacturers Association manufacturer code (see MIDI System Exclusive message).
         // A value of zero implies that there is no specific manufacturer.
-        // The first byte of the four bytes specifies the number of bytes in the manufacturer code that are relevant (1 or 3).
+        // The high byte (fourth on disk in little-endian order) specifies the number of bytes in the manufacturer code that are relevant (1 or 3).
         // For example, Roland would be specified as 0x01000041 (0x41), where as Microsoft would be 0x03000041 (0x00 0x00 0x41)
         const manufacturer1 = smpl.readUInt8();
         const manufacturer2 = smpl.readUInt8();
@@ -1200,7 +1561,7 @@ class AudioWAV extends DataBuffer {
         // The values are between 0 and 127.
         const midiUnityNote = smpl.readUInt32(true);
         // The fraction of a semitone up from the specified note.
-        // For example, one-half semitone is 50 cents and will be specified as 0x80.
+        // For example, one-half semitone is 50 cents and will be specified as 0x80000000.
         const midiPitchFraction = smpl.readUInt32(true);
         // The SMPTE format. Possible values are 0, 24, 25, 29, and 30.
         const SMPTEFormat = smpl.readUInt32(true);
@@ -1210,14 +1571,20 @@ class AudioWAV extends DataBuffer {
         // he third byte is the number of seconds (0 to 59).
         // The last byte is the number of frames and is between 0 and the frames specified by the SMPTE format.
         // For example, if the SMPTE format is 24, then the number of frames is between 0 and 23
-        const SMPTEOffset1 = smpl.readUInt8();
-        const SMPTEOffset2 = smpl.readUInt8();
-        const SMPTEOffset3 = smpl.readUInt8();
-        const SMPTEOffset4 = smpl.readUInt8();
+        // The little-endian DWORD is packed as 0xhhmmssff; hours occupy the high byte and are signed.
+        const SMPTEOffset = smpl.readUInt32(true);
+        const SMPTEOffset1 = SMPTEOffset >> 24;
+        const SMPTEOffset2 = (SMPTEOffset >>> 16) & 0xff;
+        const SMPTEOffset3 = (SMPTEOffset >>> 8) & 0xff;
+        const SMPTEOffset4 = SMPTEOffset & 0xff;
         // Specifies the number of sample loops that are contained in this chunk's data.
         const sampleLoopsCount = smpl.readUInt32(true);
         // The number of bytes of optional sampler specific data that follows the sample loops.
         const sampleDataSize = smpl.readUInt32(true);
+        if (sampleDataSize > smpl.remainingBytes()) {
+            throw new RangeError("Truncated sampler-specific data");
+        }
+        _a.#countFits(sampleLoopsCount, 24, smpl.remainingBytes() - sampleDataSize, "sample loop count");
         // Sample Loops
         const sampleLoops = [];
         if (sampleLoopsCount > 0) {
@@ -1238,7 +1605,7 @@ class AudioWAV extends DataBuffer {
                 const end = smpl.readUInt32(true);
                 // The resolution at which this loop should be fine tuned.
                 // A value of zero means current resolution.
-                // A value of 50 cents (0x80) means 1/2 sample.
+                // A fractional value of 0x80000000 means 1/2 sample.
                 const fraction = smpl.readUInt32(true);
                 // The number of times to play the loop.
                 // A value of zero means infinitely
@@ -1282,7 +1649,7 @@ class AudioWAV extends DataBuffer {
             sampleLoops,
             sampleData,
         };
-        debug("decodeSMPL =", JSON.stringify(value, null, 2));
+        debug("decodeSMPL =", value);
         return value;
     }
     /**
@@ -1297,7 +1664,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeRLND(chunk) {
         debug("decodeRLND");
-        const roland = new DataBuffer(chunk);
+        const roland = _a.#chunkBuffer(chunk, 13);
         const chunkID = roland.readString(4);
         const size = roland.readUInt32(true);
         // SP-404SX Wave Converter v1.01 on macOS sets this value to `roifspsx`
@@ -1333,7 +1700,7 @@ class AudioWAV extends DataBuffer {
             sampleIndex,
             sampleLabel,
         };
-        debug("decodeRLND =", JSON.stringify(value, null, 2));
+        debug("decodeRLND =", value);
         return value;
     }
     /**
@@ -1358,7 +1725,15 @@ class AudioWAV extends DataBuffer {
      */
     static encodeRLND(data) {
         const { device, unknown1, unknown2, unknown3, unknown4 } = data;
-        let { sampleIndex } = data;
+        for (const value of [unknown1 ?? 4, unknown2 ?? 0, unknown3 ?? 0, unknown4 ?? 0]) {
+            if (!Number.isInteger(value) || value < 0 || value > 255) {
+                throw new RangeError("Invalid Roland parameter byte");
+            }
+        }
+        let { sampleIndex = 0 } = data;
+        if (!/^[\x20-\x7e]{1,8}$/.test(device)) {
+            throw new TypeError("Roland device must contain one to eight printable ASCII characters");
+        }
         debug("encodeRLND:", device, unknown1, unknown2, unknown3, unknown4, sampleIndex);
         // Padding
         const buffer = Buffer.alloc(466, 0);
@@ -1367,7 +1742,7 @@ class AudioWAV extends DataBuffer {
         // Chunk Size
         buffer.writeUInt32LE(458, 4);
         // Device, ie: 'roifspsx'
-        buffer.write(device, 8);
+        buffer.write(device, 8, 8, "ascii");
         // Unknown. The SP-404SX Wave Converter writes 0x04 in the first byte when it is omitted.
         buffer.writeUInt8(unknown1 ?? 4, 16);
         buffer.writeUInt8(unknown2 ?? 0, 17);
@@ -1385,8 +1760,12 @@ class AudioWAV extends DataBuffer {
             }
         }
         // Sample Index
-        buffer.writeUInt8(Number(sampleIndex), 20);
-        debug("Buffer:", buffer.toString("hex"));
+        const index = Number(sampleIndex);
+        if (!Number.isInteger(index) || index < 0 || index > 255) {
+            throw new RangeError("Invalid Roland sample index");
+        }
+        buffer.writeUInt8(index, 20);
+        debug("Buffer:", buffer);
         return buffer;
     }
     /**
@@ -1400,7 +1779,7 @@ class AudioWAV extends DataBuffer {
      * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
      * @static
      */
-    static decodeJUNK(chunk, options) {
+    static decodeJUNK(chunk, options = {}) {
         const junk = new DataBuffer(chunk);
         const chunkID = junk.readString(4);
         let size = junk.readUInt32(true);
@@ -1424,20 +1803,19 @@ class AudioWAV extends DataBuffer {
      * Decode the bext (Broadcast Wave Format (BWF) Broadcast Extension) chunk.
      * @param {string|Buffer|Uint8Array} chunk Data Blob
      * @param options Decoding options.
-     * @param options.roundOddChunks When true we will round odd chunk sizes up to keep in spec.
+     * @param options.roundOddChunks Retained for API compatibility; alignment is handled by the container, not included in the decoded size.
      * @returns The decoded values.
      * @static
      * @see {@link https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#cue|Cue Chunk}
      * @see {@link https://tech.ebu.ch/docs/tech/tech3285.pdf|Spec}
      */
-    static decodeBEXT(chunk, options) {
+    static decodeBEXT(chunk, options = {}) {
         debug("decodeBEXT");
-        const bext = new DataBuffer(chunk);
+        const bext = _a.#chunkBuffer(chunk, 602);
         const chunkID = bext.readString(4);
-        let size = bext.readUInt32(true);
-        if (options.roundOddChunks && size % 2 !== 0) {
-            size += 1;
-        }
+        const size = bext.readUInt32(true);
+        // Alignment belongs to the container, never to the declared bext payload size.
+        debug("decodeBEXT roundOddChunks:", options.roundOddChunks);
         const value = {
             chunkID,
             size,
@@ -1475,22 +1853,46 @@ class AudioWAV extends DataBuffer {
         // Version of the BWF; unsigned binary number
         value.version = bext.readUInt16(true);
         // SMPTE UMID
-        value.umid = bext.read(64, false);
+        if (value.version >= 1) {
+            value.umid = bext.read(64, false);
+        }
         // Integrated Loudness Value of the file in LUFS (multiplied by 100)
-        value.loudnessValue = bext.readUInt16(true);
+        if (value.version >= 2) {
+            value.loudnessValue = bext.readInt16(true);
+        }
         // Loudness Range of the file in LU (multiplied by 100)
-        value.loudnessRange = bext.readUInt16(true);
+        if (value.version >= 2) {
+            value.loudnessRange = bext.readInt16(true);
+        }
         // Maximum True Peak Level of the file expressed as dBTP (multiplied by 100)
-        value.maxTruePeakLevel = bext.readUInt16(true);
+        if (value.version >= 2) {
+            value.maxTruePeakLevel = bext.readInt16(true);
+        }
         // Highest value of the Momentary Loudness Level of the file in LUFS (multiplied by 100)
-        value.maxMomentaryLoudness = bext.readUInt16(true);
+        if (value.version >= 2) {
+            value.maxMomentaryLoudness = bext.readInt16(true);
+        }
         // Highest value of the Short-Term Loudness Level of the file in LUFS (multiplied by 100)
-        value.maxShortTermLoudness = bext.readUInt16(true);
-        // 180 bytes, reserved for future use
-        value.reserved = bext.read(180, false);
+        if (value.version >= 2) {
+            value.maxShortTermLoudness = bext.readInt16(true);
+        }
+        // 180 bytes in version 2, 190 in version 1, or 254 in version 0, reserved for future use.
+        let reservedSize = 0;
+        if (value.version >= 2) {
+            reservedSize = 180;
+        }
+        else if (value.version === 1) {
+            reservedSize = 190;
+        }
+        else {
+            reservedSize = 254;
+        }
+        value.reserved = bext.read(reservedSize, false);
         // History coding
-        value.codingHistory = bext.read(bext.remainingBytes(), true);
-        debug("decodeBEXT =", JSON.stringify(value, null, 2));
+        value.codingHistory = bext.remainingBytes()
+            ? bext.read(bext.remainingBytes(), false)
+            : new Uint8Array();
+        debug("decodeBEXT =", value);
         return value;
     }
     /**
@@ -1507,13 +1909,14 @@ class AudioWAV extends DataBuffer {
      */
     static decodeCue(chunk) {
         debug("decodeCue");
-        const cue = new DataBuffer(chunk);
+        const cue = _a.#chunkBuffer(chunk, 4);
         const chunkID = cue.readString(4);
         const size = cue.readUInt32(true);
         debug("decodeCue size", size);
         // This value specifies the number of following cue points in this chunk.
         const numberCuePoints = cue.readUInt32(true);
         debug("decodeCue numberCuePoints", numberCuePoints);
+        _a.#countFits(numberCuePoints, 24, cue.remainingBytes(), "cue point count");
         const value = {
             chunkID,
             size,
@@ -1559,40 +1962,55 @@ class AudioWAV extends DataBuffer {
         if (cue.remainingBytes() > 0) {
             debug(`Unexpected ${cue.remainingBytes()} bytes remaining`);
         }
-        debug("decodeCue =", JSON.stringify(value, null, 2));
+        debug("decodeCue =", value);
         return value;
     }
     /**
-     * Decode the 'ResU' chunk, a ZIP compressed JSON Data containg Time Signature, Tempo and other data for Logic Pro X.
+     * Decode the 'ResU' chunk, zlib-compressed JSON data containing Time Signature, Tempo and other data for Logic Pro X.
      * @param chunk Data Blob
+     * @param options Decompression limits.
+     * @param options.maxResUSize Maximum uncompressed JSON bytes, default 16 MiB.
      * @returns The decoded values.
      * @static
      */
-    static decodeResU(chunk) {
+    static decodeResU(chunk, options = {}) {
         debug("decodeResU");
-        const resu = new DataBuffer(chunk);
+        const resu = _a.#chunkBuffer(chunk, 0);
         const chunkID = resu.readString(4);
         const size = resu.readUInt32(true);
-        const data = resu.read(size, false);
-        let decompressed = "";
-        try {
-            decompressed = new TextDecoder().decode(inflate(data));
-            debug("Inflated Size:", decompressed.length);
+        const data = size ? resu.read(size, false) : new Uint8Array();
+        const limit = options.maxResUSize ?? 16 * 1024 * 1024;
+        if (!Number.isSafeInteger(limit) || limit < 0) {
+            throw new RangeError("maxResUSize must be a nonnegative safe integer");
         }
-        catch (error) {
-            debug("Error Inflating ResU:", error);
-        }
-        const value = {
-            chunkID,
-            size,
-        };
+        const value = { chunkID, size };
         try {
+            let bytes = 0;
+            const text = [];
+            const decoder = new TextDecoder();
+            const inflator = new Inflate({ chunkSize: 16384 });
+            inflator.onData = (output) => {
+                bytes += output.length;
+                if (bytes > limit) {
+                    throw new RangeError(`ResU exceeds maxResUSize (${limit} bytes)`);
+                }
+                text.push(decoder.decode(output, { stream: true }));
+            };
+            // With no final-flush coercion, ended must indicate an actual end-of-stream marker, including on older pako versions.
+            inflator.push(data, false);
+            if (inflator.err || !inflator.ended) {
+                throw new Error(inflator.msg || "Incomplete ResU compressed stream");
+            }
+            text.push(decoder.decode());
+            const decompressed = text.join("");
+            debug("Inflated Size:", bytes);
             value.data = JSON.parse(decompressed);
         }
         catch (error) {
-            debug("Error Parsing ResU JSON:", error);
+            value.error = error instanceof Error ? error.message : String(error);
+            debug("Error Inflating / Parsing ResU:", error);
         }
-        debug("decodeResU =", JSON.stringify(value, null, 2));
+        debug("decodeResU =", value);
         return value;
     }
     /**
@@ -1603,7 +2021,7 @@ class AudioWAV extends DataBuffer {
      * @static
      */
     static decodeDS64(chunk) {
-        const ds64 = new DataBuffer(chunk);
+        const ds64 = _a.#chunkBuffer(chunk, 28);
         const chunkID = ds64.readString(4);
         const size = ds64.readUInt32(true);
         // low 4 byte size of RF64 block
@@ -1620,9 +2038,10 @@ class AudioWAV extends DataBuffer {
         const sampleCountHigh = ds64.readUInt32(true);
         // Number of valid entries in the following table
         const tableLength = ds64.readUInt32(true);
+        _a.#countFits(tableLength, 12, ds64.remainingBytes(), "ds64 table length");
         const table = [];
         if (tableLength > 0) {
-            while (ds64.remainingBytes() > 0) {
+            for (let i = 0; i < tableLength; i++) {
                 table.push({
                     chunkID: ds64.readString(4),
                     chunkSizeLow: ds64.readUInt32(true),
@@ -1642,7 +2061,7 @@ class AudioWAV extends DataBuffer {
             tableLength,
             table,
         };
-        debug("decodeDS64 =", JSON.stringify(value, null, 2));
+        debug("decodeDS64 =", value);
         return value;
     }
     /**
@@ -1656,7 +2075,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeSTRC(chunk) {
         debug("decodeSTRC");
-        const strc = new DataBuffer(chunk);
+        const strc = _a.#chunkBuffer(chunk, 28);
         const _chunkID = strc.readString(4);
         const size = strc.readUInt32(true);
         debug("decodeSTRC size:", size);
@@ -1667,6 +2086,8 @@ class AudioWAV extends DataBuffer {
         const unknown4 = strc.readUInt32(true); // always 1 (0x01)
         const unknown5 = strc.readUInt32(true); // either 0, 1 or 10
         const unknown6 = strc.readUInt32(true); // have seen values 0,2,3,4 and 5
+        // Existing producer files count a leading structure as one slice; retain that convention.
+        _a.#countFits(Math.max(0, numberOfSlices - 1), 32, strc.remainingBytes(), "strc slice count");
         const slices = [];
         debug("decodeSTRC numberOfSlices:", numberOfSlices);
         for (let i = 0; i < numberOfSlices - 1; i++) {
@@ -1708,7 +2129,7 @@ class AudioWAV extends DataBuffer {
             unknown6,
             slices,
         };
-        debug("decodeSTRC =", JSON.stringify(value, null, 2));
+        debug("decodeSTRC =", value);
         return value;
     }
     /**
@@ -1721,7 +2142,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeCOMM(chunk) {
         debug("decodeCOMM");
-        const commonChunk = new DataBuffer(chunk);
+        const commonChunk = _a.#chunkBuffer(chunk, 18, false);
         const chunkID = commonChunk.readString(4);
         const size = commonChunk.readUInt32();
         // Mono = 1, Stereo = 2, etc.
@@ -1739,13 +2160,26 @@ class AudioWAV extends DataBuffer {
         let compressionType = "";
         let compressionTypeName = "";
         if (size !== 18) {
+            if (size < 23) {
+                throw new RangeError("Truncated AIFF-C compression fields");
+            }
             // Compression Type is used by programs to identify the compression algorithm, if any, used on the sound data.
             compressionType = commonChunk.readString(4);
             // The name is stored as a Pascal string, first byte is the length.
             const nameLength = commonChunk.readUInt8();
             // Compression Name is used by people to identify the compression algorithm.
             // Remember to pad the end of compressionName with a zero byte if the pstring length is not an even number of bytes, but do not include the pad byte in the count.
-            compressionTypeName = commonChunk.readString(nameLength);
+            if (nameLength > commonChunk.remainingBytes()) {
+                throw new RangeError("Truncated AIFF-C compression name");
+            }
+            compressionTypeName = nameLength ? commonChunk.readString(nameLength) : "";
+            const padding = (nameLength + 1) % 2;
+            if (padding > commonChunk.remainingBytes()) {
+                throw new RangeError("Missing AIFF-C Pascal string padding");
+            }
+            if (padding) {
+                commonChunk.advance(padding);
+            }
         }
         const value = {
             chunkID,
@@ -1757,7 +2191,7 @@ class AudioWAV extends DataBuffer {
             compressionType,
             compressionTypeName,
         };
-        debug("decodeCOMM =", JSON.stringify(value, null, 2));
+        debug("decodeCOMM =", value);
         return value;
     }
     /**
@@ -1773,7 +2207,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeSSND(chunk) {
         debug("decodeSSND");
-        const ssndChunk = new DataBuffer(chunk);
+        const ssndChunk = _a.#chunkBuffer(chunk, 8, false);
         const chunkID = ssndChunk.readString(4);
         const size = ssndChunk.readUInt32();
         // Determines where the first sample frame in the soundData starts, in bytes.
@@ -1785,7 +2219,13 @@ class AudioWAV extends DataBuffer {
         const blockSize = ssndChunk.readUInt32();
         // Contains the sample frames that make up the sound.
         // The number of sample frames in the soundData is determined by the sampleFrames parameter in the Common Chunk.
-        const soundData = ssndChunk.read(ssndChunk.remainingBytes());
+        if (offset > ssndChunk.remainingBytes()) {
+            throw new RangeError("AIFF SSND offset exceeds sound data");
+        }
+        ssndChunk.advance(offset);
+        const soundData = ssndChunk.remainingBytes()
+            ? ssndChunk.read(ssndChunk.remainingBytes(), false)
+            : new Uint8Array();
         const value = {
             chunkID,
             size,
@@ -1793,7 +2233,7 @@ class AudioWAV extends DataBuffer {
             blockSize,
             soundData,
         };
-        debug("decodeSSND =", JSON.stringify({ chunkID, size, offset, blockSize }, null, 2));
+        debug("decodeSSND =", { chunkID, size, offset, blockSize });
         return value;
     }
     /**
@@ -1809,7 +2249,7 @@ class AudioWAV extends DataBuffer {
      */
     static decodeFVER(chunk) {
         debug("decodeFVER");
-        const formatVersionChunk = new DataBuffer(chunk);
+        const formatVersionChunk = _a.#chunkBuffer(chunk, 4, false);
         const chunkID = formatVersionChunk.readString(4);
         const size = formatVersionChunk.readUInt32();
         const timestamp = formatVersionChunk.readUInt32();
@@ -1820,9 +2260,10 @@ class AudioWAV extends DataBuffer {
             timestamp,
             versionName,
         };
-        debug("decodeFVER =", JSON.stringify(value, null, 2));
+        debug("decodeFVER =", value);
         return value;
     }
 }
+_a = AudioWAV;
 export default AudioWAV;
 //# sourceMappingURL=audio-wav.js.map

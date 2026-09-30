@@ -120,7 +120,7 @@ function layout(text, options = {}) {
         },
     };
 }
-export const BitmapText = Object.freeze({
+export const BitmapText = /* @__PURE__ */ Object.freeze({
     glyphWidth: 5,
     glyphHeight: 7,
     advance: 6,

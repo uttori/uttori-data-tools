@@ -1,4 +1,4 @@
-import AudioMIDI from '../src/index.js';
+import AudioMIDI from '../../dist/index.js';
 
 const makeDetail = (key, value, keyClass = '', valueClass = '') => {
   const detail = document.createElement('div');

@@ -1,6 +1,6 @@
 /**
  * Converts the provided `Uint8Array` into a Turbo Pascal 48 bit float value.
- * May be faulty with large numbers due to float percision.
+ * Real48 values are exactly representable by a JavaScript Number; no decimal rounding is applied.
  *
  * While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
  * Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
@@ -25,7 +25,7 @@
  */
 export declare const float48: (uint8: Uint8Array | number[]) => number;
 /**
- * Convert the current buffer into an IEEE 80 bit extended float value.
+ * Convert the current little-endian buffer into an IEEE 80 bit extended float value.
  * @param uint8 The raw data to convert to a float80.
  * @returns The read value as a number.
  * @see {@link https://en.wikipedia.org/wiki/Extended_precision|Extended_Precision}

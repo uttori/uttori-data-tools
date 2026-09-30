@@ -1,5 +1,5 @@
 import test from 'ava';
-import { DataBuffer, Op } from '../dist/index.js';
+import { DataBuffer, Op, diffBuffer } from '../dist/index.js';
 
 test('create from ArrayBuffer', (t) => {
   const buf = new DataBuffer(new ArrayBuffer(9));
@@ -579,12 +579,12 @@ test('float48', (t) => {
   t.is(stream.readFloat48(), 2.5);
 
   stream = new DataBuffer(new Uint8Array([0x74, 0x23, 0xF4, 0x00, 0xD2, 0x94]));
-  t.is(stream.peekFloat48(0), 999999.2502);
-  t.is(stream.readFloat48(), 999999.2502);
+  t.is(stream.peekFloat48(0), 999999.2502002716);
+  t.is(stream.readFloat48(), 999999.2502002716);
 
   stream = new DataBuffer(new Uint8Array([0xF4, 0x23, 0xF4, 0x00, 0xD2, 0x94]));
-  t.is(stream.peekFloat48(0), -999999.2502);
-  t.is(stream.readFloat48(), -999999.2502);
+  t.is(stream.peekFloat48(0), -999999.2502002716);
+  t.is(stream.readFloat48(), -999999.2502002716);
 });
 
 test('float64', (t) => {
@@ -837,8 +837,8 @@ test('floatIEEE754', (t) => {
   t.is(Number.NEGATIVE_INFINITY, stream.readFloatIEEE754(true));
 
   stream = new DataBuffer(new Uint8Array([0x7F, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
-  t.is(Number.POSITIVE_INFINITY, stream.peekFloatIEEE754());
-  t.is(Number.POSITIVE_INFINITY, stream.readFloatIEEE754());
+  t.is(Number.NaN, stream.peekFloatIEEE754());
+  t.is(Number.NaN, stream.readFloatIEEE754());
 
   stream = new DataBuffer(new Uint8Array([0x40, 0x00, 0xC9, 0x0F, 0xDA, 0x9E, 0x46, 0xA7, 0x88, 0x00]));
   t.is(stream.peekFloatIEEE754(), 3.14159265);
@@ -1881,7 +1881,7 @@ test('diff: identical buffers', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   t.is(edits.length, 4);
   for (const edit of edits) {
@@ -1893,7 +1893,7 @@ test('diff: empty buffers', (t) => {
   const buf1 = new DataBuffer([]);
   const buf2 = new DataBuffer([]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   t.is(edits.length, 0);
 });
@@ -1902,7 +1902,7 @@ test('diff: completely different buffers', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
   const buf2 = new DataBuffer([0xAA, 0xBB, 0xCC]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   // Should have 3 delete + 3 insert operations
   t.true(edits.length >= 3);
@@ -1916,7 +1916,7 @@ test('diff: buffer with single byte change', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0x04]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   // Should have matches, and one delete + insert for the changed byte
   const matchOps = edits.filter(e => e.op === Op.Match);
@@ -1938,7 +1938,7 @@ test('diff: shorter buffer', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const matchOps = edits.filter(e => e.op === Op.Match);
   const deleteOps = edits.filter(e => e.op === Op.Delete);
@@ -1951,7 +1951,7 @@ test('diff: longer buffer', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   const matchOps = edits.filter(e => e.op === Op.Match);
   const insertOps = edits.filter(e => e.op === Op.Insert);
@@ -1969,7 +1969,7 @@ test('diff: with offset', (t) => {
   const buf2 = new DataBuffer([0x01, 0x02, 0x03, 0x04]);
 
   // Compare starting from offset 2 in buf1
-  const edits = buf1.diff(buf2, 2);
+  const edits = diffBuffer(buf1, buf2, 2);
 
   // Should match all 4 bytes when comparing from offset 2
   t.is(edits.length, 4);
@@ -1982,15 +1982,15 @@ test('diff: accepts different input types', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03]);
 
   // Test with array
-  const edits1 = buf1.diff([0x01, 0x02, 0x03]);
+  const edits1 = diffBuffer(buf1, [0x01, 0x02, 0x03]);
   t.is(edits1.filter(e => e.op === Op.Match).length, 3);
 
   // Test with Uint8Array
-  const edits2 = buf1.diff(new Uint8Array([0x01, 0x02, 0x03]));
+  const edits2 = diffBuffer(buf1, new Uint8Array([0x01, 0x02, 0x03]));
   t.is(edits2.filter(e => e.op === Op.Match).length, 3);
 
   // Test with Buffer
-  const edits3 = buf1.diff(Buffer.from([0x01, 0x02, 0x03]));
+  const edits3 = diffBuffer(buf1, Buffer.from([0x01, 0x02, 0x03]));
   t.is(edits3.filter(e => e.op === Op.Match).length, 3);
 });
 
@@ -1998,7 +1998,7 @@ test('diff: multiple changes', (t) => {
   const buf1 = new DataBuffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
   const buf2 = new DataBuffer([0x01, 0xFF, 0x03, 0xAA, 0x05, 0xBB]);
 
-  const edits = buf1.diff(buf2);
+  const edits = diffBuffer(buf1, buf2);
 
   // Should have 3 matches and 6 changes (3 deletes + 3 inserts)
   const matchOps = edits.filter(e => e.op === Op.Match);
@@ -2294,9 +2294,9 @@ test('float48: explicit endian flags work independently of nativeEndian', (t) =>
       const bytes = littleEndian ? [...be].reverse() : be;
       const buffer = new DataBuffer(bytes);
       buffer.nativeEndian = nativeEndian;
-      t.is(buffer.peekFloat48(0, littleEndian), 999999.2502);
+      t.is(buffer.peekFloat48(0, littleEndian), 999999.2502002716);
       t.is(buffer.offset, 0);
-      t.is(buffer.readFloat48(littleEndian), 999999.2502);
+      t.is(buffer.readFloat48(littleEndian), 999999.2502002716);
       t.is(buffer.offset, 6);
     }
   }
@@ -2516,14 +2516,14 @@ test('compare: preserves region matching, input conversion, empty and insufficie
 test('diff: offset bounds and independent outputs with direct Buffer input', (t) => {
   const buffer = new DataBuffer([1, 2, 3]);
   for (const offset of [-1, 0.5, Number.NaN, Infinity, 4]) {
-    t.throws(() => buffer.diff([1], offset), { name: 'UnderflowError' });
+    t.throws(() => diffBuffer(buffer, [1], offset), { name: 'UnderflowError' });
   }
   const input = Buffer.from([1, 2, 3]);
-  const output = buffer.diff(input);
+  const output = diffBuffer(buffer, input);
   input[0] = 9;
   t.is(output[0].x, 1);
   t.is(output[0].y, 1);
-  t.is(buffer.diff([], 3).length, 0);
+  t.is(diffBuffer(buffer, [], 3).length, 0);
   t.is(buffer.offset, 0);
   t.is(buffer._buffer, null);
 });

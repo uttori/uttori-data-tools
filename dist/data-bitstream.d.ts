@@ -1,11 +1,10 @@
 import DataBuffer from "./data-buffer.js";
-import DataStream from "./data-stream.js";
 /**
- * Read a DataStream as a stream of bits.
- * @property {DataStream} stream The DataStream to process.
- * @property {number} bitPosition The number of buffers in the list.
+ * Read a DataBuffer as a stream of bits.
+ * @property {DataBuffer} stream The DataBuffer to process.
+ * @property {number} bitPosition The bit offset within the current byte, from 0 through 7.
  * @example <caption>new DataBitstream(stream)</caption>
- * const stream = DataStream.fromBuffer(new DataBuffer(new Uint8Array([0xFC, 0x08])));
+ * const stream = new DataBuffer(new Uint8Array([0xFC, 0x08]));
  * const bitstream = new DataBitstream(stream);
  * bitstream.readLSB(0);
  * ➜ 0
@@ -14,22 +13,22 @@ import DataStream from "./data-stream.js";
  * @class
  */
 declare class DataBitstream {
-    /** The DataStream being processed. */
-    stream: DataStream;
-    /** The number of buffers in the list. */
+    /** The DataBuffer being processed. */
+    stream: DataBuffer;
+    /** The bit offset within the current byte, from 0 through 7. */
     bitPosition: number;
     /**
      * Creates an instance of DataBitstream.
-     * @param stream The DataStream to process.
+     * @param stream The DataBuffer to process.
      */
-    constructor(stream: DataStream);
+    constructor(stream: DataBuffer);
     /**
      * Creates a new DataBitstream from file data.
      * @param data The data of the image to process.
      * @returns The new DataBitstream instance for the provided file data.
      * @static
      */
-    static fromData(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | number | string | Uint8Array | Uint32Array): DataBitstream;
+    static fromData(data: number[] | ArrayBuffer | Buffer | DataBuffer | Int8Array | Int16Array | Int32Array | number | string | Uint8Array | Uint16Array | Uint32Array): DataBitstream;
     /**
      * Creates a new DataBitstream from an array of bytes.
      * @param bytes The data to read as a bitstream.
@@ -39,7 +38,7 @@ declare class DataBitstream {
     static fromBytes(bytes: number[]): DataBitstream;
     /**
      * Creates a copy of the DataBitstream.
-     * @returns The copied DataBufferList.
+     * @returns The copied DataBitstream, including its byte and bit offsets.
      */
     copy(): DataBitstream;
     /**
@@ -73,7 +72,7 @@ declare class DataBitstream {
      */
     align(): void;
     /**
-     * Read the specified number of bits.
+     * Read the specified number of bits, from 0 through 40 at any bit alignment.
      * @param bits The number of bits to be read.
      * @param signed If the sign bit is turned on, flip the bits and add one to convert to a negative value, default is false.
      * @param advance If true, advance the bit position, default is true.
@@ -88,7 +87,7 @@ declare class DataBitstream {
      */
     peek(bits: number, signed?: boolean): number;
     /**
-     * Read the specified number of bits.
+     * Read the specified number of bits, from 0 through 40 at any bit alignment.
      * In computing, the least significant bit (LSB) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd.
      * The LSB is sometimes referred to as the low-order bit or right-most bit, due to the convention in positional notation of writing less significant digits further to the right.
      * It is analogous to the least significant digit of a decimal integer, which is the digit in the ones (right-most) position.
@@ -110,6 +109,10 @@ declare class DataBitstream {
      * @throws {Error} Too Large, too many bits.
      */
     peekLSB(bits: number, signed?: boolean): number;
+    /** Validate a bit count without applying the 40-bit numeric read limit. */
+    private validateBits;
+    /** Validate the entire read before accessing bytes or changing either cursor. */
+    private validateRead;
 }
 export default DataBitstream;
 //# sourceMappingURL=data-bitstream.d.ts.map

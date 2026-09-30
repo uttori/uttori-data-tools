@@ -26,7 +26,7 @@ export interface TextHunk {
  * If x and y are identical, the output has length zero.
  * @param x The first text to compare
  * @param y The second text to compare
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns The hunks for the diff. The hunks describe the changes necessary to convert from x to y.
  */
 export declare function textHunks(x: string, y: string, context?: number): TextHunk[];
@@ -43,7 +43,7 @@ export declare function textEdits(x: string, y: string): TextEdit[];
  *
  * @param x The first text to compare
  * @param y The second text to compare
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns The unified diff in string format.
  */
 export declare function unified(x: string, y: string, context?: number): string;
@@ -51,7 +51,7 @@ export declare function unified(x: string, y: string, context?: number): string;
  * htmlTable compares the lines in x and y and returns an HTML table showing the differences.
  * @param x The first text to compare (old version)
  * @param y The second text to compare (new version)
- * @param context Number of matching lines to include around changes (default: 3)
+ * @param context Non-negative safe integer number of matching lines to include around changes (default: 3)
  * @returns HTML table string
  */
 export declare function htmlTable(x: string, y: string, context?: number): string;

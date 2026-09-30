@@ -1,4 +1,4 @@
-import AudioWAV from '../esm/index.js';
+import AudioWAV from '../../dist/index.js';
 
 // fetch('https://localhost:8000/test/assets/A0000001.wav')
 //   .then((r) => r.arrayBuffer())

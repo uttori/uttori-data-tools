@@ -222,3 +222,232 @@ test('Myers: high quality diagonal in forward direction', (t) => {
 
   verifyResultVectors(t, m.resultVectorX, m.resultVectorY, x, y);
 });
+
+test('Myers: sparse index mappings allocate dense vectors through the sentinel', (t) => {
+  const m = new Myers([2, 5], [1, 4], ['a', 'b'], ['a', 'c'], (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+  t.deepEqual(m.resultVectorX, [false, false, false, false, false, true, false]);
+  t.deepEqual(m.resultVectorY, [false, false, false, false, true, false]);
+  t.is(Object.keys(m.resultVectorX).length, m.resultVectorX.length);
+  t.is(Object.keys(m.resultVectorY).length, m.resultVectorY.length);
+});
+
+test('Myers: invalid index mappings fail before comparison', (t) => {
+  const eq = (a, b) => a === b;
+  for (const indices of [[], [0, 1], [-1], [0.5], [NaN], [Infinity], [0xFFFFFFFE]]) {
+    t.throws(() => new Myers(indices, [0], ['a'], ['b'], eq), { instanceOf: RangeError });
+    t.throws(() => new Myers([0], indices, ['a'], ['b'], eq), { instanceOf: RangeError });
+  }
+});
+
+test('Myers: compare accepts full untrimmed bounds', (t) => {
+  const x = ['same', 'a', 'b', 'c', 'end'];
+  const y = ['same', 'a', 'changed', 'c', 'end'];
+  const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+  m.compare(0, x.length, 0, y.length);
+  verifyResultVectors(t, m.resultVectorX, m.resultVectorY, x, y);
+  t.deepEqual(m.resultVectorX, [false, false, true, false, false, false]);
+  t.deepEqual(m.resultVectorY, [false, false, true, false, false, false]);
+});
+
+test('Myers: compare accepts identical full bounds without splitting forever', (t) => {
+  const x = ['a', 'b', 'c'];
+  const m = new Myers([0, 1, 2], [0, 1, 2], x, x, (a, b) => a === b);
+  m.compare(0, x.length, 0, x.length);
+  t.deepEqual(m.resultVectorX, [false, false, false, false]);
+  t.deepEqual(m.resultVectorY, [false, false, false, false]);
+});
+
+test('Myers: shifted subranges resize an initially empty workspace', (t) => {
+  const x = Array.from({ length: 20 }, (_, i) => i);
+  const indices = x.map((_, i) => i);
+  for (const [smin, smax, tmin, tmax] of [[15, 18, 0, 3], [0, 3, 15, 18]]) {
+    const m = new Myers(indices, indices, x, x, (a, b) => a === b);
+    t.is(m.vf.length, 0);
+    m.compare(smin, smax, tmin, tmax);
+    for (let i = 0; i <= x.length; i++) {
+      t.is(m.resultVectorX[i], i >= smin && i < smax);
+      t.is(m.resultVectorY[i], i >= tmin && i < tmax);
+    }
+    t.is(m.vf.length, smax - smin + tmax - tmin + 3);
+    t.is(m.vb.length, m.vf.length);
+  }
+});
+
+test('Myers: invalid comparison and split bounds throw RangeError', (t) => {
+  const m = new Myers([0], [0], ['a'], ['b'], (a, b) => a === b);
+  for (const bounds of [[-1, 1, 0, 1], [1, 0, 0, 1], [0, 2, 0, 1], [0, 1, -1, 1],
+    [0, 1, 1, 0], [0, 1, 0, 2], [NaN, 1, 0, 1], [0, 1.5, 0, 1],
+    [0, 1, Infinity, 1], [0, 1, 0, NaN]]) {
+    t.throws(() => m.compare(...bounds), { instanceOf: RangeError });
+    t.throws(() => m.split(...bounds), { instanceOf: RangeError });
+  }
+});
+
+test('Myers: split supports empty ranges and common prefixes or suffixes', (t) => {
+  const cases = [
+    { x: [], y: [], expected: { s0: 0, s1: 0, t0: 0, t1: 0 } },
+    { x: [], y: ['a', 'b'], expected: { s0: 0, s1: 0, t0: 1, t1: 1 } },
+    { x: ['a', 'b'], y: [], expected: { s0: 1, s1: 1, t0: 0, t1: 0 } },
+    { x: ['a', 'b'], y: ['a', 'b'], expected: { s0: 0, s1: 2, t0: 0, t1: 2 } },
+    { x: ['a', 'b'], y: ['a', 'c'], expected: { s0: 0, s1: 1, t0: 0, t1: 1 } },
+    { x: ['a', 'b'], y: ['c', 'b'], expected: { s0: 1, s1: 2, t0: 1, t1: 2 } },
+  ];
+  for (const { x, y, expected } of cases) {
+    const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+    t.deepEqual(m.split(0, x.length, 0, y.length), expected);
+    t.true(m.resultVectorX.every(value => value === false));
+    t.true(m.resultVectorY.every(value => value === false));
+  }
+});
+
+test('Myers: direct custom comparator receives original values in a stable direction', (t) => {
+  const x = ['X0', 'X1', 'X2', 'X3'];
+  const y = ['y3', 'y2', 'y1', 'y0'];
+  const equal = function(a, b) {
+    t.is(this, undefined);
+    t.true(a.startsWith('X'));
+    t.true(b.startsWith('y'));
+    return a.slice(1) === b.slice(1);
+  };
+  const m = new Myers([0, 1, 2, 3], [0, 1, 2, 3], x, y, equal);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+  t.is(m.resultVectorX.filter(Boolean).length, 3);
+  t.is(m.resultVectorY.filter(Boolean).length, 3);
+});
+
+test('Myers: unbalanced inputs preserve a single interior match', (t) => {
+  const long = Array.from({ length: 2000 }, (_, i) => `line${i}`);
+  const short = ['line1000'];
+  for (const [x, y] of [[short, long], [long, short]]) {
+    const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+    m.compare(m.smin, m.smax, m.tmin, m.tmax);
+    verifyResultVectors(t, m.resultVectorX, m.resultVectorY, x, y);
+    t.is(m.resultVectorX.filter(Boolean).length + m.resultVectorY.filter(Boolean).length, 1999);
+  }
+});
+
+test('Myers: only insertion or deletion after trimming needs no diagonal workspace', (t) => {
+  for (const [x, y] of [[[], [1, 2]], [[1, 2], []], [[1, 2], [1, 3, 2]], [[1, 3, 2], [1, 2]]]) {
+    const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+    t.is(m.vf.length, 0);
+    t.is(m.vb.length, 0);
+    m.compare(m.smin, m.smax, m.tmin, m.tmax);
+    verifyResultVectors(t, m.resultVectorX, m.resultVectorY, x, y);
+  }
+});
+
+test('Myers: long common edges keep workspace proportional to the changed region', (t) => {
+  const x = Array.from({ length: 50000 }, (_, i) => i);
+  const y = x.slice();
+  y[25000] = -1;
+  const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+  t.is(m.smin, 25000);
+  t.is(m.smax, 25001);
+  t.is(m.vf.length, 5);
+  t.is(m.vb.length, 5);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+  t.is(m.resultVectorX.filter(Boolean).length, 1);
+  t.is(m.resultVectorY.filter(Boolean).length, 1);
+});
+
+test('Myers: comparison uses an explicit stack rather than recursively invoking compare', (t) => {
+  class CountingMyers extends Myers {
+    calls = 0;
+
+    compare(...bounds) {
+      this.calls++;
+      super.compare(...bounds);
+    }
+  }
+  const x = Array.from({ length: 2000 }, (_, i) => i);
+  const y = x.map(value => value % 7 === 0 ? -value - 1 : value);
+  const m = new CountingMyers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+  t.is(m.calls, 1);
+  verifyResultVectors(t, m.resultVectorX, m.resultVectorY, x, y);
+});
+
+/**
+ * Computes edit distance with a dynamic-programming row, independent of Myers.
+ * @param {number[]} x The first input
+ * @param {number[]} y The second input
+ * @returns {number} Minimum insertion/deletion count.
+ */
+function minimumDistance(x, y) {
+  const row = Array.from({ length: y.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= x.length; i++) {
+    let diagonal = row[0];
+    row[0] = i;
+    for (let j = 1; j <= y.length; j++) {
+      const above = row[j];
+      row[j] = x[i - 1] === y[j - 1] ? diagonal : Math.min(above, row[j - 1]) + 1;
+      diagonal = above;
+    }
+  }
+  return row[y.length];
+}
+
+test('Myers: exhaustive split endpoints lie on minimum-cost paths, including shifted ranges', (t) => {
+  const sequences = [[]];
+  for (let length = 1; length <= 5; length++) {
+    for (let bits = 0; bits < 2 ** length; bits++) {
+      sequences.push(Array.from({ length }, (_, i) => (bits >> i) & 1));
+    }
+  }
+  for (const left of sequences) {
+    for (const right of sequences) {
+      const x = [9, 8, 7, ...left, 6];
+      const y = [5, ...right, 4];
+      const m = new Myers(x.map((_, i) => i), y.map((_, i) => i), x, y, (a, b) => a === b);
+      const { s0, s1, t0, t1 } = m.split(3, x.length - 1, 1, y.length - 1);
+      t.true(s0 >= 3 && s0 <= s1 && s1 <= x.length - 1);
+      t.true(t0 >= 1 && t0 <= t1 && t1 <= y.length - 1);
+      t.is(s1 - s0, t1 - t0);
+      t.deepEqual(x.slice(s0, s1), y.slice(t0, t1));
+      const splitDistance = minimumDistance(x.slice(3, s0), y.slice(1, t0)) +
+        minimumDistance(x.slice(s1, -1), y.slice(t1, -1));
+      t.is(splitDistance, minimumDistance(left, right));
+    }
+  }
+});
+
+test('Myers: seeded arbitrary subranges match an independent edit-distance oracle', (t) => {
+  let seed = 0xDEADBEEF;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed;
+  };
+  for (let i = 0; i < 2000; i++) {
+    const x = Array.from({ length: random() % 30 }, () => (random() >>> 16) % 5);
+    const y = Array.from({ length: random() % 30 }, () => (random() >>> 16) % 5);
+    const smin = random() % (x.length + 1);
+    const smax = smin + random() % (x.length - smin + 1);
+    const tmin = random() % (y.length + 1);
+    const tmax = tmin + random() % (y.length - tmin + 1);
+    const m = new Myers(x.map((_, j) => j), y.map((_, j) => j), x, y, (a, b) => a === b);
+    m.compare(smin, smax, tmin, tmax);
+    t.deepEqual(
+      x.slice(smin, smax).filter((_, j) => !m.resultVectorX[smin + j]),
+      y.slice(tmin, tmax).filter((_, j) => !m.resultVectorY[tmin + j]),
+    );
+    t.is(m.resultVectorX.filter(Boolean).length + m.resultVectorY.filter(Boolean).length,
+      minimumDistance(x.slice(smin, smax), y.slice(tmin, tmax)));
+    t.true(m.resultVectorX.slice(0, smin).every(value => !value));
+    t.true(m.resultVectorX.slice(smax).every(value => !value));
+    t.true(m.resultVectorY.slice(0, tmin).every(value => !value));
+    t.true(m.resultVectorY.slice(tmax).every(value => !value));
+  }
+});
+
+
+test('Myers: reordered and repeated index mappings retain their existing mapping semantics', (t) => {
+  const m = new Myers([5, 2], [4, 1], ['a', 'b'], ['a', 'c'], (a, b) => a === b);
+  m.compare(m.smin, m.smax, m.tmin, m.tmax);
+  t.deepEqual(m.resultVectorX, [false, false, true, false, false, false, false]);
+  t.deepEqual(m.resultVectorY, [false, true, false, false, false, false]);
+
+  const repeated = new Myers([0, 0], [], ['a', 'b'], [], (a, b) => a === b);
+  repeated.compare(repeated.smin, repeated.smax, repeated.tmin, repeated.tmax);
+  t.deepEqual(repeated.resultVectorX, [true, false, false]);
+});

@@ -66,13 +66,13 @@
       "import": "./dist/data-bitstream.js",
       "types": "./dist/data-bitstream.d.ts"
     },
-    "./data-buffer-list": {
-      "import": "./dist/data-buffer-list.js",
-      "types": "./dist/data-buffer-list.d.ts"
-    },
     "./data-buffer": {
       "import": "./dist/data-buffer.js",
       "types": "./dist/data-buffer.d.ts"
+    },
+    "./data-buffer-helpers": {
+      "import": "./dist/data-buffer-helpers.js",
+      "types": "./dist/data-buffer-helpers.d.ts"
     },
     "./data-formating": {
       "import": "./dist/data-formating.js",
@@ -85,10 +85,6 @@
     "./data-helpers": {
       "import": "./dist/data-helpers.js",
       "types": "./dist/data-helpers.d.ts"
-    },
-    "./data-stream": {
-      "import": "./dist/data-stream.js",
-      "types": "./dist/data-stream.d.ts"
     },
     "./underflow-error": {
       "import": "./dist/underflow-error.js",
@@ -121,6 +117,18 @@
     "./image/gif_lzw": {
       "import": "./dist/image/gif_lzw.js",
       "types": "./dist/image/gif_lzw.d.ts"
+    },
+    "./image/rgba-surface": {
+      "import": "./dist/image/rgba-surface.js",
+      "types": "./dist/image/rgba-surface.d.ts"
+    },
+    "./image/bitmap-text": {
+      "import": "./dist/image/bitmap-text.js",
+      "types": "./dist/image/bitmap-text.d.ts"
+    },
+    "./image/types": {
+      "import": "./dist/image/types.js",
+      "types": "./dist/image/types.d.ts"
     },
     "./patch/data-patch-ips": {
       "import": "./dist/patch/data-patch-ips.js",
@@ -166,8 +174,7 @@
     "lint:fix": "oxlint --fix .",
     "fmt:check": "oxfmt --check src",
     "fmt": "oxfmt src",
-    "make-browser": "rollup -c rollup.config.js",
-    "make-demo": "rm demo/png/png.js; rm demo/heic/heic.js; rollup -c demo/png/rollup.config.js; rollup -c demo/heic/rollup.config.js",
+    "make-demo": "rm demo/png/png.js; rollup -c demo/png/rollup.config.js",
     "make-types": "tsc --module nodenext --project ./tsconfig.json",
     "make": "npm run make-types && npm run docs",
     "release": "release-it",
@@ -185,6 +192,7 @@
     "test": "test"
   },
   "pre-commit": [
+    "fmt:check",
     "lint",
     "test"
   ],
