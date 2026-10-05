@@ -11,7 +11,7 @@ const patternBytes = (records, { og = false, bars = 1, timeSignature = 0 } = {})
   const footer = new Uint8Array(16);
   footer[1] = 140;
   footer[8] = og ? 0 : bars;
-  footer[9] = og ? 2 : 0;
+  footer[9] = og ? bars : 0;
   footer[12] = timeSignature;
   footer[13] = og ? 0 : 128;
   footer[14] = og ? 0 : bars;
@@ -37,8 +37,9 @@ const positions = (pattern) => {
   let time = 0;
   const notes = [];
   for (const note of pattern.notes) {
-    time += note.ticks;
+    if (!pattern.options.og) time += note.ticks;
     if (note.midiNote !== 128) notes.push({ time, pad: note.padLabel, length: note.length });
+    if (pattern.options.og) time += note.ticks;
   }
   return { notes, time };
 };
@@ -91,6 +92,89 @@ test('parse(): accepts old MKII bank-switch aliases', (t) => {
   t.deepEqual(pattern.getUsedPads(), ['A1', 'F1']);
 });
 
+test('SX hardware records: following delays, big-endian lengths, and footer bars', (t) => {
+  // PTN00026 from TylerOderkirk/ptn2midi's public hardware card; the final hit starts at beat 7.
+  const records = Buffer.from('90470000787c0083f04700007567007d904700007576006d604700007b78006630490000777f002b604800007f7f004c', 'hex');
+  const pattern = new SP404Pattern(patternBytes([[...records]], { og: true, bars: 2 }), { og: true });
+  t.is(pattern.bars, 2);
+  t.deepEqual(positions(pattern), {
+    notes: [
+      { time: 0, pad: 'C1', length: 131 }, { time: 144, pad: 'C1', length: 125 },
+      { time: 384, pad: 'C1', length: 109 }, { time: 528, pad: 'C1', length: 102 },
+      { time: 624, pad: 'C3', length: 43 }, { time: 672, pad: 'C2', length: 76 },
+    ],
+    time: 768,
+  });
+  const midi = pattern.toMidi({ noteMap: { C1: 36, C3: 38, C2: 37 } });
+  let time = 0;
+  const hits = [];
+  for (const event of midi.chunks[0].events) {
+    time += event.deltaTime;
+    if (event.type === 0x90) hits.push({ time, length: event.data.length });
+  }
+  t.deepEqual(hits, positions(pattern).notes.map(({ time, length }) => ({ time, length })));
+  t.is(time, 768);
+});
+
+test('SX native addresses: all 120 pads and both selector variants survive MIDI conversion', (t) => {
+  const bankStarts = [47, 59, 71, 83, 95, 47, 59, 71, 83, 95];
+  const labels = [];
+  const records = [];
+  const toMidi = {};
+  const toPads = {};
+  for (let bank = 0; bank < 10; bank++) {
+    for (let pad = 1; pad <= 12; pad++) {
+      const label = `${String.fromCharCode(65 + bank)}${pad}`;
+      const pitch = labels.length;
+      labels.push(label);
+      toMidi[label] = pitch;
+      toPads[pitch] = label;
+      let selector = 0;
+      if (bank >= 5) selector = 1;
+      if (pad % 2 === 0) selector += 64;
+      records.push([96, bankStarts[bank] + pad - 1, selector, 0, 100, 64, 0, 17]);
+    }
+  }
+  const original = new SP404Pattern(patternBytes(records, { og: true, bars: 30 }), { og: true });
+  t.deepEqual(original.getUsedPads(), labels);
+  const midi = original.toMidi({ noteMap: toMidi });
+  const bytes = SP404Pattern.fromMidi(midi, toPads, 96, true).data;
+  const restored = new SP404Pattern(bytes, { og: true });
+  t.deepEqual(positions(restored), positions(original));
+  t.is(restored.bars, 30);
+  // Inspect the writer's wire fields directly rather than accepting a symmetric parser/writer bug.
+  const buffer = Buffer.from(bytes);
+  for (let index = 0; index < 120; index++) {
+    t.is(buffer[index * 8], 96);
+    t.is(buffer[index * 8 + 1], records[index][1]);
+    t.is(buffer[index * 8 + 2], records[index][2] & 1);
+    t.is(buffer.readUInt16BE(index * 8 + 6), 17);
+  }
+});
+
+test('SX output: late first hits, long gaps, silent bars, and maximum length remain representable', (t) => {
+  const midi = midiTracks([[
+    noteOn(480, 36, 48), noteOn(1200, 37, 48),
+    { ...AudioMIDI.generateEndOfTrackEvent(), deltaTime: 1392 },
+  ]], 96);
+  const data = SP404Pattern.fromMidi(midi, { 36: 'F9', 37: 'F10' }, 96, true);
+  const pattern = new SP404Pattern(data, { og: true });
+  t.deepEqual(positions(pattern), { notes: [
+    { time: 480, pad: 'F9', length: 48 }, { time: 1680, pad: 'F10', length: 48 },
+  ], time: 3072 });
+  t.is(pattern.bars, 8);
+  t.is(data.data[data.length - 7], 8);
+  t.true(pattern.notes.every(({ ticks }) => ticks <= 255));
+  const silent = new SP404Pattern(patternBytes([], { og: true, bars: 4 }), { og: true });
+  t.is(silent.toMidi({ noteMap: {} }).chunks[0].events.at(-1).deltaTime, 1536);
+  const maximum = new SP404Pattern(SP404Pattern.fromMidi(midiTracks([[noteOn(24575, 36, 1)]], 96), { 36: 'F9' }, 96, true), { og: true });
+  t.is(maximum.bars, 64);
+  t.is(positions(maximum).time, 24576);
+  for (const bars of [0, 65]) {
+    t.throws(() => new SP404Pattern(patternBytes([], { og: true, bars }), { og: true }), { message: /SX pattern bars/ });
+  }
+});
+
 test('device mappings: every OG and MKII pad decodes back to its own label', (t) => {
   for (const og of [false, true]) {
     const mappings = og ? SP404Pattern.defaultMapOG : SP404Pattern.defaultMap;
@@ -100,8 +184,8 @@ test('device mappings: every OG and MKII pad decodes back to its own label', (t)
     t.is(pattern.notes.at(-1).sampleNumber, og ? 120 : 160);
     t.deepEqual(pattern.options, { og, bytesPerNote: 8, padsPerBank: og ? 12 : 16 });
   }
-  t.deepEqual(SP404Pattern.defaultMapOG.G1, { pad: 'G1', midiNote: 71, bankSwitch: 64 });
-  t.deepEqual(SP404Pattern.defaultMapOG.F1, { pad: 'F1', midiNote: 107, bankSwitch: 0 });
+  t.deepEqual(SP404Pattern.defaultMapOG.G1, { pad: 'G1', midiNote: 59, bankSwitch: 1 });
+  t.deepEqual(SP404Pattern.defaultMapOG.F1, { pad: 'F1', midiNote: 47, bankSwitch: 1 });
   t.is(SP404Pattern.defaultPPQ, 480);
   t.is(SP404Pattern.defaultPPQOG, 96);
   const map = SP404Pattern.defaultMap;
@@ -239,7 +323,7 @@ test('fromMidi(): empty, one-note-at-zero, and OG patterns occupy complete bars'
   }
   const midi = midiTracks([[noteOn(0, 60, 480), noteOn(960, 61, 240)]]);
   const pattern = new SP404Pattern(SP404Pattern.fromMidi(midi, { 60: 'G1', 61: 'J12' }, 96, true), { og: true });
-  t.is(pattern.bars, 0);
+  t.is(pattern.bars, 1);
   t.deepEqual(positions(pattern), { notes: [{ time: 0, pad: 'G1', length: 96 }, { time: 192, pad: 'J12', length: 48 }], time: 384 });
   t.is(pattern.toMidi({ noteMap: { G1: 60, J12: 61 } }).timeDivision, 96);
 });

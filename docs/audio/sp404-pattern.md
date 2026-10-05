@@ -69,7 +69,7 @@ Notes in the pattern grid will typically line up, but if the last note or a note
         * [.defaultPPQOG](#SP404Pattern.defaultPPQOG)
         * [.defaultPPQ](#SP404Pattern.defaultPPQ)
         * [.defaultMap](#SP404Pattern.defaultMap) ⇒ <code>Record.&lt;string, SP404PadMapping&gt;</code>
-        * [.defaultMapOG](#SP404Pattern.defaultMapOG) ⇒ <code>Record.&lt;string, SP404PadMapping&gt;</code>
+        * [.defaultMapOG](#SP404Pattern.defaultMapOG)
         * [.fromMidi(audioMIDI, noteMap, patternPPQN, [og])](#SP404Pattern.fromMidi) ⇒ <code>DataBuffer</code>
 
 <a name="new_SP404Pattern_new"></a>
@@ -95,7 +95,7 @@ console.log('Notes:', file.notes);
 <a name="SP404Pattern+bars"></a>
 
 ### sP404Pattern.bars
-The number of bars in the pattern, so 1 bar is 1; OG files store zero here.
+Footer bar count (normally 1–64); an empty instance starts at zero.
 
 **Kind**: instance property of [<code>SP404Pattern</code>](#SP404Pattern)  
 <a name="SP404Pattern+timeSignature"></a>
@@ -188,13 +188,13 @@ Returns a fresh map owned by the caller.
 **Returns**: <code>Record.&lt;string, SP404PadMapping&gt;</code> - The default mapping of pads `A1` to `J16` to MIDI notes.  
 <a name="SP404Pattern.defaultMapOG"></a>
 
-### SP404Pattern.defaultMapOG ⇒ <code>Record.&lt;string, SP404PadMapping&gt;</code>
-The default mapping of pads `A1` to `J12` to MIDI notes for the OG SP404.
-https://support.roland.com/hc/en-us/articles/201932129-SP-404-Playing-the-SP-404-via-MIDI
+### SP404Pattern.defaultMapOG
+Native SX twelve-pad addresses, shared by A–E and F–J with separate bank selectors.
+These are pattern-file addresses, independent of the MIDI notes used to trigger the device.
 Returns a fresh map owned by the caller.
+Format evidence: https://github.com/TylerOderkirk/ptn2midi/blob/master/ptn2midi.py
 
 **Kind**: static property of [<code>SP404Pattern</code>](#SP404Pattern)  
-**Returns**: <code>Record.&lt;string, SP404PadMapping&gt;</code> - The default mapping of pads `A1` to `J12` to MIDI notes.  
 <a name="SP404Pattern.fromMidi"></a>
 
 ### SP404Pattern.fromMidi(audioMIDI, noteMap, patternPPQN, [og]) ⇒ <code>DataBuffer</code>
@@ -209,7 +209,7 @@ Pads that play all the way through will have 2 on notes, one to start the sound 
 | audioMIDI | <code>default</code> |  | The AudioMIDI instance to convert back to a pad file. |
 | noteMap | <code>Record.&lt;number, string&gt;</code> |  | A map of MIDI note numbers to pad labels `A1` to `J16`. |
 | patternPPQN | <code>number</code> |  | The pulses per quarter note of the pattern; OG is 96, MKii is 480. |
-| [og] | <code>boolean</code> | <code>false</code> | When true, process for the original SP404s, when false for the MKii; default is false. Durations come from Note On length or matching FIFO Note Off events within each track/channel. Missing durations become zero; unmapped notes, SMPTE timing, non-4/4 signatures, independent format-2 tracks and unrepresentable lengths throw. Patterns are limited to 64 bars. |
+| [og] | <code>boolean</code> | <code>false</code> | When true, process for the original SP404s, when false for the MKii; default is false. Native SX output uses following delays, big-endian durations, and footer byte 9 for bars. Durations come from Note On length or matching FIFO Note Off events within each track/channel. Missing durations become zero; unmapped notes, SMPTE timing, non-4/4 signatures, independent format-2 tracks and unrepresentable lengths throw. Patterns are limited to 64 bars. |
 
 <a name="debug"></a>
 

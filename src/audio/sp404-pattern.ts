@@ -13,7 +13,7 @@ if (typeof process !== "undefined" && process.env.UTTORI_DATA_DEBUG) {
 
 /** One eight-byte pattern event. A raw note value of 128 is a timing placeholder. */
 export interface SP404Note {
-  /** The delay in ticks from the previous event (0-255). */
+  /** Device delay (0–255 ticks): after this event on SX/OG, before this event on MKII. */
   ticks: number;
   /** The MIDI note value used as a device pad code (47-126); 128 is a timing placeholder. */
   midiNote: number;
@@ -25,7 +25,7 @@ export interface SP404Note {
   velocity: number;
   /** An unknown value, commonly 64 / 0x40. */
   unknown3: number;
-  /** The length of the note in ticks (2 Bytes). */
+  /** Note duration in native ticks; SX stores it big-endian, MKII little-endian. */
   length: number;
   /** The calculated sample number based on MIDI note and bank switch. Zero for placeholders and unknown pad codes. */
   sampleNumber: number;
@@ -48,7 +48,7 @@ export interface SP404PatternOptions {
   bytesPerNote?: number;
   /** Defaults to 12 for OG, 16 for MKII; a different layout is rejected. */
   padsPerBank?: number;
-  /** Original SP-404 layout and 96 PPQ when true; MKII and 480 PPQ otherwise. */
+  /** SX/original-family twelve-pad pattern format and 96 PPQ when true; MKII and 480 PPQ otherwise. */
   og?: boolean;
 }
 
@@ -111,7 +111,7 @@ interface TimedNote {
  * @augments DataBuffer
  */
 class SP404Pattern extends DataBuffer {
-  /** The number of bars in the pattern, so 1 bar is 1; OG files store zero here. */
+  /** Footer bar count (normally 1–64), an empty instance starts at zero. */
   bars = 0;
   /** The time signature of the pattern: 0 = 4/4, 1 = 3/4, 2 = 2/4, 3 = 1/4, 4 = 5/4, 5 = 6/4, 7 = 7/4. Unknown codes are retained. */
   timeSignature = 0;
@@ -339,153 +339,23 @@ class SP404Pattern extends DataBuffer {
     };
   }
   /**
-   * The default mapping of pads `A1` to `J12` to MIDI notes for the OG SP404.
-   * https://support.roland.com/hc/en-us/articles/201932129-SP-404-Playing-the-SP-404-via-MIDI
+   * Native SX twelve-pad addresses, shared by A–E and F–J with separate bank selectors.
+   * These are pattern-file addresses, independent of the MIDI notes used to trigger the device.
    * Returns a fresh map owned by the caller.
-   * @returns {Record<string, SP404PadMapping>} The default mapping of pads `A1` to `J12` to MIDI notes.
    */
   static get defaultMapOG(): Record<string, SP404PadMapping> {
-    return {
-      // Bank A
-      A1: { midiNote: 47, pad: "A1", bankSwitch: 0 },
-      A2: { midiNote: 48, pad: "A2", bankSwitch: 0 },
-      A3: { midiNote: 49, pad: "A3", bankSwitch: 0 },
-      A4: { midiNote: 50, pad: "A4", bankSwitch: 0 },
-      A5: { midiNote: 51, pad: "A5", bankSwitch: 0 },
-      A6: { midiNote: 52, pad: "A6", bankSwitch: 0 },
-      A7: { midiNote: 53, pad: "A7", bankSwitch: 0 },
-      A8: { midiNote: 54, pad: "A8", bankSwitch: 0 },
-      A9: { midiNote: 55, pad: "A9", bankSwitch: 0 },
-      A10: { midiNote: 56, pad: "A10", bankSwitch: 0 },
-      A11: { midiNote: 57, pad: "A11", bankSwitch: 0 },
-      A12: { midiNote: 58, pad: "A12", bankSwitch: 0 },
-
-      // Bank B
-      B1: { midiNote: 59, pad: "B1", bankSwitch: 0 },
-      B2: { midiNote: 60, pad: "B2", bankSwitch: 0 },
-      B3: { midiNote: 61, pad: "B3", bankSwitch: 0 },
-      B4: { midiNote: 62, pad: "B4", bankSwitch: 0 },
-      B5: { midiNote: 63, pad: "B5", bankSwitch: 0 },
-      B6: { midiNote: 64, pad: "B6", bankSwitch: 0 },
-      B7: { midiNote: 65, pad: "B7", bankSwitch: 0 },
-      B8: { midiNote: 66, pad: "B8", bankSwitch: 0 },
-      B9: { midiNote: 67, pad: "B9", bankSwitch: 0 },
-      B10: { midiNote: 68, pad: "B10", bankSwitch: 0 },
-      B11: { midiNote: 69, pad: "B11", bankSwitch: 0 },
-      B12: { midiNote: 70, pad: "B12", bankSwitch: 0 },
-
-      // Bank C
-      C1: { midiNote: 71, pad: "C1", bankSwitch: 0 },
-      C2: { midiNote: 72, pad: "C2", bankSwitch: 0 },
-      C3: { midiNote: 73, pad: "C3", bankSwitch: 0 },
-      C4: { midiNote: 74, pad: "C4", bankSwitch: 0 },
-      C5: { midiNote: 75, pad: "C5", bankSwitch: 0 },
-      C6: { midiNote: 76, pad: "C6", bankSwitch: 0 },
-      C7: { midiNote: 77, pad: "C7", bankSwitch: 0 },
-      C8: { midiNote: 78, pad: "C8", bankSwitch: 0 },
-      C9: { midiNote: 79, pad: "C9", bankSwitch: 0 },
-      C10: { midiNote: 80, pad: "C10", bankSwitch: 0 },
-      C11: { midiNote: 81, pad: "C11", bankSwitch: 0 },
-      C12: { midiNote: 82, pad: "C12", bankSwitch: 0 },
-
-      // Bank D
-      D1: { midiNote: 83, pad: "D1", bankSwitch: 0 },
-      D2: { midiNote: 84, pad: "D2", bankSwitch: 0 },
-      D3: { midiNote: 85, pad: "D3", bankSwitch: 0 },
-      D4: { midiNote: 86, pad: "D4", bankSwitch: 0 },
-      D5: { midiNote: 87, pad: "D5", bankSwitch: 0 },
-      D6: { midiNote: 88, pad: "D6", bankSwitch: 0 },
-      D7: { midiNote: 89, pad: "D7", bankSwitch: 0 },
-      D8: { midiNote: 90, pad: "D8", bankSwitch: 0 },
-      D9: { midiNote: 91, pad: "D9", bankSwitch: 0 },
-      D10: { midiNote: 92, pad: "D10", bankSwitch: 0 },
-      D11: { midiNote: 93, pad: "D11", bankSwitch: 0 },
-      D12: { midiNote: 94, pad: "D12", bankSwitch: 0 },
-
-      // Bank E
-      E1: { midiNote: 95, pad: "E1", bankSwitch: 0 },
-      E2: { midiNote: 96, pad: "E2", bankSwitch: 0 },
-      E3: { midiNote: 97, pad: "E3", bankSwitch: 0 },
-      E4: { midiNote: 98, pad: "E4", bankSwitch: 0 },
-      E5: { midiNote: 99, pad: "E5", bankSwitch: 0 },
-      E6: { midiNote: 100, pad: "E6", bankSwitch: 0 },
-      E7: { midiNote: 101, pad: "E7", bankSwitch: 0 },
-      E8: { midiNote: 102, pad: "E8", bankSwitch: 0 },
-      E9: { midiNote: 103, pad: "E9", bankSwitch: 0 },
-      E10: { midiNote: 104, pad: "E10", bankSwitch: 0 },
-      E11: { midiNote: 105, pad: "E11", bankSwitch: 0 },
-      E12: { midiNote: 106, pad: "E12", bankSwitch: 0 },
-
-      // Bank F
-      F1: { midiNote: 107, pad: "F1", bankSwitch: 0 },
-      F2: { midiNote: 108, pad: "F2", bankSwitch: 0 },
-      F3: { midiNote: 109, pad: "F3", bankSwitch: 0 },
-      F4: { midiNote: 110, pad: "F4", bankSwitch: 0 },
-      F5: { midiNote: 111, pad: "F5", bankSwitch: 0 },
-      F6: { midiNote: 112, pad: "F6", bankSwitch: 0 },
-      F7: { midiNote: 113, pad: "F7", bankSwitch: 0 },
-      F8: { midiNote: 114, pad: "F8", bankSwitch: 0 },
-      F9: { midiNote: 115, pad: "F9", bankSwitch: 0 },
-      F10: { midiNote: 116, pad: "F10", bankSwitch: 0 },
-      F11: { midiNote: 117, pad: "F11", bankSwitch: 0 },
-      F12: { midiNote: 118, pad: "F12", bankSwitch: 0 },
-
-      // Bank G
-      G1: { midiNote: 71, pad: "G1", bankSwitch: 64 },
-      G2: { midiNote: 72, pad: "G2", bankSwitch: 64 },
-      G3: { midiNote: 73, pad: "G3", bankSwitch: 64 },
-      G4: { midiNote: 74, pad: "G4", bankSwitch: 64 },
-      G5: { midiNote: 75, pad: "G5", bankSwitch: 64 },
-      G6: { midiNote: 76, pad: "G6", bankSwitch: 64 },
-      G7: { midiNote: 77, pad: "G7", bankSwitch: 64 },
-      G8: { midiNote: 78, pad: "G8", bankSwitch: 64 },
-      G9: { midiNote: 79, pad: "G9", bankSwitch: 64 },
-      G10: { midiNote: 80, pad: "G10", bankSwitch: 64 },
-      G11: { midiNote: 81, pad: "G11", bankSwitch: 64 },
-      G12: { midiNote: 82, pad: "G12", bankSwitch: 64 },
-
-      // Bank H
-      H1: { midiNote: 83, pad: "H1", bankSwitch: 64 },
-      H2: { midiNote: 84, pad: "H2", bankSwitch: 64 },
-      H3: { midiNote: 85, pad: "H3", bankSwitch: 64 },
-      H4: { midiNote: 86, pad: "H4", bankSwitch: 64 },
-      H5: { midiNote: 87, pad: "H5", bankSwitch: 64 },
-      H6: { midiNote: 88, pad: "H6", bankSwitch: 64 },
-      H7: { midiNote: 89, pad: "H7", bankSwitch: 64 },
-      H8: { midiNote: 90, pad: "H8", bankSwitch: 64 },
-      H9: { midiNote: 91, pad: "H9", bankSwitch: 64 },
-      H10: { midiNote: 92, pad: "H10", bankSwitch: 64 },
-      H11: { midiNote: 93, pad: "H11", bankSwitch: 64 },
-      H12: { midiNote: 94, pad: "H12", bankSwitch: 64 },
-
-      // Bank I
-      I1: { midiNote: 95, pad: "I1", bankSwitch: 64 },
-      I2: { midiNote: 96, pad: "I2", bankSwitch: 64 },
-      I3: { midiNote: 97, pad: "I3", bankSwitch: 64 },
-      I4: { midiNote: 98, pad: "I4", bankSwitch: 64 },
-      I5: { midiNote: 99, pad: "I5", bankSwitch: 64 },
-      I6: { midiNote: 100, pad: "I6", bankSwitch: 64 },
-      I7: { midiNote: 101, pad: "I7", bankSwitch: 64 },
-      I8: { midiNote: 102, pad: "I8", bankSwitch: 64 },
-      I9: { midiNote: 103, pad: "I9", bankSwitch: 64 },
-      I10: { midiNote: 104, pad: "I10", bankSwitch: 64 },
-      I11: { midiNote: 105, pad: "I11", bankSwitch: 64 },
-      I12: { midiNote: 106, pad: "I12", bankSwitch: 64 },
-
-      // Bank J
-      J1: { midiNote: 107, pad: "J1", bankSwitch: 64 },
-      J2: { midiNote: 108, pad: "J2", bankSwitch: 64 },
-      J3: { midiNote: 109, pad: "J3", bankSwitch: 64 },
-      J4: { midiNote: 110, pad: "J4", bankSwitch: 64 },
-      J5: { midiNote: 111, pad: "J5", bankSwitch: 64 },
-      J6: { midiNote: 112, pad: "J6", bankSwitch: 64 },
-      J7: { midiNote: 113, pad: "J7", bankSwitch: 64 },
-      J8: { midiNote: 114, pad: "J8", bankSwitch: 64 },
-      J9: { midiNote: 115, pad: "J9", bankSwitch: 64 },
-      J10: { midiNote: 116, pad: "J10", bankSwitch: 64 },
-      J11: { midiNote: 117, pad: "J11", bankSwitch: 64 },
-      J12: { midiNote: 118, pad: "J12", bankSwitch: 64 },
-    };
+    const mappings: Record<string, SP404PadMapping> = {};
+    for (let bank = 0; bank < 10; bank++) {
+      for (let pad = 1; pad <= 12; pad++) {
+        const label = `${String.fromCharCode(65 + bank)}${pad}`;
+        mappings[label] = {
+          midiNote: 47 + (bank % 5) * 12 + pad - 1,
+          pad: label,
+          bankSwitch: bank >= 5 ? 1 : 0,
+        };
+      }
+    }
+    return mappings;
   }
 
   /** Reject layouts that would desynchronize event reads from the fixed sixteen-byte footer. */
@@ -522,16 +392,11 @@ class SP404Pattern extends DataBuffer {
       return;
     }
 
-    // Reverse the same map used by the writer; this keeps OG banks G-J from decoding one bank late.
+    // The native selector's bit 6 may vary without changing the selected bank in either family.
     const addresses = new Map<string, SP404PadMapping>();
     for (const mapping of Object.values(this.defaultMap)) {
       addresses.set(`${mapping.bankSwitch}:${mapping.midiNote}`, mapping);
-      if (!validated.og) {
-        // In recent patterns, bankSwitch was set to 64 rather than 1 or 0.
-        // This seems to be firmware dependent, with 64 being the newest value.
-        // When parsing a pattern playing long notes that were stopped manually with a second tap, the bankSwitch value was 65.
-        addresses.set(`${mapping.bankSwitch - 64}:${mapping.midiNote}`, mapping);
-      }
+      addresses.set(`${mapping.bankSwitch ^ 64}:${mapping.midiNote}`, mapping);
     }
     while (this.offset < this.length - 16) {
       const ticks = this.readUInt8();
@@ -561,8 +426,8 @@ class SP404Pattern extends DataBuffer {
       const velocity = this.readUInt8();
       // Unknown 3: 64 / 0x40 / 1000000; occasionally 0 / 0 / 0.
       const unknown3 = this.readUInt8();
-      // Length (ticks, 2 bytes, little endian).
-      const length = this.readUInt16(true);
+      // Hardware SX records use big-endian lengths, MKII records retain their little-endian layout.
+      const length = this.readUInt16(!validated.og);
       const mapping = addresses.get(`${bankSwitch}:${midiNote}`);
       const padLabel = mapping?.pad ?? "";
       let sampleNumber = 0;
@@ -617,15 +482,14 @@ class SP404Pattern extends DataBuffer {
         debug("parse Unique Footer Byte 8 (MKii):", footer[8]);
       }
     }
-    // OG: 2; MKii: 0
+    // SX stores its actual bar count here, including bars with no recorded hits.
     if (validated.og) {
-      if (footer[9] !== 2) {
-        debug("parse Unique Footer Byte 9 (OG):", footer[9]);
+      if (footer[1] !== 140) {
+        throw new RangeError("Invalid SX pattern footer.");
       }
-    } else {
-      if (footer[9] !== 0) {
-        debug("parse Unique Footer Byte 9 (MKii):", footer[9]);
-      }
+      integer(footer[9], 1, 64, "SX pattern bars");
+    } else if (footer[9] !== 0) {
+      debug("parse Unique Footer Byte 9 (MKii):", footer[9]);
     }
     if (footer[10] !== 0) {
       debug("parse Unique Footer Byte 10:", footer[10]);
@@ -672,8 +536,8 @@ class SP404Pattern extends DataBuffer {
       debug("parse Bars bytes 8 and 14 mismatch:", footer[8], footer[14]);
     }
 
-    // Bytes 8 and 14 are the total number of bars in the pattern.
-    this.bars = footer[8];
+    // SX and MKII store their bar counts at different footer offsets.
+    this.bars = footer[validated.og ? 9 : 8];
     this.timeSignature = footer[12];
     debug("Parsed pattern:", this.notes.length, this.bars, this.timeSignature);
   }
@@ -708,13 +572,20 @@ class SP404Pattern extends DataBuffer {
     const events: (MidiTrackEvent & { absoluteTime: number })[] = [];
     // Running absolute time in pattern ticks for each note.
     let absoluteTime = 0;
-    // A footer may describe bars beyond the final event; OG has no footer bar count.
+    // Preserve silent bars described by the footer even when there are no trailing placeholders.
     let endTime = Math.round(integer(this.bars, 0, 64, "Pattern bars") * numerator * targetPPQ);
     for (const note of this.notes) {
-      // Accumulate absolute time; note.ticks is the gap from the previous note.
-      absoluteTime += integer(note.ticks, 0, 255, "Pattern delay");
-      const start = Math.round(absoluteTime * ratio);
-      endTime = Math.max(endTime, start);
+      // SX delays follow the hit, MKII delays precede it. Advance placeholders and skipped hits too.
+      const delay = integer(note.ticks, 0, 255, "Pattern delay");
+      if (!this.options.og) {
+        absoluteTime += delay;
+      }
+      const startTime = absoluteTime;
+      const start = Math.round(startTime * ratio);
+      if (this.options.og) {
+        absoluteTime += delay;
+      }
+      endTime = Math.max(endTime, Math.round(absoluteTime * ratio));
       // Placeholders advance the clock even when a user map accidentally contains their empty label.
       if (note.midiNote === 128 || !note.padLabel) {
         continue;
@@ -727,7 +598,7 @@ class SP404Pattern extends DataBuffer {
       integer(midiNote, 0, 127, "MIDI note");
       integer(note.velocity, 0, 127, "Velocity");
       integer(note.length, 0, 0xffff, "Pattern note length");
-      const end = Math.round((absoluteTime + note.length) * ratio);
+      const end = Math.round((startTime + note.length) * ratio);
       const length = end - start;
       // Create a Note On event.
       events.push({
@@ -806,6 +677,7 @@ class SP404Pattern extends DataBuffer {
    * @param {Record<number, string>} noteMap A map of MIDI note numbers to pad labels `A1` to `J16`.
    * @param {number} patternPPQN The pulses per quarter note of the pattern; OG is 96, MKii is 480.
    * @param {boolean} [og] When true, process for the original SP404s, when false for the MKii; default is false.
+   * Native SX output uses following delays, big-endian durations, and footer byte 9 for bars.
    * Durations come from Note On length or matching FIFO Note Off events within each track/channel.
    * Missing durations become zero; unmapped notes, SMPTE timing, non-4/4 signatures, independent
    * format-2 tracks and unrepresentable lengths throw. Patterns are limited to 64 bars.
@@ -896,12 +768,39 @@ class SP404Pattern extends DataBuffer {
     let currentTime = 0;
     let endTime = trackEnd;
 
+    // SX needs the next event's gap before its current record can be committed.
+    let pendingRecord: Uint8Array | undefined;
+    /** Write native records, holding an SX hit until its following delay is known. */
+    const writeRecord = (
+      delay: number,
+      midiNote: number,
+      bankSwitch: number,
+      velocity: number,
+      length: number,
+    ): void => {
+      const record = new Uint8Array(8);
+      record.set([og ? 0 : delay, midiNote, bankSwitch, 0, velocity, midiNote === 128 ? 0 : 64]);
+      new DataView(record.buffer).setUint16(6, length, !og);
+      if (og) {
+        if (pendingRecord) {
+          pendingRecord[0] = delay;
+          buffer.writeBytes(pendingRecord);
+        } else if (delay > 0) {
+          // Following-delay records require an initial silent event when the first hit is late.
+          buffer.writeBytes([delay, 128, 0, 0, 0, 0, 0, 0]);
+        }
+        pendingRecord = record;
+      } else {
+        buffer.writeBytes(record);
+      }
+    };
+
     /** Split a silent gap into byte-sized delays while advancing the same absolute clock as notes. */
     const insertEmptyNotes = (gap: number): void => {
       while (gap > 0) {
         // Insert no more than 255 ticks at a time; empty notes use pad 128 and a zero length.
         const ticks = Math.min(gap, 255);
-        buffer.writeBytes([ticks, 128, 0, 0, 0, 0, 0, 0]);
+        writeRecord(ticks, 128, 0, 0, 0);
         currentTime += ticks;
         gap -= ticks;
       }
@@ -925,17 +824,7 @@ class SP404Pattern extends DataBuffer {
         insertEmptyNotes(gap - 255);
         gap = 255;
       }
-      // Write the values back into the DataBuffer in device record order.
-      buffer.writeBytes([
-        gap, // Time in ticks.
-        mapping.midiNote, // MIDI note number (pad).
-        mapping.bankSwitch, // Bank switch for the mapped pad.
-        0, // Pitch Mode: 0 for pad control or 141 for +0 Pitch in step sequencer.
-        note.velocity, // Velocity.
-        64, // Unknown 3: Always 64 outside of blank notes.
-      ]);
-      // Length in ticks is a two-byte little-endian value.
-      buffer.writeUInt16(length, buffer.offset, true, true);
+      writeRecord(gap, mapping.midiNote, mapping.bankSwitch, note.velocity, length);
       currentTime = start;
       endTime = Math.max(endTime, end);
     }
@@ -943,11 +832,15 @@ class SP404Pattern extends DataBuffer {
     const bars = Math.max(1, Math.ceil(endTime / ticksPerBar));
     integer(bars, 1, 64, "Pattern bars");
     insertEmptyNotes(bars * ticksPerBar - currentTime);
+    // Flush the final SX placeholder with zero following delay before writing its footer.
+    if (pendingRecord) {
+      buffer.writeBytes(pendingRecord);
+    }
     // Add footer and other necessary data to the buffer.
     const footer = new Uint8Array(16);
     footer[1] = 140;
     footer[8] = og ? 0 : bars;
-    footer[9] = og ? 2 : 0;
+    footer[9] = og ? bars : 0;
     footer[13] = og ? 0 : 128;
     footer[14] = og ? 0 : bars;
     footer[15] = og ? 0 : 1;

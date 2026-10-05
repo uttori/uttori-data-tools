@@ -2,7 +2,7 @@ import DataBuffer from "../data-buffer.js";
 import AudioMIDI from "./audio-midi.js";
 /** One eight-byte pattern event. A raw note value of 128 is a timing placeholder. */
 export interface SP404Note {
-    /** The delay in ticks from the previous event (0-255). */
+    /** Device delay (0–255 ticks): after this event on SX/OG, before this event on MKII. */
     ticks: number;
     /** The MIDI note value used as a device pad code (47-126); 128 is a timing placeholder. */
     midiNote: number;
@@ -14,7 +14,7 @@ export interface SP404Note {
     velocity: number;
     /** An unknown value, commonly 64 / 0x40. */
     unknown3: number;
-    /** The length of the note in ticks (2 Bytes). */
+    /** Note duration in native ticks; SX stores it big-endian, MKII little-endian. */
     length: number;
     /** The calculated sample number based on MIDI note and bank switch. Zero for placeholders and unknown pad codes. */
     sampleNumber: number;
@@ -35,7 +35,7 @@ export interface SP404PatternOptions {
     bytesPerNote?: number;
     /** Defaults to 12 for OG, 16 for MKII; a different layout is rejected. */
     padsPerBank?: number;
-    /** Original SP-404 layout and 96 PPQ when true; MKII and 480 PPQ otherwise. */
+    /** SX/original-family twelve-pad pattern format and 96 PPQ when true; MKII and 480 PPQ otherwise. */
     og?: boolean;
 }
 /** Destination MIDI settings. Map pad labels to MIDI notes 0-127; unmapped pads are skipped. */
@@ -68,7 +68,7 @@ export interface SP404ToMidiOptions {
  * @augments DataBuffer
  */
 declare class SP404Pattern extends DataBuffer {
-    /** The number of bars in the pattern, so 1 bar is 1; OG files store zero here. */
+    /** Footer bar count (normally 1–64), an empty instance starts at zero. */
     bars: number;
     /** The time signature of the pattern: 0 = 4/4, 1 = 3/4, 2 = 2/4, 3 = 1/4, 4 = 5/4, 5 = 6/4, 7 = 7/4. Unknown codes are retained. */
     timeSignature: number;
@@ -100,10 +100,9 @@ declare class SP404Pattern extends DataBuffer {
      */
     static get defaultMap(): Record<string, SP404PadMapping>;
     /**
-     * The default mapping of pads `A1` to `J12` to MIDI notes for the OG SP404.
-     * https://support.roland.com/hc/en-us/articles/201932129-SP-404-Playing-the-SP-404-via-MIDI
+     * Native SX twelve-pad addresses, shared by A–E and F–J with separate bank selectors.
+     * These are pattern-file addresses, independent of the MIDI notes used to trigger the device.
      * Returns a fresh map owned by the caller.
-     * @returns {Record<string, SP404PadMapping>} The default mapping of pads `A1` to `J12` to MIDI notes.
      */
     static get defaultMapOG(): Record<string, SP404PadMapping>;
     /** Reject layouts that would desynchronize event reads from the fixed sixteen-byte footer. */
@@ -142,6 +141,7 @@ declare class SP404Pattern extends DataBuffer {
      * @param {Record<number, string>} noteMap A map of MIDI note numbers to pad labels `A1` to `J16`.
      * @param {number} patternPPQN The pulses per quarter note of the pattern; OG is 96, MKii is 480.
      * @param {boolean} [og] When true, process for the original SP404s, when false for the MKii; default is false.
+     * Native SX output uses following delays, big-endian durations, and footer byte 9 for bars.
      * Durations come from Note On length or matching FIFO Note Off events within each track/channel.
      * Missing durations become zero; unmapped notes, SMPTE timing, non-4/4 signatures, independent
      * format-2 tracks and unrepresentable lengths throw. Patterns are limited to 64 bars.

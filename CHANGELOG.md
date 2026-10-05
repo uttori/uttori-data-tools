@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file. This projec
 
 - 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
 
+## [5.1.1](https://github.com/uttori/uttori-data-tools/compare/v5.1.0...v5.1.1) - 2026-10-04
+
+- 🪲 Fix native SX pattern pad addresses and bank selector aliases, delays after each hit, big-endian note lengths, and footer bar counts
+- 🎁 Add hardware-recorded pattern and all-120-pad regression checks while preserving MKII conversion behavior
+
 ## [5.1.0](https://github.com/uttori/uttori-data-tools/compare/v5.0.0...v5.1.0) - 2026-10-04
 
 - 🧰 Add `SP404PadInfo` to read and encode SP-404/SX/A `PAD_INFO.BIN` pad records
