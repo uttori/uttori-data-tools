@@ -11,9 +11,9 @@ Error thrown when insufficient bytes are avaliable to process.
 Creates a new UnderflowError.
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| message | <code>string</code> | Message to show when the error is thrown. |
+| Param | Description |
+| --- | --- |
+| message | Message to show when the error is thrown. |
 
 **Example** *(new UnderflowError(message))*  
 ```js

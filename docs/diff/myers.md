@@ -1,22 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#Myers">Myers</a></dt>
-<dd><p>Myers Algorithm for computing diffs.
-This is inspired by <code>znkr.io/diff</code> which is based on &quot;An O(ND) Difference Algorithm and its Variations&quot; by Eugene W. Myers.
-We do not implement any additional heuristics like znkr.io/diff does, just the algorithm itself.</p>
-</dd>
-</dl>
-
-## Typedefs
-
-<dl>
-<dt><a href="#SplitResult">SplitResult</a> : <code>object</code></dt>
-<dd></dd>
-<dt><a href="#InitResult">InitResult</a> : <code>object</code></dt>
-<dd></dd>
-</dl>
-
 <a name="Myers"></a>
 
 ## Myers
@@ -39,75 +20,27 @@ We do not implement any additional heuristics like znkr.io/diff does, just the a
 
 * [Myers](#Myers)
     * [new Myers(xidx, yidx, x0, y0, equal)](#new_Myers_new)
-    * [.x](#Myers+x) : <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code>
-    * [.y](#Myers+y) : <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code>
-    * [.vf](#Myers+vf) : <code>Array.&lt;number&gt;</code>
-    * [.vb](#Myers+vb) : <code>Array.&lt;number&gt;</code>
-    * [.v0](#Myers+v0) : <code>number</code>
-    * [.xidx](#Myers+xidx) : <code>Array.&lt;number&gt;</code>
-    * [.yidx](#Myers+yidx) : <code>Array.&lt;number&gt;</code>
-    * [.resultVectorX](#Myers+resultVectorX) : <code>Array.&lt;boolean&gt;</code>
-    * [.resultVectorY](#Myers+resultVectorY) : <code>Array.&lt;boolean&gt;</code>
-    * [.equal](#Myers+equal) : <code>EqualityFunction</code>
     * [.smin](#Myers+smin) : <code>number</code>
     * [.smax](#Myers+smax) : <code>number</code>
     * [.tmin](#Myers+tmin) : <code>number</code>
     * [.tmax](#Myers+tmax) : <code>number</code>
     * [.compare(smin, smax, tmin, tmax)](#Myers+compare)
-    * [.split(smin, smax, tmin, tmax)](#Myers+split) ⇒ [<code>SplitResult</code>](#SplitResult)
+    * [.split(smin, smax, tmin, tmax)](#Myers+split) ⇒
+    * [.createResultVector(indices, length)](#Myers+createResultVector) ⇒
+    * [.validateBounds(smin, smax, tmin, tmax)](#Myers+validateBounds)
 
 <a name="new_Myers_new"></a>
 
 ### new Myers(xidx, yidx, x0, y0, equal)
 
-| Param | Type | Description |
-| --- | --- | --- |
-| xidx | <code>Array.&lt;number&gt;</code> | Mapping of s indices to result vector positions |
-| yidx | <code>Array.&lt;number&gt;</code> | Mapping of t indices to result vector positions |
-| x0 | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y0 | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| equal | <code>EqualityFunction</code> | Equality function to compare elements |
+| Param | Description |
+| --- | --- |
+| xidx | Mapping of s indices to result vector positions |
+| yidx | Mapping of t indices to result vector positions |
+| x0 | The first array to compare |
+| y0 | The second array to compare |
+| equal | Equality function to compare elements |
 
-<a name="Myers+x"></a>
-
-### myers.x : <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+y"></a>
-
-### myers.y : <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+vf"></a>
-
-### myers.vf : <code>Array.&lt;number&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+vb"></a>
-
-### myers.vb : <code>Array.&lt;number&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+v0"></a>
-
-### myers.v0 : <code>number</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+xidx"></a>
-
-### myers.xidx : <code>Array.&lt;number&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+yidx"></a>
-
-### myers.yidx : <code>Array.&lt;number&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+resultVectorX"></a>
-
-### myers.resultVectorX : <code>Array.&lt;boolean&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+resultVectorY"></a>
-
-### myers.resultVectorY : <code>Array.&lt;boolean&gt;</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
-<a name="Myers+equal"></a>
-
-### myers.equal : <code>EqualityFunction</code>
-**Kind**: instance property of [<code>Myers</code>](#Myers)  
 <a name="Myers+smin"></a>
 
 ### myers.smin : <code>number</code>
@@ -131,51 +64,52 @@ Find an optimal d-path from (smin, tmin) to (smax, tmax).
 
 **Kind**: instance method of [<code>Myers</code>](#Myers)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| smin | <code>number</code> | The start index of the first array |
-| smax | <code>number</code> | The end index of the first array |
-| tmin | <code>number</code> | The start index of the second array |
-| tmax | <code>number</code> | The end index of the second array |
+| Param | Description |
+| --- | --- |
+| smin | The start index of the first array |
+| smax | The end index of the first array |
+| tmin | The start index of the second array |
+| tmax | The end index of the second array |
 
 <a name="Myers+split"></a>
 
-### myers.split(smin, smax, tmin, tmax) ⇒ [<code>SplitResult</code>](#SplitResult)
-Find the endpoints of sequence of diagonals in the middle of an optimal path from (smin, tmin) to (smax, tmax).
+### myers.split(smin, smax, tmin, tmax) ⇒
+Find the endpoints of a sequence of diagonals on an optimal path from (smin, tmin) to (smax, tmax).
 
 **Kind**: instance method of [<code>Myers</code>](#Myers)  
-**Returns**: [<code>SplitResult</code>](#SplitResult) - The endpoints of the sequence of diagonals  
+**Returns**: The endpoints of the sequence of diagonals  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| smin | <code>number</code> | The start index of the first array |
-| smax | <code>number</code> | The end index of the first array |
-| tmin | <code>number</code> | The start index of the second array |
-| tmax | <code>number</code> | The end index of the second array |
+| Param | Description |
+| --- | --- |
+| smin | The start index of the first array |
+| smax | The end index of the first array |
+| tmin | The start index of the second array |
+| tmax | The end index of the second array |
 
-<a name="SplitResult"></a>
+<a name="Myers+createResultVector"></a>
 
-## SplitResult : <code>object</code>
-**Kind**: global typedef  
-**Properties**
+### myers.createResultVector(indices, length) ⇒
+Creates a dense result vector with a false sentinel after the highest mapped element.
 
-| Name | Type | Description |
-| --- | --- | --- |
-| s0 | <code>number</code> | The start index of the first array |
-| s1 | <code>number</code> | The end index of the first array |
-| t0 | <code>number</code> | The start index of the second array |
-| t1 | <code>number</code> | The end index of the second array |
+**Kind**: instance method of [<code>Myers</code>](#Myers)  
+**Returns**: The initialized result vector.  
 
-<a name="InitResult"></a>
+| Param | Description |
+| --- | --- |
+| indices | Mapping of input indices to result vector positions |
+| length | The number of input elements |
 
-## InitResult : <code>object</code>
-**Kind**: global typedef  
-**Properties**
+<a name="Myers+validateBounds"></a>
 
-| Name | Type | Description |
-| --- | --- | --- |
-| smin | <code>number</code> | The start index of the first array |
-| smax | <code>number</code> | The end index of the first array |
-| tmin | <code>number</code> | The start index of the second array |
-| tmax | <code>number</code> | The end index of the second array |
+### myers.validateBounds(smin, smax, tmin, tmax)
+Validates half-open comparison bounds before entering the search loops.
+
+**Kind**: instance method of [<code>Myers</code>](#Myers)  
+
+| Param | Description |
+| --- | --- |
+| smin | The start index of the first array |
+| smax | The end index of the first array |
+| tmin | The start index of the second array |
+| tmax | The end index of the second array |
 

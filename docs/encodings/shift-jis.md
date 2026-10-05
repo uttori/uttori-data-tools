@@ -12,13 +12,6 @@ Shift-JIS is an 8-bit encoding with 1 to 2 bytes per character.</p>
 </dd>
 </dl>
 
-## Typedefs
-
-<dl>
-<dt><a href="#UttoriCharacterEncoding">UttoriCharacterEncoding</a> : <code>object</code></dt>
-<dd></dd>
-</dl>
-
 <a name="characterEncoding"></a>
 
 ## characterEncoding : <code>Record.&lt;number, UttoriCharacterEncoding&gt;</code>
@@ -41,18 +34,4 @@ Does not check for out of bounds characters and will use the `String.fromCharCod
 | Param | Type | Description |
 | --- | --- | --- |
 | data | <code>default</code> | The data to convert to text. |
-
-<a name="UttoriCharacterEncoding"></a>
-
-## UttoriCharacterEncoding : <code>object</code>
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| shiftjs | <code>number</code> | Shift-JIS code as an integer. |
-| unicode | <code>number</code> | Unicode value as an integer. |
-| string | <code>string</code> | Unicode string representation. |
-| ascii | <code>string</code> | ASCII string representation. |
-| name | <code>string</code> | Unicode Name |
 

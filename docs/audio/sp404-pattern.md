@@ -95,7 +95,7 @@ console.log('Notes:', file.notes);
 <a name="SP404Pattern+bars"></a>
 
 ### sP404Pattern.bars
-Footer bar count (normally 1–64); an empty instance starts at zero.
+Footer bar count (normally 1–64), an empty instance starts at zero.
 
 **Kind**: instance property of [<code>SP404Pattern</code>](#SP404Pattern)  
 <a name="SP404Pattern+timeSignature"></a>
@@ -192,7 +192,6 @@ Returns a fresh map owned by the caller.
 Native SX twelve-pad addresses, shared by A–E and F–J with separate bank selectors.
 These are pattern-file addresses, independent of the MIDI notes used to trigger the device.
 Returns a fresh map owned by the caller.
-Format evidence: https://github.com/TylerOderkirk/ptn2midi/blob/master/ptn2midi.py
 
 **Kind**: static property of [<code>SP404Pattern</code>](#SP404Pattern)  
 <a name="SP404Pattern.fromMidi"></a>

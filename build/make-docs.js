@@ -30,15 +30,15 @@ const main = async () => {
   ensureDir('docs/plugins');
 
   // Find all JavaScript files, excluding utilities
-  const files = await glob('src/**/*.js', {
-    ignore: ['src/index.js']
+  const files = await glob('dist/**/*.js', {
+    ignore: ['dist/index.js']
   });
 
 
   // Generate documentation for main files
   files.forEach(file => {
-    // Preserve the directory structure from src/
-    const relativePath = path.relative('src', file);
+    // Preserve the directory structure from dist/
+    const relativePath = path.relative('dist', file);
     const outputPath = path.join('docs', relativePath.replace('.js', '.md'));
 
     // Ensure the output directory exists

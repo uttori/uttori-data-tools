@@ -1,44 +1,44 @@
 ## Constants
 
 <dl>
-<dt><a href="#formatBytes">formatBytes</a> ⇒ <code>string</code></dt>
+<dt><a href="#formatBytes">formatBytes</a> ⇒</dt>
 <dd><p>Format an amount of bytes to a human friendly string.</p>
 </dd>
-<dt><a href="#formatASCII">formatASCII</a> ⇒ <code><a href="#FormatASCIIOutput">FormatASCIIOutput</a></code></dt>
+<dt><a href="#formatASCII">formatASCII</a> ⇒</dt>
 <dd><p>ASCII text formatting function.</p>
 </dd>
-<dt><a href="#hexTableFormaters">hexTableFormaters</a> : <code><a href="#HexTableFormater">HexTableFormater</a></code></dt>
-<dd></dd>
-<dt><a href="#hexTableHeader">hexTableHeader</a> : <code><a href="#HexTableHeader">HexTableHeader</a></code></dt>
-<dd></dd>
-<dt><a href="#hexTableDimensions">hexTableDimensions</a> : <code><a href="#HexTableDimensions">HexTableDimensions</a></code></dt>
-<dd></dd>
-<dt><a href="#hexTable">hexTable</a> ⇒ <code>string</code></dt>
+<dt><a href="#byteHex">byteHex</a></dt>
+<dd><p>Cached representations of the 256 possible byte values.</p>
+</dd>
+<dt><a href="#hexTableFormaters">hexTableFormaters</a></dt>
+<dd><p>Formatting functions for all value types.</p>
+</dd>
+<dt><a href="#hexTable">hexTable</a> ⇒</dt>
 <dd><p>Generate a nicely formatted hex editor style table.</p>
 </dd>
-<dt><a href="#formatTableLine">formatTableLine</a> ⇒ <code>string</code></dt>
+<dt><a href="#formatTableLine">formatTableLine</a> ⇒</dt>
 <dd><p>Format a table line seperator for a given theme.</p>
 </dd>
-<dt><a href="#formatTableThemeMySQL">formatTableThemeMySQL</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
+<dt><a href="#formatTableThemeMySQL">formatTableThemeMySQL</a></dt>
 <dd><p>MySQL Style Table Layout</p>
 </dd>
-<dt><a href="#formatTableThemeUnicode">formatTableThemeUnicode</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
-<dd><p>Unicode Table Layout</p>
+<dt><a href="#formatTableThemeUnicode">formatTableThemeUnicode</a></dt>
+<dd><p>Unicode Style Table Layout</p>
 </dd>
-<dt><a href="#formatTableThemeMarkdown">formatTableThemeMarkdown</a> : <code><a href="#TableFormatStyle">TableFormatStyle</a></code></dt>
-<dd><p>Markdown Table Layout</p>
+<dt><a href="#formatTableThemeMarkdown">formatTableThemeMarkdown</a></dt>
+<dd><p>Markdown Style Table Layout</p>
 </dd>
 <dt><a href="#formatTable">formatTable</a> ⇒ <code>string</code></dt>
 <dd><p>Create an ASCII table from provided data and configuration.</p>
 </dd>
-<dt><a href="#formatDiffHex">formatDiffHex</a> ⇒ <code>string</code></dt>
+<dt><a href="#formatDiffHex">formatDiffHex</a> ⇒</dt>
 <dd><p>Format diff edits as a hex-friendly table showing changes.
-Shows three rows: original data, delta values, and resulting data.</p>
+Shows three rows: original data, delta values, and resulting data. Missing bytes use --; offsets track each side independently.</p>
 </dd>
-<dt><a href="#formatDiffHunks">formatDiffHunks</a> ⇒ <code>string</code></dt>
+<dt><a href="#formatDiffHunks">formatDiffHunks</a> ⇒</dt>
 <dd><p>Format diff hunks as a unified diff style with hex values.</p>
 </dd>
-<dt><a href="#formatMyersGraph">formatMyersGraph</a> ⇒ <code>string</code></dt>
+<dt><a href="#formatMyersGraph">formatMyersGraph</a> ⇒</dt>
 <dd><p>Format Myers diff result vectors as an ASCII grid visualization.
 Shows the edit graph with the path taken through it.</p>
 </dd>
@@ -49,6 +49,9 @@ Shows the edit graph with the path taken through it.</p>
 <dl>
 <dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
 <dd></dd>
+<dt><a href="#diffByte">diffByte()</a></dt>
+<dd><p>Reject non-byte values rather than rendering misleading NaN, string, or overflowing cells.</p>
+</dd>
 </dl>
 
 ## Typedefs
@@ -57,127 +60,96 @@ Shows the edit graph with the path taken through it.</p>
 <dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
 <dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
 </dd>
-<dt><a href="#FormatNumber">FormatNumber</a> ⇒ <code>string</code></dt>
-<dd><p>Format a numeric value for display.</p>
-</dd>
-<dt><a href="#FormatASCIIOutput">FormatASCIIOutput</a> : <code>Array.&lt;(string|Record.&lt;string, (boolean|number|string)&gt;)&gt;</code></dt>
-<dd><p>ASCII formatting result: a two-element array of <code>[character, flags]</code>.</p>
-</dd>
-<dt><a href="#FormatNumberToASCII">FormatNumberToASCII</a> ⇒ <code><a href="#FormatASCIIOutput">FormatASCIIOutput</a></code></dt>
-<dd><p>Format a byte value for ASCII display in a hex table.</p>
-</dd>
-<dt><a href="#HexTableFormater">HexTableFormater</a> : <code>object</code></dt>
-<dd><p>Formatting functions for all value types.</p>
-</dd>
-<dt><a href="#HexTableHeader">HexTableHeader</a> : <code>object</code></dt>
-<dd><p>Header layout definitions.
-GNU poke hexTableHeader.value = [&#39;00&#39;, &#39;11&#39;, &#39;22&#39;, &#39;33&#39;, &#39;44&#39;, &#39;55&#39;, &#39;66&#39;, &#39;77&#39;, &#39;88&#39;, &#39;99&#39;, &#39;aa&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;dd&#39;, &#39;ee&#39;, &#39;ff&#39;]</p>
-</dd>
-<dt><a href="#HexTableDimensions">HexTableDimensions</a> : <code>object</code></dt>
-<dd><p>Header layout definitions.</p>
-</dd>
-<dt><a href="#TableFormatStyle">TableFormatStyle</a> : <code>object</code></dt>
-<dd><p>Table Format Style definitions.</p>
-</dd>
-<dt><a href="#MyersPathNode">MyersPathNode</a> : <code>object</code></dt>
-<dd><p>A single node along the traced path through the Myers edit graph.</p>
-</dd>
 </dl>
 
 <a name="formatBytes"></a>
 
-## formatBytes ⇒ <code>string</code>
+## formatBytes ⇒
 Format an amount of bytes to a human friendly string.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The human friendly representation of the number of bytes.  
+**Returns**: The human friendly representation of the number of bytes.  
 **See**: [Multiple-byte units](https://en.wikipedia.org/wiki/Byte#Multiple-byte_units)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| input | <code>number</code> | The number of bytes. |
-| [decimals] | <code>number</code> | The number of trailing decimal places to chop to, default is 2. |
-| [bytes] | <code>number</code> | The byte division value, alternatively could be 1000 for decimal values rather than binary values, default is 1024. |
-| [sizes] | <code>Array.&lt;string&gt;</code> | An optional array of the various size suffixes in ascending order of size: `['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']` |
+| Param | Description |
+| --- | --- |
+| input | The number of bytes. |
+| decimals | The number of trailing decimal places to chop to, default is 2. |
+| bytes | The byte division value, alternatively could be 1000 for decimal values rather than binary values, default is 1024. |
+| sizes | An optional array of the various size suffixes in ascending order of size: `['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']` |
 
 <a name="formatASCII"></a>
 
-## formatASCII ⇒ [<code>FormatASCIIOutput</code>](#FormatASCIIOutput)
+## formatASCII ⇒
 ASCII text formatting function.
 
 **Kind**: global constant  
-**Returns**: [<code>FormatASCIIOutput</code>](#FormatASCIIOutput) - Returns an array with the Character to represent this value and any flags for the function.  
+**Returns**: Returns an array with the Character to represent this value and any flags for the function.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>number</code> | Input data to print out as a hex table. |
-| asciiFlags | <code>Record.&lt;string, (boolean\|number\|string)&gt;</code> | Any flags needed by the formatter. |
-| _data | <code>default</code> \| <code>default</code> | The data being processed. |
+| Param | Description |
+| --- | --- |
+| value | Input data to print out as a hex table. |
+| asciiFlags | Any flags needed by the formatter. |
+| _data | The data being processed. |
 
+<a name="byteHex"></a>
+
+## byteHex
+Cached representations of the 256 possible byte values.
+
+**Kind**: global constant  
 <a name="hexTableFormaters"></a>
 
-## hexTableFormaters : [<code>HexTableFormater</code>](#HexTableFormater)
-**Kind**: global constant  
-<a name="hexTableHeader"></a>
+## hexTableFormaters
+Formatting functions for all value types.
 
-## hexTableHeader : [<code>HexTableHeader</code>](#HexTableHeader)
-**Kind**: global constant  
-<a name="hexTableDimensions"></a>
-
-## hexTableDimensions : [<code>HexTableDimensions</code>](#HexTableDimensions)
 **Kind**: global constant  
 <a name="hexTable"></a>
 
-## hexTable ⇒ <code>string</code>
+## hexTable ⇒
 Generate a nicely formatted hex editor style table.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The hex table ASCII.  
+**Returns**: The hex table ASCII.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| input | <code>default</code> \| <code>default</code> | Input data to print out as a hex table. |
-| offset | <code>number</code> | Offset in the DataStream to start from. |
-| dimensions | [<code>HexTableDimensions</code>](#HexTableDimensions) | Table size parameters for columns, rows and byte grouping. |
-| header | [<code>HexTableHeader</code>](#HexTableHeader) | The values for building the table header with offset, bytes and ASCII values. |
-| format | [<code>HexTableFormater</code>](#HexTableFormater) | The formatting functions for displaying offset, bytes and ASCII values. |
+| Param | Description |
+| --- | --- |
+| input | Input data to print out as a hex table. |
+| offset | Display offset for the first byte; reading starts at the input DataBuffer cursor. |
+| dimensions | Table size parameters for columns, rows and byte grouping. |
+| header | The values for building the table header with offset, bytes and ASCII values. |
+| format | The formatting functions for displaying offset, bytes and ASCII values. |
 
-<a name="hexTable..asciiFlags"></a>
-
-### hexTable~asciiFlags : <code>Record.&lt;string, (boolean\|number\|string)&gt;</code>
-**Kind**: inner property of [<code>hexTable</code>](#hexTable)  
 <a name="formatTableLine"></a>
 
-## formatTableLine ⇒ <code>string</code>
+## formatTableLine ⇒
 Format a table line seperator for a given theme.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The seperator  
+**Returns**: The seperator  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| columnLengths | <code>Array.&lt;number&gt;</code> | An array with each columns length |
-| type | <code>string</code> | The type of the separator |
-| options | <code>object</code> | The options |
-| options.theme | [<code>TableFormatStyle</code>](#TableFormatStyle) | The theme to use for formatting. |
-| options.padding | <code>number</code> | The amount of padding to use. |
+| Param | Description |
+| --- | --- |
+| columnLengths | An array with each columns length |
+| type | The type of the separator |
+| options | The options for the formatting including the theme and padding. |
 
 <a name="formatTableThemeMySQL"></a>
 
-## formatTableThemeMySQL : [<code>TableFormatStyle</code>](#TableFormatStyle)
+## formatTableThemeMySQL
 MySQL Style Table Layout
 
 **Kind**: global constant  
 <a name="formatTableThemeUnicode"></a>
 
-## formatTableThemeUnicode : [<code>TableFormatStyle</code>](#TableFormatStyle)
-Unicode Table Layout
+## formatTableThemeUnicode
+Unicode Style Table Layout
 
 **Kind**: global constant  
 <a name="formatTableThemeMarkdown"></a>
 
-## formatTableThemeMarkdown : [<code>TableFormatStyle</code>](#TableFormatStyle)
-Markdown Table Layout
+## formatTableThemeMarkdown
+Markdown Style Table Layout
 
 **Kind**: global constant  
 <a name="formatTable"></a>
@@ -190,88 +162,66 @@ Create an ASCII table from provided data and configuration.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array.&lt;string&gt;&gt;</code> | The data to add to the table. |
+| data | <code>Array.&lt;Array.&lt;unknown&gt;&gt;</code> | The data to add to the table; cells are converted to strings once. |
 | [options] | <code>object</code> | Configuration. |
 | options.align | <code>Array.&lt;string&gt;</code> | The alignment of each column, left or right. |
 | options.padding | <code>number</code> | Amount of padding to add to each cell. |
-| options.theme | [<code>TableFormatStyle</code>](#TableFormatStyle) | The theme to use for formatting. |
+| options.theme | <code>TableFormatStyle</code> | The theme to use for formatting. |
 | options.title | <code>string</code> | The title to display at the top of the table. |
 
-<a name="formatTable..columnLengths"></a>
-
-### formatTable~columnLengths : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>formatTable</code>](#formatTable)  
 <a name="formatDiffHex"></a>
 
-## formatDiffHex ⇒ <code>string</code>
+## formatDiffHex ⇒
 Format diff edits as a hex-friendly table showing changes.
-Shows three rows: original data, delta values, and resulting data.
+Shows three rows: original data, delta values, and resulting data. Missing bytes use --; offsets track each side independently.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The formatted diff output.  
+**Returns**: The formatted diff output.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| edits | <code>Array.&lt;Edit&gt;</code> | The diff edits to format. |
-| [options] | <code>object</code> | Configuration options. |
-| [options.bytesPerRow] | <code>number</code> | Number of bytes per row, default is 16. |
-| [options.showOffset] | <code>boolean</code> | Show byte offsets, default is true. |
-| [options.showAscii] | <code>boolean</code> | Show ASCII representation, default is true. |
-| [options.showBits] | <code>boolean</code> | Show binary representation, default is true. |
+| Param | Description |
+| --- | --- |
+| edits | The diff edits to format. |
+| options | Configuration options. |
 
-<a name="formatDiffHex..rowBuffer"></a>
-
-### formatDiffHex~rowBuffer : <code>Array.&lt;Edit&gt;</code>
-**Kind**: inner property of [<code>formatDiffHex</code>](#formatDiffHex)  
 <a name="formatDiffHunks"></a>
 
-## formatDiffHunks ⇒ <code>string</code>
+## formatDiffHunks ⇒
 Format diff hunks as a unified diff style with hex values.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The formatted diff output.  
+**Returns**: The formatted diff output.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| hunks | <code>Array.&lt;Hunk&gt;</code> | The diff hunks to format. |
-| [options] | <code>object</code> | Configuration options. |
-| [options.context] | <code>number</code> | Number of context lines to show around changes, default is 3. |
+| Param | Description |
+| --- | --- |
+| hunks | The diff hunks to format. |
+| options | Configuration options. |
 
 <a name="formatMyersGraph"></a>
 
-## formatMyersGraph ⇒ <code>string</code>
+## formatMyersGraph ⇒
 Format Myers diff result vectors as an ASCII grid visualization.
 Shows the edit graph with the path taken through it.
 
 **Kind**: global constant  
-**Returns**: <code>string</code> - The formatted Myers graph.  
+**Returns**: The formatted Myers graph.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| rx | <code>Array.&lt;boolean&gt;</code> | Result vector for x (deletions). |
-| ry | <code>Array.&lt;boolean&gt;</code> | Result vector for y (insertions). |
-| x | <code>Array.&lt;any&gt;</code> | The original sequence. |
-| y | <code>Array.&lt;any&gt;</code> | The modified sequence. |
-| [options] | <code>object</code> | Configuration options. |
-| [options.showFull] | <code>boolean</code> | Show full grid or just the path, default is false (path only). |
-| [options.showLabels] | <code>boolean</code> | Show axis labels, default is true. |
+| Param | Description |
+| --- | --- |
+| rx | Result vector for x (deletions). |
+| ry | Result vector for y (insertions). |
+| x | The original sequence. |
+| y | The modified sequence. |
+| options | Configuration options. |
 
-
-* [formatMyersGraph](#formatMyersGraph) ⇒ <code>string</code>
-    * [~path](#formatMyersGraph..path) : [<code>Array.&lt;MyersPathNode&gt;</code>](#MyersPathNode)
-    * [~grid](#formatMyersGraph..grid) : <code>Array.&lt;Array.&lt;string&gt;&gt;</code>
-
-<a name="formatMyersGraph..path"></a>
-
-### formatMyersGraph~path : [<code>Array.&lt;MyersPathNode&gt;</code>](#MyersPathNode)
-**Kind**: inner constant of [<code>formatMyersGraph</code>](#formatMyersGraph)  
-<a name="formatMyersGraph..grid"></a>
-
-### formatMyersGraph~grid : <code>Array.&lt;Array.&lt;string&gt;&gt;</code>
-**Kind**: inner constant of [<code>formatMyersGraph</code>](#formatMyersGraph)  
 <a name="debug"></a>
 
 ## debug() : [<code>DebugLogger</code>](#DebugLogger)
+**Kind**: global function  
+<a name="diffByte"></a>
+
+## diffByte()
+Reject non-byte values rather than rendering misleading NaN, string, or overflowing cells.
+
 **Kind**: global function  
 <a name="DebugLogger"></a>
 
@@ -283,119 +233,4 @@ No-op logger, replaced by the `debug` package when enabled.
 | Param | Type | Description |
 | --- | --- | --- |
 | ...args | <code>\*</code> | The arguments to log. |
-
-<a name="FormatNumber"></a>
-
-## FormatNumber ⇒ <code>string</code>
-Format a numeric value for display.
-
-**Kind**: global typedef  
-**Returns**: <code>string</code> - The formatted number as a string.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>number</code> | The number to format. |
-
-<a name="FormatASCIIOutput"></a>
-
-## FormatASCIIOutput : <code>Array.&lt;(string\|Record.&lt;string, (boolean\|number\|string)&gt;)&gt;</code>
-ASCII formatting result: a two-element array of `[character, flags]`.
-
-**Kind**: global typedef  
-<a name="FormatNumberToASCII"></a>
-
-## FormatNumberToASCII ⇒ [<code>FormatASCIIOutput</code>](#FormatASCIIOutput)
-Format a byte value for ASCII display in a hex table.
-
-**Kind**: global typedef  
-**Returns**: [<code>FormatASCIIOutput</code>](#FormatASCIIOutput) - Character to represent this value and any flags for the function.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>number</code> | Input data to print out as a hex table. |
-| asciiFlags | <code>Record.&lt;string, (boolean\|number\|string)&gt;</code> | Any flags needed by the formatter. |
-| data | <code>default</code> \| <code>default</code> | The data being processed. |
-
-<a name="HexTableFormater"></a>
-
-## HexTableFormater : <code>object</code>
-Formatting functions for all value types.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| offset | [<code>FormatNumber</code>](#FormatNumber) | Offset formatting fuction. |
-| value | [<code>FormatNumber</code>](#FormatNumber) | Byte value formating function. |
-| ascii | [<code>FormatNumberToASCII</code>](#FormatNumberToASCII) | ASCII text formatting function. |
-
-<a name="HexTableHeader"></a>
-
-## HexTableHeader : <code>object</code>
-Header layout definitions.
-GNU poke hexTableHeader.value = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff']
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| offset | <code>string</code> | Offset header column presentation. |
-| value | <code>Array.&lt;string&gt;</code> | Byte value header values, grouped as defined in the provided HexTableDimensions. |
-| ascii | <code>string</code> | ASCII text presentation. |
-
-<a name="HexTableDimensions"></a>
-
-## HexTableDimensions : <code>object</code>
-Header layout definitions.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| columns | <code>number</code> | The number of columns to show in the byte value section of the table. |
-| grouping | <code>number</code> | The number of bytes to cluster together in the byte value section of the table. |
-| maxRows | <code>number</code> | The maxiumum number of rows to show excluding the header & seperator rows. |
-
-<a name="TableFormatStyle"></a>
-
-## TableFormatStyle : <code>object</code>
-Table Format Style definitions.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| topRow | <code>boolean</code> | If true, show the top frame, if false, hide the top frame. Typically used for full framed styles. |
-| bottomRow | <code>boolean</code> | If true, show the bottom frame, if false, hide the top frame. Typically used for full framed styles. |
-| upperLeft | <code>string</code> | Top Left Character |
-| upperRight | <code>string</code> | Top Right Chcaracter |
-| lowerLeft | <code>string</code> | Bottom Left Character |
-| lowerRight | <code>string</code> | Bottom Right Character |
-| intersection | <code>string</code> | 4 Way Intersection Character |
-| line | <code>string</code> | Horizontal Line Character |
-| wall | <code>string</code> | Vertical Line Character |
-| intersectionTop | <code>string</code> | 2 Way Intersection from the bottom Character |
-| intersectionBottom | <code>string</code> | 2 Way Intersection from the top Character |
-| intersectionLeft | <code>string</code> | 2 Way Intersection from the right Character |
-| intersectionRight | <code>string</code> | 2 Way Intersection from the left Character |
-
-<a name="MyersPathNode"></a>
-
-## MyersPathNode : <code>object</code>
-A single node along the traced path through the Myers edit graph.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| x | <code>number</code> | The column (x sequence) index. |
-| y | <code>number</code> | The row (y sequence) index. |
-| [diagonal] | <code>boolean</code> | True when the edge into this node is a diagonal (match) move. |
-| [horizontal] | <code>boolean</code> | True when the edge into this node is a horizontal (delete) move. |
-| [vertical] | <code>boolean</code> | True when the edge into this node is a vertical (insert) move. |
 

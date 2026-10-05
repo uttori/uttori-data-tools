@@ -1,9 +1,9 @@
 ## Constants
 
 <dl>
-<dt><a href="#float48">float48</a> ⇒ <code>number</code></dt>
+<dt><a href="#float48">float48</a> ⇒</dt>
 <dd><p>Converts the provided <code>Uint8Array</code> into a Turbo Pascal 48 bit float value.
-May be faulty with large numbers due to float percision.</p>
+Real48 values are exactly representable by a JavaScript Number; no decimal rounding is applied.</p>
 <p>While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
 Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.</p>
 <p>The Real48 type exists for backward compatibility with Turbo Pascal. It defines a 6-byte floating-point type.
@@ -17,20 +17,31 @@ M[39]: Mantissa
 S[1]: Sign</p>
 <p>Value: (-1)^s * 2^(e - 129) * (1.f)</p>
 </dd>
-<dt><a href="#float80">float80</a> ⇒ <code>number</code></dt>
-<dd><p>Convert the current buffer into an IEEE 80 bit extended float value.</p>
+<dt><a href="#float80">float80</a> ⇒</dt>
+<dd><p>Convert the current little-endian buffer into an IEEE 80 bit extended float value.</p>
 </dd>
-<dt><a href="#convertFromIeeeExtended">convertFromIeeeExtended</a> ⇒ <code>number</code></dt>
+<dt><a href="#convertFromIeeeExtended">convertFromIeeeExtended</a> ⇒</dt>
 <dd><p>Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
 Uses <code>&gt;&gt;&gt; 0</code> to force unsigned 32-bit mantissas.</p>
 </dd>
 </dl>
 
+## Functions
+
+<dl>
+<dt><a href="#validateBytes">validateBytes()</a></dt>
+<dd><p>Validate the required bytes, including ordinary arrays that do not coerce values to bytes.</p>
+</dd>
+<dt><a href="#decodeExtended">decodeExtended()</a></dt>
+<dd><p>Decode either byte order after its exponent and unsigned significand words have been read.</p>
+</dd>
+</dl>
+
 <a name="float48"></a>
 
-## float48 ⇒ <code>number</code>
+## float48 ⇒
 Converts the provided `Uint8Array` into a Turbo Pascal 48 bit float value.
-May be faulty with large numbers due to float percision.
+Real48 values are exactly representable by a JavaScript Number; no decimal rounding is applied.
 
 While most languages use a 32-bit or 64-bit floating point decimal variable, usually called single or double,
 Turbo Pascal featured an uncommon 48-bit float called a real which served the same function as a float.
@@ -51,37 +62,49 @@ S[1]: Sign
 Value: (-1)^s * 2^(e - 129) * (1.f)
 
 **Kind**: global constant  
-**Returns**: <code>number</code> - The read value as a number.  
+**Returns**: The read value as a number.  
 **See**: [Turbo Pascal Real](http://www.shikadi.net/moddingwiki/Turbo_Pascal_Real)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| uint8 | <code>Uint8Array</code> | The data to process to a float48 value. |
+| Param | Description |
+| --- | --- |
+| uint8 | The data to process to a float48 value. |
 
 <a name="float80"></a>
 
-## float80 ⇒ <code>number</code>
-Convert the current buffer into an IEEE 80 bit extended float value.
+## float80 ⇒
+Convert the current little-endian buffer into an IEEE 80 bit extended float value.
 
 **Kind**: global constant  
-**Returns**: <code>number</code> - The read value as a number.  
+**Returns**: The read value as a number.  
 **See**: [Extended_Precision](https://en.wikipedia.org/wiki/Extended_precision)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| uint8 | <code>Uint8Array</code> | The raw data to convert to a float80. |
+| Param | Description |
+| --- | --- |
+| uint8 | The raw data to convert to a float80. |
 
 <a name="convertFromIeeeExtended"></a>
 
-## convertFromIeeeExtended ⇒ <code>number</code>
+## convertFromIeeeExtended ⇒
 Convert 10-byte IEEE 754 extended precision float, as used by AIFF into a JavaScript Number.
 Uses `>>> 0` to force unsigned 32-bit mantissas.
 
 **Kind**: global constant  
-**Returns**: <code>number</code> - The converted value.  
+**Returns**: The converted value.  
 **See**: [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| uint8 | <code>Uint8Array</code> \| <code>Array.&lt;number&gt;</code> | 10-byte extended float. |
+| Param | Description |
+| --- | --- |
+| uint8 | 10-byte extended float. |
 
+<a name="validateBytes"></a>
+
+## validateBytes()
+Validate the required bytes, including ordinary arrays that do not coerce values to bytes.
+
+**Kind**: global function  
+<a name="decodeExtended"></a>
+
+## decodeExtended()
+Decode either byte order after its exponent and unsigned significand words have been read.
+
+**Kind**: global function  

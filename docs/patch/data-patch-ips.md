@@ -25,26 +25,16 @@ Not every patching program will implement this extension, however.</p>
 ## Constants
 
 <dl>
-<dt><a href="#IPS_MAX_SIZE">IPS_MAX_SIZE</a> : <code>number</code></dt>
-<dd><p>The maximum size of a file in the IPS format, 16 megabytes.</p>
+<dt><a href="#IPS_MAX_SIZE">IPS_MAX_SIZE</a></dt>
+<dd><p>The maximum output file size supported by this implementation, 16 mebibytes.</p>
 </dd>
 </dl>
 
 ## Functions
 
 <dl>
-<dt><a href="#debug">debug()</a> : <code><a href="#DebugLogger">DebugLogger</a></code></dt>
-<dd></dd>
-</dl>
-
-## Typedefs
-
-<dl>
-<dt><a href="#DebugLogger">DebugLogger</a> : <code>function</code></dt>
+<dt><a href="#debug">debug()</a></dt>
 <dd><p>No-op logger, replaced by the <code>debug</code> package when enabled.</p>
-</dd>
-<dt><a href="#IPSChunk">IPSChunk</a> : <code>object</code></dt>
-<dd><p>A chunk of IPS data.</p>
 </dd>
 </dl>
 
@@ -74,20 +64,23 @@ Not every patching program will implement this extension, however.
 **See**: [http://fileformats.archiveteam.org/wiki/IPS_(binary_patch_format)](http://fileformats.archiveteam.org/wiki/IPS_(binary_patch_format))  
 
 * [IPS](#IPS)
-    * [new IPS(input, [parse])](#new_IPS_new)
+    * [new IPS(input, parse)](#new_IPS_new)
     * _instance_
-        * [.hunks](#IPS+hunks) : [<code>Array.&lt;IPSChunk&gt;</code>](#IPSChunk)
-        * [.truncate](#IPS+truncate) : <code>number</code>
+        * [.hunks](#IPS+hunks)
+        * [.truncate](#IPS+truncate)
+        * [.hasTruncate](#IPS+hasTruncate)
         * [.parse()](#IPS+parse)
         * [.decodeHeader()](#IPS+decodeHeader)
-        * [.encode()](#IPS+encode) ⇒ <code>DataBuffer</code>
-        * [.apply(input)](#IPS+apply) ⇒ <code>DataBuffer</code>
+        * [.encode()](#IPS+encode) ⇒
+        * [.apply(input)](#IPS+apply) ⇒
+        * [.validateTruncate()](#IPS+validateTruncate)
     * _static_
-        * [.createIPSFromDataBuffers(original, modified)](#IPS.createIPSFromDataBuffers) ⇒ [<code>IPS</code>](#IPS)
+        * [.createIPSFromDataBuffers(original, modified)](#IPS.createIPSFromDataBuffers) ⇒
+        * [.validateHunk()](#IPS.validateHunk)
 
 <a name="new_IPS_new"></a>
 
-### new IPS(input, [parse])
+### new IPS(input, parse)
 Creates an instance of IPS.
 
 **Throws**:
@@ -96,21 +89,27 @@ Creates an instance of IPS.
 - <code>TypeError</code> Unknown type of input for DataBuffer: ${typeof input}
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| input | <code>Array.&lt;number&gt;</code> \| <code>ArrayBuffer</code> \| <code>Buffer</code> \| <code>DataBuffer</code> \| <code>Int8Array</code> \| <code>Int16Array</code> \| <code>Int32Array</code> \| <code>number</code> \| <code>string</code> \| <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> | <code>0</code> | The data to process. |
-| [parse] | <code>boolean</code> | <code>true</code> | Whether to immediately parse the IPS file. Default is true. |
+| Param | Default | Description |
+| --- | --- | --- |
+| input | <code>0</code> | The data to process. |
+| parse | <code>true</code> | Whether to immediately parse the IPS file. Default is true. |
 
 <a name="IPS+hunks"></a>
 
-### ipS.hunks : [<code>Array.&lt;IPSChunk&gt;</code>](#IPSChunk)
-The changed to be made.
+### ipS.hunks
+The chunks to be applied to the data.
 
 **Kind**: instance property of [<code>IPS</code>](#IPS)  
 <a name="IPS+truncate"></a>
 
-### ipS.truncate : <code>number</code>
+### ipS.truncate
 The 3 byte length the file should be truncated to.
+
+**Kind**: instance property of [<code>IPS</code>](#IPS)  
+<a name="IPS+hasTruncate"></a>
+
+### ipS.hasTruncate
+Whether a truncate command is present, including an explicit truncate to zero bytes.
 
 **Kind**: instance property of [<code>IPS</code>](#IPS)  
 <a name="IPS+parse"></a>
@@ -138,69 +137,57 @@ Signature (ASCII): [P, A, T, C, H]
 
 <a name="IPS+encode"></a>
 
-### ipS.encode() ⇒ <code>DataBuffer</code>
+### ipS.encode() ⇒
 Convert the current instance to an IPS file Buffer instance.
 
 **Kind**: instance method of [<code>IPS</code>](#IPS)  
-**Returns**: <code>DataBuffer</code> - The new IPS file as a Buffer.  
+**Returns**: The new IPS file as a Buffer.  
 <a name="IPS+apply"></a>
 
-### ipS.apply(input) ⇒ <code>DataBuffer</code>
+### ipS.apply(input) ⇒
 Apply the IPS patch to an input DataBuffer.
 
 **Kind**: instance method of [<code>IPS</code>](#IPS)  
-**Returns**: <code>DataBuffer</code> - The patched binary.  
+**Returns**: The patched binary.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| input | <code>DataBuffer</code> | The binary to patch. |
+| Param | Description |
+| --- | --- |
+| input | The binary to patch. |
 
+<a name="IPS+validateTruncate"></a>
+
+### ipS.validateTruncate()
+Validate the optional three-byte final size, including an explicit zero-length result.
+
+**Kind**: instance method of [<code>IPS</code>](#IPS)  
 <a name="IPS.createIPSFromDataBuffers"></a>
 
-### IPS.createIPSFromDataBuffers(original, modified) ⇒ [<code>IPS</code>](#IPS)
+### IPS.createIPSFromDataBuffers(original, modified) ⇒
 Calculate the difference between two DataBuffers and save it as an IPS patch.
 
 **Kind**: static method of [<code>IPS</code>](#IPS)  
-**Returns**: [<code>IPS</code>](#IPS) - The IPS patch file data as a Buffer.  
+**Returns**: The IPS patch file data as a Buffer.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| original | <code>DataBuffer</code> | The original file to compare against. |
-| modified | <code>DataBuffer</code> | The modified file. |
+| Param | Description |
+| --- | --- |
+| original | The original file to compare against, using all committed bytes regardless of its cursor. |
+| modified | The modified file, using all committed bytes regardless of its cursor. |
 
+<a name="IPS.validateHunk"></a>
+
+### IPS.validateHunk()
+Validate manually supplied or parsed records before encoding or applying any of them.
+
+**Kind**: static method of [<code>IPS</code>](#IPS)  
 <a name="IPS_MAX_SIZE"></a>
 
-## IPS\_MAX\_SIZE : <code>number</code>
-The maximum size of a file in the IPS format, 16 megabytes.
+## IPS\_MAX\_SIZE
+The maximum output file size supported by this implementation, 16 mebibytes.
 
 **Kind**: global constant  
 <a name="debug"></a>
 
-## debug() : [<code>DebugLogger</code>](#DebugLogger)
-**Kind**: global function  
-<a name="DebugLogger"></a>
-
-## DebugLogger : <code>function</code>
+## debug()
 No-op logger, replaced by the `debug` package when enabled.
 
-**Kind**: global typedef  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ...args | <code>\*</code> | The arguments to log. |
-
-<a name="IPSChunk"></a>
-
-## IPSChunk : <code>object</code>
-A chunk of IPS data.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| offset | <code>number</code> | 3 bytes. The starting offset of the change. |
-| length | <code>number</code> | The length of the change. |
-| [rle] | <code>number</code> | The type of change, value is not undefined when Run Length Encoding is being used. |
-| [data] | <code>Array.&lt;number&gt;</code> | The data to be used for the change when not RLE. |
-
+**Kind**: global function  

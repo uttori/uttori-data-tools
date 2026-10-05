@@ -9,48 +9,28 @@
 ## Functions
 
 <dl>
-<dt><a href="#hunks">hunks(x, y, eq, context)</a> ⇒ <code><a href="#Hunk">Array.&lt;Hunk&gt;</a></code></dt>
+<dt><a href="#hunks">hunks(x, y, eq, context)</a> ⇒</dt>
 <dd><p>Compares the contents of x and y using the provided equality comparison and returns the
 changes necessary to convert from one to the other.
 The output is a sequence of hunks that each describe a number of consecutive edits.
 Hunks include a number of matching elements before and after the last delete or insert operation.
 If x and y are identical, the output has length zero.
-Note that this function has generally worse performance than [Hunks] for diffs with many changes.</p>
+Computing a minimal diff can be expensive for inputs with many changes.</p>
 </dd>
-<dt><a href="#createHunks">createHunks(x, y, rx, ry, _context)</a> ⇒ <code><a href="#Hunk">Array.&lt;Hunk&gt;</a></code></dt>
+<dt><a href="#createHunks">createHunks(x, y, rx, ry, context)</a> ⇒</dt>
 <dd></dd>
-<dt><a href="#edits">edits(x, y, eq)</a> ⇒ <code><a href="#Edit">Array.&lt;Edit&gt;</a></code></dt>
+<dt><a href="#edits">edits(x, y, eq)</a> ⇒</dt>
 <dd><p>Compares the contents of x and y using the provided equality comparison and returns the
 changes necessary to convert from one to the other.
 Returns edits for every element in the input.
 If both x and y are identical, the output will consist of a match edit for every input element.
-Note that this function has generally worse performance than [Edits] for diffs with many changes.</p>
+Computing a minimal diff can be expensive for inputs with many changes.</p>
 </dd>
-<dt><a href="#createEdits">createEdits(x, y, rx, ry)</a> ⇒ <code><a href="#Edit">Array.&lt;Edit&gt;</a></code></dt>
+<dt><a href="#createEdits">createEdits(x, y, rx, ry, startX, endX, startY, endY)</a> ⇒</dt>
 <dd></dd>
-<dt><a href="#diff">diff(x, y, eq)</a> ⇒ <code><a href="#DiffResult">DiffResult</a></code></dt>
+<dt><a href="#diff">diff(x, y, eq)</a> ⇒</dt>
 <dd><p>Main diff function.</p>
 </dd>
-</dl>
-
-## Typedefs
-
-<dl>
-<dt><a href="#Edit">Edit</a> : <code>object</code></dt>
-<dd><p>Edit describes a single edit of a diff.</p>
-<ul>
-<li>For Match, both X and Y contain the matching element.</li>
-<li>For Delete, X contains the deleted element and Y is unset (zero value).</li>
-<li>For Insert, Y contains the inserted element and X is unset (zero value).</li>
-</ul>
-</dd>
-<dt><a href="#Hunk">Hunk</a> : <code>object</code></dt>
-<dd><p>Hunk describes a sequence of consecutive edits.</p>
-</dd>
-<dt><a href="#EqualityFunction">EqualityFunction</a> ⇒ <code>boolean</code></dt>
-<dd></dd>
-<dt><a href="#DiffResult">DiffResult</a> : <code>object</code></dt>
-<dd></dd>
 </dl>
 
 <a name="Op"></a>
@@ -61,206 +41,84 @@ Op describes an edit operation.
 **Kind**: global constant  
 <a name="hunks"></a>
 
-## hunks(x, y, eq, context) ⇒ [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
+## hunks(x, y, eq, context) ⇒
 Compares the contents of x and y using the provided equality comparison and returns the
 changes necessary to convert from one to the other.
 The output is a sequence of hunks that each describe a number of consecutive edits.
 Hunks include a number of matching elements before and after the last delete or insert operation.
 If x and y are identical, the output has length zero.
-Note that this function has generally worse performance than [Hunks] for diffs with many changes.
+Computing a minimal diff can be expensive for inputs with many changes.
 
 **Kind**: global function  
-**Returns**: [<code>Array.&lt;Hunk&gt;</code>](#Hunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
+**Returns**: The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| x | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| eq | [<code>EqualityFunction</code>](#EqualityFunction) | Equality function to compare elements |
-| context | <code>number</code> | Number of matching elements to include around changes (default: 3) |
+| Param | Description |
+| --- | --- |
+| x | The first array to compare |
+| y | The second array to compare |
+| eq | Equality function to compare elements |
+| context | Non-negative safe integer number of matching elements to include around changes (default: 3) |
 
 <a name="createHunks"></a>
 
-## createHunks(x, y, rx, ry, _context) ⇒ [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
+## createHunks(x, y, rx, ry, context) ⇒
 **Kind**: global function  
-**Returns**: [<code>Array.&lt;Hunk&gt;</code>](#Hunk) - The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
+**Returns**: The hunks for the diff. The hunks describe the changes necessary to convert from x to y.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| x | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
-| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
-| _context | <code>number</code> | The context |
+| Param | Description |
+| --- | --- |
+| x | The first array to compare |
+| y | The second array to compare |
+| rx | The first array of booleans |
+| ry | The second array of booleans |
+| context | The context |
 
-
-* [createHunks(x, y, rx, ry, _context)](#createHunks) ⇒ [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
-    * [~hunks](#createHunks..hunks) : [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
-    * [~edits](#createHunks..edits) : [<code>Array.&lt;Edit&gt;</code>](#Edit)
-    * [~edits](#createHunks..edits) : [<code>Array.&lt;Edit&gt;</code>](#Edit)
-
-<a name="createHunks..hunks"></a>
-
-### createHunks~hunks : [<code>Array.&lt;Hunk&gt;</code>](#Hunk)
-**Kind**: inner constant of [<code>createHunks</code>](#createHunks)  
-<a name="createHunks..edits"></a>
-
-### createHunks~edits : [<code>Array.&lt;Edit&gt;</code>](#Edit)
-**Kind**: inner constant of [<code>createHunks</code>](#createHunks)  
-<a name="createHunks..edits"></a>
-
-### createHunks~edits : [<code>Array.&lt;Edit&gt;</code>](#Edit)
-**Kind**: inner constant of [<code>createHunks</code>](#createHunks)  
 <a name="edits"></a>
 
-## edits(x, y, eq) ⇒ [<code>Array.&lt;Edit&gt;</code>](#Edit)
+## edits(x, y, eq) ⇒
 Compares the contents of x and y using the provided equality comparison and returns the
 changes necessary to convert from one to the other.
 Returns edits for every element in the input.
 If both x and y are identical, the output will consist of a match edit for every input element.
-Note that this function has generally worse performance than [Edits] for diffs with many changes.
+Computing a minimal diff can be expensive for inputs with many changes.
 
 **Kind**: global function  
-**Returns**: [<code>Array.&lt;Edit&gt;</code>](#Edit) - The edits for the diff.  
+**Returns**: The edits for the diff.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| x | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| eq | [<code>EqualityFunction</code>](#EqualityFunction) | Equality function to compare elements |
+| Param | Description |
+| --- | --- |
+| x | The first array to compare |
+| y | The second array to compare |
+| eq | Equality function to compare elements |
 
 <a name="createEdits"></a>
 
-## createEdits(x, y, rx, ry) ⇒ [<code>Array.&lt;Edit&gt;</code>](#Edit)
+## createEdits(x, y, rx, ry, startX, endX, startY, endY) ⇒
 **Kind**: global function  
-**Returns**: [<code>Array.&lt;Edit&gt;</code>](#Edit) - The edits for the diff.  
+**Returns**: The edits for the diff.  
 
-| Param | Type | Description |
+| Param | Default | Description |
 | --- | --- | --- |
-| x | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
-| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
+| x |  | The first array to compare |
+| y |  | The second array to compare |
+| rx |  | The first array of booleans |
+| ry |  | The second array of booleans |
+| startX | <code>0</code> | The start position in x |
+| endX |  | The end position in x (exclusive) |
+| startY | <code>0</code> | The start position in y |
+| endY |  | The end position in y (exclusive) |
 
-<a name="createEdits..edits"></a>
-
-### createEdits~edits : [<code>Array.&lt;Edit&gt;</code>](#Edit)
-**Kind**: inner constant of [<code>createEdits</code>](#createEdits)  
 <a name="diff"></a>
 
-## diff(x, y, eq) ⇒ [<code>DiffResult</code>](#DiffResult)
+## diff(x, y, eq) ⇒
 Main diff function.
 
 **Kind**: global function  
-**Returns**: [<code>DiffResult</code>](#DiffResult) - The result of the diff.  
+**Returns**: The result of the diff.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| x | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The first array to compare |
-| y | <code>Array.&lt;string&gt;</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;Uint8Array&gt;</code> | The second array to compare |
-| eq | [<code>EqualityFunction</code>](#EqualityFunction) | Equality function to compare elements |
-
-
-* [diff(x, y, eq)](#diff) ⇒ [<code>DiffResult</code>](#DiffResult)
-    * [~x0](#diff..x0) : <code>Array.&lt;number&gt;</code>
-    * [~y0](#diff..y0) : <code>Array.&lt;number&gt;</code>
-    * [~xidx](#diff..xidx) : <code>Array.&lt;number&gt;</code>
-    * [~yidx](#diff..yidx) : <code>Array.&lt;number&gt;</code>
-    * [~counts](#diff..counts) : <code>Array.&lt;number&gt;</code>
-    * [~elements](#diff..elements) : <code>Array.&lt;(string\|number\|Uint8Array)&gt;</code>
-    * [~m](#diff..m) : <code>Myers</code>
-    * [~findId(e)](#diff..findId) ⇒ <code>number</code>
-
-<a name="diff..x0"></a>
-
-### diff~x0 : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..y0"></a>
-
-### diff~y0 : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..xidx"></a>
-
-### diff~xidx : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..yidx"></a>
-
-### diff~yidx : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..counts"></a>
-
-### diff~counts : <code>Array.&lt;number&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..elements"></a>
-
-### diff~elements : <code>Array.&lt;(string\|number\|Uint8Array)&gt;</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..m"></a>
-
-### diff~m : <code>Myers</code>
-**Kind**: inner constant of [<code>diff</code>](#diff)  
-<a name="diff..findId"></a>
-
-### diff~findId(e) ⇒ <code>number</code>
-**Kind**: inner method of [<code>diff</code>](#diff)  
-**Returns**: <code>number</code> - The id of the element.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| e | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The element to find the id of. |
-
-<a name="Edit"></a>
-
-## Edit : <code>object</code>
-Edit describes a single edit of a diff.
-- For Match, both X and Y contain the matching element.
-- For Delete, X contains the deleted element and Y is unset (zero value).
-- For Insert, Y contains the inserted element and X is unset (zero value).
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| op | <code>number</code> | The edit operation: Match = 0, Delete = 1, Insert = 2. |
-| x | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The element from the left slice. |
-| y | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | The element from the right slice. |
-
-<a name="Hunk"></a>
-
-## Hunk : <code>object</code>
-Hunk describes a sequence of consecutive edits.
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| posX | <code>number</code> | The start position in x. |
-| endX | <code>number</code> | The end position in x. |
-| posY | <code>number</code> | The start position in y. |
-| endY | <code>number</code> | The end position in y. |
-| edits | [<code>Array.&lt;Edit&gt;</code>](#Edit) | The edits to transform x[PosX:EndX] to y[PosY:EndY]. |
-
-<a name="EqualityFunction"></a>
-
-## EqualityFunction ⇒ <code>boolean</code>
-**Kind**: global typedef  
-**Returns**: <code>boolean</code> - True if values are equal  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| a | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | First value to compare |
-| b | <code>string</code> \| <code>number</code> \| <code>Uint8Array</code> | Second value to compare |
-
-<a name="DiffResult"></a>
-
-## DiffResult : <code>object</code>
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| rx | <code>Array.&lt;boolean&gt;</code> | The first array of booleans |
-| ry | <code>Array.&lt;boolean&gt;</code> | The second array of booleans |
+| Param | Description |
+| --- | --- |
+| x | The first array to compare |
+| y | The second array to compare |
+| eq | Equality function to compare elements |
 

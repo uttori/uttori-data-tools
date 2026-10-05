@@ -93,7 +93,7 @@ test('parse(): accepts old MKII bank-switch aliases', (t) => {
 });
 
 test('SX hardware records: following delays, big-endian lengths, and footer bars', (t) => {
-  // PTN00026 from TylerOderkirk/ptn2midi's public hardware card; the final hit starts at beat 7.
+  // Final hit starts at beat 7.
   const records = Buffer.from('90470000787c0083f04700007567007d904700007576006d604700007b78006630490000777f002b604800007f7f004c', 'hex');
   const pattern = new SP404Pattern(patternBytes([[...records]], { og: true, bars: 2 }), { og: true });
   t.is(pattern.bars, 2);
