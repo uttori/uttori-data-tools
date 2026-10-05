@@ -32,11 +32,11 @@
     "@rollup/plugin-replace": "^6.0.3",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/debug": "^4.1.13",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "ava": "^8.0.1",
     "c8": "^12.0.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
-    "eslint-plugin-security": "^4.1.0",
+    "eslint-plugin-security": "^4.2.0",
     "jsdoc": "^4.0.5",
     "jsdoc-to-markdown": "^9.1.3",
     "jsdoc-tsimport-plugin": "^1.0.5",
@@ -45,7 +45,7 @@
     "oxlint-tsgolint": "^7.0.2003",
     "pre-commit": "^2.0.0",
     "release-it": "^21.1.0",
-    "rollup": "^4.63.5",
+    "rollup": "^4.64.0",
     "rollup-plugin-cleanup": "^3.2.1",
     "sinon": "^22.1.0",
     "typescript": "^7.0.2"
@@ -141,6 +141,14 @@
     "./audio/audio-midi": {
       "import": "./dist/audio/audio-midi.js",
       "types": "./dist/audio/audio-midi.d.ts"
+    },
+    "./audio/sp404-padinfo": {
+      "types": "./dist/audio/sp404-padinfo.d.ts",
+      "import": "./dist/audio/sp404-padinfo.js"
+    },
+    "./audio/sp404-pattern": {
+      "types": "./dist/audio/sp404-pattern.d.ts",
+      "import": "./dist/audio/sp404-pattern.js"
     }
   },
   "ava": {

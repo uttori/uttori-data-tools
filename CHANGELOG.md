@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. This projec
 
 - 🧰 Add `ImageHEIC` for parsing HEIC image metadata from iPhones
 
+## [5.1.0](https://github.com/uttori/uttori-data-tools/compare/v5.0.0...v5.1.0) - 2026-10-04
+
+- 🧰 Add `SP404PadInfo` to read and encode SP-404/SX/A `PAD_INFO.BIN` pad records
+- 🧰 Add `SP404Pattern` to read SP-404/SX/A/MKII patterns and convert between patterns and MIDI
+- 🎁 Update dev dependencies
+
 ## [5.0.0](https://github.com/uttori/uttori-data-tools/compare/v4.1.0...v5.0.0) - 2026-09-29
 
 Massive overhaul for some more modern applications.

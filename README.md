@@ -21,6 +21,8 @@ Tools for working with binary data.
 - **BitmapText** - 5×7 caption glyphs. `measure` and `drawBitmapText`.
 - **AudioWAV** - Read and write RIFF WAVE and AIFF.
 - **AudioMIDI** - Read and write Standard MIDI files.
+- **SP404PadInfo** - Read and encode SP-404/SX/A `PAD_INFO.BIN` pad records.
+- **SP404Pattern** - Read SP-404/SX/A patterns and convert between patterns and MIDI.
 - **IPS** - Build and apply IPS patches, including the truncate extension.
 
 
@@ -153,6 +155,33 @@ const patch = IPS.createIPSFromDataBuffers(original, new DataBuffer([1, 9, 3, 4]
 [...patch.apply(original).data];
 ➜ [1, 9, 3, 4]
 ```
+
+## SP-404 Utilities
+
+MIDI note values are numeric, `fromMidi()` returns a committed `DataBuffer` with bytes ready to read or save.
+
+It imports PPQ MIDI into 4/4 patterns of at most 64 bars, rejecting unsupported timing, invalid pad mappings, and values that would overflow the device fields.
+
+For the original device, pass `{ og: true }` when parsing and `96, true` to `fromMidi()`, the MKII uses 480 PPQ by default.
+
+```js
+import { AudioMIDI, SP404PadInfo, SP404Pattern } from '@uttori/data-tools';
+
+const pad = new SP404PadInfo(SP404PadInfo.encodePad({ volume: 100 })).pads[0];
+pad.label;
+➜ 'A1'
+
+const midi = AudioMIDI.convertToMidi({
+  tracks: [{ notes: [{ midiNote: 60, ticks: 0, velocity: 100, length: 480 }] }],
+});
+const bytes = SP404Pattern.fromMidi(midi, { 60: 'A1' }, 480);
+const pattern = new SP404Pattern(bytes);
+pattern.getUsedPads();
+➜ ['A1']
+```
+
+See the [pad-info API](docs/audio/sp404-padinfo.md) and
+[pattern API](docs/audio/sp404-pattern.md) for examples and options.
 
 ## Tree Shaking with ESM Modules
 

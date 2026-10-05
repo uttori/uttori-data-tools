@@ -1,6 +1,8 @@
 import AudioMIDI from "./audio/audio-midi.js";
 // import ImageHEIC from './image/data-image-heic.js';
 import AudioWAV from "./audio/audio-wav.js";
+import SP404PadInfo from "./audio/sp404-padinfo.js";
+import SP404Pattern from "./audio/sp404-pattern.js";
 import DataBitstream from "./data-bitstream.js";
 import { diffBuffer } from "./data-buffer-helpers.js";
 import DataBuffer from "./data-buffer.js";
@@ -69,6 +71,8 @@ export default {
   // ImageHEIC,
   AudioWAV,
   AudioMIDI,
+  SP404PadInfo,
+  SP404Pattern,
   IPS,
   UnderflowError,
 };
@@ -119,3 +123,12 @@ export { float80, float48, convertFromIeeeExtended } from "./data-helpers.js";
 // export { default as ImageHEIC } from './image/data-image-heic.js';
 export { default as AudioWAV } from "./audio/audio-wav.js";
 export { default as AudioMIDI } from "./audio/audio-midi.js";
+export { default as SP404PadInfo } from "./audio/sp404-padinfo.js";
+export { default as SP404Pattern } from "./audio/sp404-pattern.js";
+export type { SP404Pad, SP404PadInput } from "./audio/sp404-padinfo.js";
+export type {
+  SP404Note,
+  SP404PadMapping,
+  SP404PatternOptions,
+  SP404ToMidiOptions,
+} from "./audio/sp404-pattern.js";

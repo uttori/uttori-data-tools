@@ -4,6 +4,7 @@ import test from 'ava';
 // https://rollupjs.org/guide/en/#javascript-api
 import { rollup } from 'rollup';
 import replace from '@rollup/plugin-replace';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const onwarn = console.warn;
 const plugins = [
@@ -250,3 +251,35 @@ test('Tree Shaking: { IPS }', async (t) => {
     'ips.js',
   ]);
 });
+
+for (const [symbol, entry, dependencies] of [
+  ['SP404PadInfo', 'sp404-padinfo.js', ['sp404-padinfo.js']],
+  ['SP404Pattern', 'sp404-pattern.js', ['audio-midi.js', 'sp404-pattern.js']],
+  ['SP404PadInfo subpath', 'sp404-padinfo-subpath.js', ['sp404-padinfo.js']],
+  ['SP404Pattern subpath', 'sp404-pattern-subpath.js', ['audio-midi.js', 'sp404-pattern.js']],
+]) {
+  test(`Tree Shaking: ${symbol} includes only its dependencies`, async (t) => {
+    const bundle = await rollup({
+      input: `./test/tree-shaking/${entry}`,
+      plugins: [...plugins, nodeResolve()],
+      // Unresolved imports and other warnings must not silently become external dependencies.
+      onwarn(warning) { throw new Error(warning.message); },
+    });
+
+    try {
+      const { output } = await bundle.generate({ format: 'es' });
+      t.is(output.length, 1);
+      const chunk = output[0];
+      t.deepEqual(Object.keys(chunk.modules).map((file) => path.basename(file)), [
+        'data-helpers.js', 'underflow-error.js', 'data-buffer.js', ...dependencies, entry,
+      ]);
+      t.deepEqual(chunk.imports, []);
+      t.deepEqual(chunk.dynamicImports, []);
+      // Execute the ESM output with no external imports to catch missing runtime dependencies.
+      const module = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
+      t.is(module.default.name, symbol.toString().split(' ')[0]);
+    } finally {
+      await bundle.close();
+    }
+  });
+}
